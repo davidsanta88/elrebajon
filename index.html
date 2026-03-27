@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Rebajón - Compra y Venta en el Campo</title>
+    <meta name="description" content="Todo lo que necesitas al mejor precio. Compra fácil y seguro en tu pueblo.">
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="main-header">
+        <div class="header-container">
+            <button class="menu-btn" id="menuToggle">
+                <i data-lucide="menu"></i>
+            </button>
+            <div class="logo">
+                <h1>El Rebajón</h1>
+            </div>
+            <a href="https://wa.me/573000000000" class="whatsapp-header-btn">
+                <i data-lucide="phone"></i>
+                <span>Contáctanos</span>
+            </a>
+        </div>
+    </header>
+
+    <main>
+        <!-- HERO BANNER -->
+        <section class="hero">
+            <div class="hero-content">
+                <div class="hero-image-container">
+                    <img src="img/hero.png" alt="Productos del hogar y campo" class="hero-img">
+                    <div class="hero-overlay">
+                        <div class="hero-text-box">
+                            <h2>¡Todo lo que necesitas al mejor precio!</h2>
+                            <a href="#productos" class="btn-primary">Ver productos</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BUSCADOR -->
+        <section class="search-section">
+            <div class="search-bar">
+                <input type="text" placeholder="¿Qué estás buscando?" aria-label="Buscar productos">
+                <button type="submit" class="search-btn">
+                    <i data-lucide="search"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- CATEGORÍAS -->
+        <section class="categories">
+            <h2 class="section-title">Categorías</h2>
+            <div class="category-grid">
+                <a href="#" class="cat-card cat-hogar">
+                    <div class="cat-icon"><i data-lucide="bed"></i></div>
+                    <span>Hogar</span>
+                </a>
+                <a href="#" class="cat-card cat-ropa">
+                    <div class="cat-icon"><i data-lucide="shirt"></i></div>
+                    <span>Ropa</span>
+                </a>
+                <a href="#" class="cat-card cat-animales">
+                    <div class="cat-icon"><i data-lucide="beef"></i></div>
+                    <span>Animales</span>
+                </a>
+                <a href="#" class="cat-card cat-electro">
+                    <div class="cat-icon"><i data-lucide="plug"></i></div>
+                    <span>Electrodomésticos</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- OFERTAS DE HOY -->
+        <section class="offers-section">
+            <div class="offers-header">
+                <h2>🔥 Ofertas de hoy</h2>
+            </div>
+            <div class="horizontal-scroll">
+                <div class="offer-card">
+                    <img src="img/colchon.png" alt="Colchón Doble">
+                    <div class="offer-info">
+                        <h3>Colchón Doble</h3>
+                        <p class="price">$250,000</p>
+                        <button class="btn-offer">VER OFERTA</button>
+                    </div>
+                </div>
+                <div class="offer-card">
+                    <img src="img/zapatos.png" alt="Zapatos Deportivos">
+                    <div class="offer-info">
+                        <h3>Zapatos Deportivos</h3>
+                        <p class="price">$80,000</p>
+                        <button class="btn-offer">VER OFERTA</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RECIÉN PUBLICADOS -->
+        <section id="productos" class="new-products">
+            <h2 class="section-title">🆕 Recién publicados</h2>
+            <div class="product-grid">
+                <!-- Producto 1 -->
+                <div class="product-card">
+                    <img src="img/estufa.png" alt="Estufa a Gas">
+                    <div class="product-info">
+                        <h3>Estufa a Gas</h3>
+                        <p class="price">$300,000</p>
+                        <button class="btn-view">Ver</button>
+                    </div>
+                </div>
+                <!-- Producto 2 -->
+                <div class="product-card">
+                    <img src="img/pig.png" alt="Chanchito Gordito">
+                    <div class="product-info">
+                        <h3>Chanchito Gordito</h3>
+                        <p class="price">$450,000</p>
+                        <button class="btn-view">Ver</button>
+                    </div>
+                </div>
+                <!-- Producto 3 -->
+                <div class="product-card">
+                    <img src="img/vestido.png" alt="Vestido Nuevo">
+                    <div class="product-info">
+                        <h3>Vestido Nuevo</h3>
+                        <p class="price">$60,000</p>
+                        <button class="btn-view">Ver</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA WHATSAPP -->
+        <section class="whatsapp-cta">
+            <h3>¿Te interesa algo?</h3>
+            <a href="https://wa.me/573000000000" class="btn-whatsapp-large">
+                <i data-lucide="message-circle"></i>
+                Hablar por WhatsApp
+            </a>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="main-footer">
+        <p class="footer-motto">Compra fácil y seguro en tu pueblo</p>
+        <div class="footer-contacts">
+            <a href="tel:+573000000000"><i data-lucide="phone-call"></i> Llámanos</a>
+            <a href="https://wa.me/573000000000"><i data-lucide="message-square"></i> Escríbenos</a>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Mobile menu toggle (for demonstration)
+        const toggle = document.getElementById('menuToggle');
+        toggle.addEventListener('click', () => {
+            alert('Menú de navegación para fácil acceso.');
+        });
+    </script>
+</body>
+</html>

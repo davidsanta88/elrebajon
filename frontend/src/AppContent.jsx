@@ -1,0 +1,244 @@
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { 
+  Menu, 
+  Search, 
+  MessageCircle, 
+  PhoneCall, 
+  Bed, 
+  Shirt, 
+  Dog, 
+  Plug, 
+  Flame,
+  Settings
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+const AppContent = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      const res = await axios.get(`${API_URL}/api/products`);
+      setProducts(res.data);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setLoading(false);
+    }
+  };
+
+  const offers = products.filter(p => p.isOffer);
+  const recent = products.slice(0, 4);
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      
+      {/* HEADER */}
+      <header className="bg-brand-red text-white p-3 sticky top-0 z-50 shadow-md">
+        <div className="container mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button className="p-1">
+              <Menu size={32} />
+            </button>
+            <h1 className="text-2xl font-black uppercase italic tracking-tighter">
+              El Rebajón
+            </h1>
+          </div>
+          <div className="flex items-center gap-2 bg-brand-red border border-white/30 rounded-full px-3 py-1">
+            <MessageCircle size={20} className="text-white" fill="white" />
+            <span className="text-xs font-bold uppercase">Contáctanos</span>
+          </div>
+        </div>
+      </header>
+
+      {/* HERO BANNER */}
+      <section className="bg-brand-red relative overflow-hidden text-white pt-8 pb-12">
+        <div className="absolute inset-0 opacity-20 pointer-events-none" 
+             style={{ 
+               background: 'repeating-conic-gradient(from 0deg, white 0deg 10deg, transparent 10deg 20deg)',
+               transform: 'scale(3)' 
+             }}>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10 flex flex-col items-center">
+          <div className="relative w-full max-w-sm h-64 mb-6 flex justify-center items-center">
+            <div className="absolute top-0 transform -translate-y-4">
+               <div className="bg-white rounded-xl shadow-2xl p-2 w-48 h-32 flex items-center justify-center">
+                 <Bed size={64} className="text-gray-400" />
+               </div>
+            </div>
+            <div className="absolute left-0 bottom-4 transform -rotate-12 translate-x-4">
+               <div className="bg-white rounded-lg shadow-xl p-1 w-24 h-24 flex items-center justify-center">
+                 <Shirt size={48} className="text-gray-400" />
+               </div>
+            </div>
+            <div className="absolute right-0 bottom-4 transform rotate-12 -translate-x-4">
+               <div className="bg-white rounded-lg shadow-xl p-1 w-24 h-24 flex items-center justify-center font-black text-gray-400 text-center text-xs">
+                  MEJORES<br/>PRECIOS
+               </div>
+            </div>
+          </div>
+
+          <h2 className="text-4xl font-extrabold text-center leading-tight mb-6 tracking-tighter">
+            <span className="text-brand-yellow italic">¡TODO</span> lo que necesitas <br/>
+            al mejor <span className="text-brand-yellow">precio!</span>
+          </h2>
+
+          <button className="bg-brand-yellow text-brand-red text-xl font-black py-3 px-10 rounded-xl shadow-[0_5px_0_0_rgba(180,140,0,1)] hover:translate-y-1 hover:shadow-none transition-all uppercase">
+            Ver Productos
+          </button>
+        </div>
+      </section>
+
+      {/* SEARCH BAR */}
+      <section className="px-4 -mt-6 relative z-20">
+        <div className="max-w-md mx-auto flex bg-white rounded-full shadow-lg border-2 border-gray-100 overflow-hidden">
+          <input 
+            type="text" 
+            placeholder="¿Qué estás buscando?" 
+            className="flex-1 px-5 py-3 outline-none text-gray-700 font-bold"
+          />
+          <button className="bg-brand-red text-white p-3">
+            <Search size={24} />
+          </button>
+        </div>
+      </section>
+
+      {/* CATEGORIES */}
+      <section className="py-8 container mx-auto px-4">
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <div className="h-[2px] w-12 bg-gray-200"></div>
+          <h3 className="text-xl font-black uppercase text-gray-800 tracking-wide italic">Categorías</h3>
+          <div className="h-[2px] w-12 bg-gray-200"></div>
+        </div>
+        
+        <div className="grid grid-cols-4 gap-3 max-w-lg mx-auto">
+          {[
+            { name: 'Hogar', color: 'bg-red-600', icon: <Bed size={32} /> },
+            { name: 'Ropa', color: 'bg-orange-500', icon: <Shirt size={32} /> },
+            { name: 'Animales', color: 'bg-pink-500', icon: <Dog size={32} /> },
+            { name: 'Electrodomésticos', color: 'bg-blue-500', icon: <Plug size={32} /> }
+          ].map((cat, idx) => (
+            <button key={idx} className="flex flex-col items-center gap-2 hover:scale-105 transition-transform">
+              <div className={`${cat.color} text-white w-full aspect-square rounded-2xl flex items-center justify-center shadow-md`}>
+                {cat.icon}
+              </div>
+              <span className="text-[10px] sm:text-xs font-black uppercase text-gray-600 truncate w-full text-center">
+                {cat.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* OFFERS */}
+      <section className="bg-brand-yellow py-6">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Flame className="text-brand-red fill-brand-red" />
+            <h3 className="text-xl font-black uppercase text-brand-red italic">Ofertas de Hoy</h3>
+            <Flame className="text-brand-red fill-brand-red" />
+          </div>
+
+          <div className="flex overflow-x-auto gap-4 pb-2 snap-x px-2 scrollbar-hide">
+            {offers.length > 0 ? offers.map((prod) => (
+              <div key={prod._id} className="min-w-[280px] bg-white rounded-2xl p-3 flex gap-3 shadow-md snap-center border border-yellow-200">
+                <div className="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden shrink-0">
+                  <img src={prod.image || `https://placehold.co/200x200?text=${prod.name}`} alt={prod.name} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex flex-col justify-between">
+                  <div>
+                    <h4 className="font-bold text-sm text-gray-800 line-clamp-2 uppercase leading-tight">{prod.name}</h4>
+                    <p className="text-brand-red font-black text-xl italic">${prod.price.toLocaleString()}</p>
+                  </div>
+                  <button className="bg-brand-red text-white text-[10px] font-black uppercase py-1.5 px-3 rounded-lg self-start shadow-sm">
+                    Ver Oferta
+                  </button>
+                </div>
+              </div>
+            )) : (
+              <p className="text-brand-red font-bold text-center w-full uppercase text-xs italic opacity-50">Cargando ofertas...</p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* NEW PRODUCTS */}
+      <section className="py-8 container mx-auto px-4">
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <div className="h-[2px] w-12 bg-gray-200"></div>
+          <div className="bg-brand-red rounded-full p-1 text-white text-[10px] font-black italic">NEW</div>
+          <h3 className="text-xl font-black uppercase text-gray-800 tracking-wide italic">Recién Publicados</h3>
+          <div className="h-[2px] w-12 bg-gray-200"></div>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {recent.map((prod) => (
+            <div key={prod._id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition-shadow">
+              <div className="aspect-square bg-gray-100 relative">
+                <img src={prod.image || `https://placehold.co/400x400?text=${prod.name}`} alt={prod.name} className="w-full h-full object-cover" />
+                <div className="absolute top-2 right-2 bg-white/90 px-2 py-0.5 rounded text-[8px] font-black text-brand-red uppercase">
+                  {prod.category}
+                </div>
+              </div>
+              <div className="p-3 flex flex-col gap-1">
+                <h4 className="text-xs font-black text-gray-700 uppercase line-clamp-1">{prod.name}</h4>
+                <div className="flex items-center justify-between">
+                  <span className="text-brand-red font-black text-lg italic tracking-tighter">${prod.price.toLocaleString()}</span>
+                  <button className="bg-brand-red text-white rounded-md px-3 py-1 font-black uppercase text-[10px] shadow-sm">
+                    VER
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA WHATSAPP */}
+      <section className="py-8 container mx-auto px-4 text-center">
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <div className="h-[1px] w-12 bg-gray-200"></div>
+          <h3 className="text-sm font-black uppercase text-gray-400 tracking-[0.2em]">¿Te interesa algo?</h3>
+          <div className="h-[1px] w-12 bg-gray-200"></div>
+        </div>
+        
+        <button className="w-full max-w-sm mx-auto bg-brand-green text-white font-black text-xl py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3 hover:scale-105 transition-transform active:scale-95 shadow-green-200">
+          <MessageCircle size={32} fill="white" />
+          Hablar por WhatsApp
+        </button>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="mt-auto bg-white border-t border-gray-100 py-8 px-4">
+        <p className="text-gray-400 text-xs font-bold italic tracking-wider mb-6 text-center uppercase">Compra fácil y seguro en tu pueblo</p>
+        <div className="flex justify-center gap-12 mb-8">
+          <a href="tel:+573000000000" className="flex flex-col items-center gap-1 text-brand-red transition-opacity hover:opacity-70">
+            <PhoneCall size={24} />
+            <span className="font-black uppercase text-[10px]">Llámanos</span>
+          </a>
+          <a href="https://wa.me/573000000000" className="flex flex-col items-center gap-1 text-brand-green transition-opacity hover:opacity-70">
+            <MessageCircle size={24} />
+            <span className="font-black uppercase text-[10px]">Escríbenos</span>
+          </a>
+          <button onClick={() => navigate('/login')} className="flex flex-col items-center gap-1 text-gray-400 transition-opacity hover:opacity-70">
+            <Settings size={24} />
+            <span className="font-black uppercase text-[10px]">Panel</span>
+          </button>
+        </div>
+        <p className="text-[10px] text-gray-300 font-bold uppercase text-center tracking-widest">© 2026 EL REBAJÓN COLOMBIA</p>
+      </footer>
+
+    </div>
+  );
+};
+
+export default AppContent;
