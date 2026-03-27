@@ -12,6 +12,18 @@ const LoginPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Check for common typo observed in screenshot
+        if (email.toLowerCase().includes('elrabajon')) {
+            Swal.fire({
+                icon: 'warning',
+                title: '¿Quisiste decir elrebajon?',
+                text: 'Parece que escribiste "elrabajon" con A. Intenta con "elrebajon" (con E).',
+                confirmButtonColor: '#ff0000'
+            });
+            return;
+        }
+
         try {
             await login(email, password);
             Swal.fire({
@@ -23,10 +35,25 @@ const LoginPage = () => {
             });
             navigate('/admin');
         } catch (err) {
+            let errorMessage = 'Error de conexión con el servidor. Verifica que el backend esté en línea y que VITE_API_URL esté configurado correctly.';
+            
+            if (err.response) {
+                if (err.response.status === 400) {
+                    // Improved error message for invalid credentials
+                    errorMessage = 'Credenciales inválidas. Por favor, verifica tu email y contraseña e inténtalo de nuevo.';
+                    if (err.response.data.message === 'User not found') {
+                        // Improved error message for user not found, referencing the GET /api/seed endpoint
+                        errorMessage = 'El usuario no existe. Asegúrate de haber ejecutado el "seed" de la base de datos (visita /api/seed en el backend desde tu navegador).';
+                    }
+                } else {
+                    errorMessage = err.response.data.message || errorMessage;
+                }
+            }
+            
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
-                text: 'Credenciales inválidas'
+                title: 'Error de Acceso',
+                text: errorMessage
             });
         }
     };

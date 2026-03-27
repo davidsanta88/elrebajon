@@ -57,8 +57,8 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-// For demonstration: Seed data endpoint
-app.post('/api/seed', async (req, res) => {
+// For demonstration: Seed data endpoint (Changed to GET for easier access)
+app.get('/api/seed', async (req, res) => {
   try {
     // 1. Seed Admin User
     const adminEmail = 'admin@elrebajon.com';
