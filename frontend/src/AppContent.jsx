@@ -25,17 +25,17 @@ const AppContent = () => {
 
   const slides = [
     {
-      image: 'https://res.cloudinary.com/davidsanta88s/image/upload/v1774640924/banner_home_mixto_total_estufa_animales_final_1774640924220.png',
+      image: 'https://res.cloudinary.com/dtab1b41r/image/upload/v1/elrebajon/banners/banner_home_mixto_total_estufa_animales_final_1774640924220.png',
       title: 'PRODUCTOS NUEVOS Y USADOS',
       subtitle: 'DE LA MEJOR CALIDAD'
     },
     {
-      image: 'https://res.cloudinary.com/davidsanta88s/image/upload/v1774640642/banner_home_alternativa_mobiliario_electro_1774640642696.png',
+      image: 'https://res.cloudinary.com/dtab1b41r/image/upload/v1/elrebajon/banners/banner_home_alternativa_mobiliario_electro_1774640642696.png',
       title: 'TODO PARA TU HOGAR',
       subtitle: 'AL MEJOR PRECIO'
     },
     {
-      image: 'https://res.cloudinary.com/davidsanta88s/image/upload/v1774640533/banner_home_el_rebajon_premium_final_1774640533505.png',
+      image: 'https://res.cloudinary.com/dtab1b41r/image/upload/v1/elrebajon/banners/banner_home_el_rebajon_premium_final_1774640533505.png',
       title: 'LO QUE NECESITAS',
       subtitle: 'MUEBLES, ROPA Y MÁS'
     }
