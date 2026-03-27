@@ -75,36 +75,37 @@ const AppContent = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       
       {/* HEADER */}
-      <header className="bg-brand-red text-white p-2 sticky top-0 z-50 shadow-md px-4">
-        <div className="container mx-auto">
-          <div className="flex items-center justify-between gap-4 mb-2">
-            <div className="flex items-center gap-2">
-              <button className="p-1">
-                <Menu size={28} />
-              </button>
-              <h1 className="text-xl sm:text-2xl font-black uppercase italic tracking-tighter leading-none">
-                El Rebajón
-              </h1>
-            </div>
-            
-            <div className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1.5 hover:bg-white/20 transition-colors">
-              <MessageCircle size={16} className="text-white" fill="white" />
-              <span className="text-[10px] font-bold uppercase whitespace-nowrap">Contáctanos</span>
-            </div>
+      <header className="bg-brand-red text-white p-2 px-3 sticky top-0 z-50 shadow-md">
+        <div className="container mx-auto flex items-center justify-between gap-2 sm:gap-4">
+          
+          {/* LOGO & MENU */}
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            <button className="p-1">
+              <Menu size={20} />
+            </button>
+            <h1 className="text-base sm:text-xl font-black uppercase italic tracking-tighter leading-none whitespace-nowrap">
+              El Rebajón
+            </h1>
           </div>
-
-          {/* COMPACT CATEGORIES IN HEADER */}
-          <div className="flex overflow-x-auto gap-4 pb-1 no-scrollbar items-center border-t border-white/10 pt-2 scrollbar-hide">
+          
+          {/* INLINE CATEGORIES (CENTER) */}
+          <div className="flex-1 overflow-x-auto no-scrollbar flex items-center gap-2 sm:gap-3 py-1 scrollbar-hide">
             {categories.map((cat, idx) => (
-              <button key={cat._id || idx} className="flex flex-col items-center gap-1 shrink-0 group transition-transform active:scale-95">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-white/20 group-hover:border-brand-yellow transition-all shadow-sm">
+              <button key={cat._id || idx} className="flex items-center gap-1.5 shrink-0 bg-white/10 hover:bg-white/20 px-2 py-1 rounded-full transition-all active:scale-95 border border-white/5 group">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full overflow-hidden border border-white/20 group-hover:border-white transition-all">
                   <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
                 </div>
-                <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-tighter opacity-80 group-hover:opacity-100 group-hover:text-brand-yellow transition-colors leading-none">
+                <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-tighter whitespace-nowrap opacity-90 group-hover:opacity-100">
                   {cat.name}
                 </span>
               </button>
             ))}
+          </div>
+
+          {/* CONTACT BUTTON */}
+          <div className="shrink-0 flex items-center gap-1 bg-white/15 border border-white/20 rounded-full px-2 py-1 hover:bg-white/30 transition-colors cursor-pointer">
+            <MessageCircle size={12} className="text-white" fill="white" />
+            <span className="text-[8px] sm:text-[10px] font-black uppercase hidden sm:inline">Chat</span>
           </div>
         </div>
       </header>
