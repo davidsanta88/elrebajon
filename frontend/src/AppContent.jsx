@@ -89,7 +89,7 @@ const AppContent = () => {
           </div>
           
           {/* INLINE CATEGORIES (CENTER) */}
-          <div className="flex-1 overflow-x-auto no-scrollbar flex items-center gap-2 sm:gap-3 py-1 scrollbar-hide">
+          <div className="flex-1 overflow-x-auto no-scrollbar flex items-center justify-center gap-2 sm:gap-3 py-1 scrollbar-hide">
             {categories.map((cat, idx) => (
               <button key={cat._id || idx} className="flex items-center gap-1.5 shrink-0 bg-white/10 hover:bg-white/20 px-2 py-1 rounded-full transition-all active:scale-95 border border-white/5 group">
                 <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full overflow-hidden border border-white/20 group-hover:border-white transition-all">
