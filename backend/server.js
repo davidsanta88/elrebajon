@@ -41,10 +41,10 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Public: Fetch only active categories
+// Public: Fetch only active categories (or those without a status yet)
 app.get('/api/categories', async (req, res) => {
   try {
-    const categories = await Category.find({ status: 'Activo' }).sort({ name: 1 });
+    const categories = await Category.find({ status: { $ne: 'Inactivo' } }).sort({ name: 1 });
     res.json(categories);
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -138,7 +138,7 @@ const AppContent = () => {
               <div className="bg-white border-2 border-gray-100 text-brand-red w-full aspect-square rounded-2xl flex items-center justify-center shadow-sm overflow-hidden p-2">
                 <img src={cat.image} alt={cat.name} className="w-full h-full object-contain" />
               </div>
-              <span className="text-[10px] sm:text-xs font-black uppercase text-gray-600 truncate w-full text-center">
+              <span className="text-[10px] sm:text-xs font-black uppercase text-gray-800 break-words w-full text-center leading-tight">
                 {cat.name}
               </span>
             </button>
