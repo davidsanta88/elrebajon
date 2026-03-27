@@ -24,23 +24,7 @@ const AppContent = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
-  const slides = [
-    {
-      image: 'https://res.cloudinary.com/dtab1b41r/image/upload/v1/elrebajon/banners/banner_home_mixto_total_estufa_animales_final_1774640924220.png',
-      title: 'PRODUCTOS NUEVOS Y USADOS',
-      subtitle: 'DE LA MEJOR CALIDAD'
-    },
-    {
-      image: 'https://res.cloudinary.com/dtab1b41r/image/upload/v1/elrebajon/banners/banner_home_alternativa_mobiliario_electro_1774640642696.png',
-      title: 'TODO PARA TU HOGAR',
-      subtitle: 'AL MEJOR PRECIO'
-    },
-    {
-      image: 'https://res.cloudinary.com/dtab1b41r/image/upload/v1/elrebajon/banners/banner_home_el_rebajon_premium_final_1774640533505.png',
-      title: 'LO QUE NECESITAS',
-      subtitle: 'MUEBLES, ROPA Y MÁS'
-    }
-  ];
+  // Carousel slides removed for space optimization
 
   useEffect(() => {
     fetchProducts();
@@ -145,53 +129,24 @@ const AppContent = () => {
           </div>
         </div>
       </header>
-
-      {/* HERO CAROUSEL */}
-      <section className="relative w-full aspect-[4/3] sm:aspect-[21/9] lg:aspect-[21/7] overflow-hidden bg-brand-red">
-        <Swiper
-          modules={[Autoplay, Pagination, Navigation]}
-          autoplay={{ delay: 5000, disableOnInteraction: false }}
-          pagination={{ clickable: true }}
-          navigation={true}
-          loop={true}
-          className="h-full w-full mySwiper"
-        >
-          {slides.map((slide, index) => (
-            <SwiperSlide key={index}>
-              <div className="relative w-full h-full">
-                <img 
-                  src={slide.image} 
-                  alt={slide.title} 
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/5 flex flex-col items-center justify-center p-4">
-                  <div className="absolute bottom-6 sm:bottom-12 left-1/2 -translate-x-1/2 z-20">
-                    <button className="bg-brand-yellow text-brand-red text-[10px] sm:text-lg font-black py-2 px-6 sm:py-2.5 sm:px-8 rounded-xl shadow-[0_4px_0_0_rgba(180,140,0,1)] hover:translate-y-0.5 hover:shadow-none transition-all uppercase whitespace-nowrap">
-                      Ver Productos
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-        
-        {/* CUSTOM CSS FOR SWIPER HITS */}
-        <style dangerouslySetInnerHTML={{ __html: `
-          .swiper-pagination-bullet { background: white !important; opacity: 0.5; }
-          .swiper-pagination-bullet-active { background: #fbbf24 !important; opacity: 1; transform: scale(1.2); }
-          .swiper-button-next, .swiper-button-prev { color: rgba(255,255,255,0.7); transform: scale(0.6); }
-          @media (max-width: 640px) { .swiper-button-next, .swiper-button-prev { display: none; } }
-          
-          /* MARQUEE LINEAR TRANSITION */
-          .categories-marquee .swiper-wrapper {
-            transition-timing-function: linear !important;
-          }
-        `}} />
+      {/* COMPACT WELCOME BANNER (Saves space) */}
+      <section className="bg-gradient-to-r from-brand-red to-red-600 py-3 px-4 shadow-inner">
+        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-center">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl animate-bounce">📦</span>
+            <h2 className="text-white font-black uppercase italic tracking-tighter text-sm sm:text-lg leading-tight">
+              ¡Productos <span className="text-brand-yellow">Nuevos</span> y <span className="text-brand-yellow">Usados</span>!
+            </h2>
+            <span className="text-2xl animate-bounce">♻️</span>
+          </div>
+          <p className="text-white/80 text-[10px] sm:text-xs font-bold uppercase tracking-widest bg-black/20 px-3 py-1 rounded-full border border-white/10 shrink-0">
+            Precios bajos garantizados
+          </p>
+        </div>
       </section>
 
       {/* SEARCH BAR SECTION REMOVED (NOW IN HEADER) */}
-      <div className="h-6"></div>
+      
 
 
       {/* OFFERS */}
