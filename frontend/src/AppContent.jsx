@@ -69,7 +69,7 @@ const AppContent = () => {
   };
 
   const offers = products.filter(p => p.isOffer);
-  const recent = products.slice(0, 4);
+  const allProducts = products;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -93,7 +93,7 @@ const AppContent = () => {
       </header>
 
       {/* HERO CAROUSEL */}
-      <section className="relative w-full aspect-[21/9] lg:aspect-[21/7] overflow-hidden bg-brand-red">
+      <section className="relative w-full aspect-[4/3] sm:aspect-[21/9] lg:aspect-[21/7] overflow-hidden bg-brand-red">
         <Swiper
           modules={[Autoplay, Pagination, Navigation]}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
@@ -111,8 +111,8 @@ const AppContent = () => {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/5 flex flex-col items-center justify-center p-4">
-                  <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20">
-                    <button className="bg-brand-yellow text-brand-red text-sm sm:text-lg font-black py-2.5 px-8 rounded-xl shadow-[0_4px_0_0_rgba(180,140,0,1)] hover:translate-y-0.5 hover:shadow-none transition-all uppercase whitespace-nowrap">
+                  <div className="absolute bottom-6 sm:bottom-12 left-1/2 -translate-x-1/2 z-20">
+                    <button className="bg-brand-yellow text-brand-red text-[10px] sm:text-lg font-black py-2 px-6 sm:py-2.5 sm:px-8 rounded-xl shadow-[0_4px_0_0_rgba(180,140,0,1)] hover:translate-y-0.5 hover:shadow-none transition-all uppercase whitespace-nowrap">
                       Ver Productos
                     </button>
                   </div>
@@ -153,13 +153,13 @@ const AppContent = () => {
           <div className="h-[2px] w-12 bg-gray-200"></div>
         </div>
         
-        <div className="grid grid-cols-4 gap-3 max-w-lg mx-auto">
+        <div className="grid grid-cols-2 xs:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 gap-4 sm:gap-3 max-w-sm sm:max-w-lg mx-auto">
           {categories.map((cat, idx) => (
             <button key={cat._id || idx} className="flex flex-col items-center gap-2 hover:scale-110 transition-transform group">
               <div className="bg-brand-red border-2 border-red-600 text-white w-full aspect-square rounded-[2rem] flex items-center justify-center shadow-lg overflow-hidden p-0 group-hover:shadow-red-200 transition-shadow">
                 <img src={cat.image} alt={cat.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
               </div>
-              <span className="text-[10px] sm:text-xs font-black uppercase text-gray-800 break-words w-full text-center leading-tight">
+              <span className="text-[10px] xs:text-xs sm:text-xs font-black uppercase text-gray-800 break-words w-full text-center leading-tight px-1">
                 {cat.name}
               </span>
             </button>
@@ -183,7 +183,7 @@ const AppContent = () => {
             {offers.length > 0 ? offers.map((prod) => (
               <div key={prod._id} className="min-w-[280px] bg-white rounded-2xl p-3 flex gap-3 shadow-md snap-center border border-yellow-200">
                 <div className="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden shrink-0">
-                  <img src={prod.image || `https://placehold.co/200x200?text=${prod.name}`} alt={prod.name} className="w-full h-full object-cover" />
+                  <img src={prod.mainImage || `https://placehold.co/200x200?text=${prod.name}`} alt={prod.name} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex flex-col justify-between">
                   <div>
@@ -211,11 +211,11 @@ const AppContent = () => {
           <div className="h-[2px] w-12 bg-gray-200"></div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {recent.map((prod) => (
-            <div key={prod._id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition-shadow">
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {allProducts.map((prod) => (
+            <div key={prod._id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="aspect-square bg-gray-100 relative">
-                <img src={prod.image || `https://placehold.co/400x400?text=${prod.name}`} alt={prod.name} className="w-full h-full object-cover" />
+                <img src={prod.mainImage || `https://placehold.co/400x400?text=${prod.name}`} alt={prod.name} className="w-full h-full object-cover" />
                 <div className="absolute top-2 right-2 bg-white/90 px-2 py-0.5 rounded text-[8px] font-black text-brand-red uppercase">
                   {prod.category}
                 </div>

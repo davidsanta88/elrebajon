@@ -519,10 +519,10 @@ const AdminDashboard = () => {
                   <table className="w-full text-left">
                     <thead>
                       <tr className="text-[10px] font-black uppercase text-gray-400 border-b border-gray-50 pb-4">
-                        <th className="pb-4">Producto</th>
-                        <th className="pb-4">Unidades</th>
-                        <th className="pb-4">Ingresos</th>
-                        <th className="pb-4 text-right">Rendimiento</th>
+                        <th className="pb-4 whitespace-nowrap">Producto</th>
+                        <th className="pb-4 whitespace-nowrap">Unidades</th>
+                        <th className="pb-4 whitespace-nowrap">Ingresos</th>
+                        <th className="pb-4 text-right whitespace-nowrap">Rendimiento</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
@@ -546,7 +546,7 @@ const AdminDashboard = () => {
           ) : activeTab === 'products' ? (
             <div className="grid grid-cols-1 gap-4">
               {products.map((prod) => (
-                <div key={prod._id} className={`bg-white rounded-3xl p-6 shadow-sm border ${prod.stock <= prod.stockMin ? 'border-brand-yellow/50 bg-yellow-50/10' : 'border-gray-100'} flex flex-col md:flex-row items-center gap-8 group relative overflow-hidden`}>
+                <div key={prod._id} className={`bg-white rounded-3xl p-4 sm:p-6 shadow-sm border ${prod.stock <= prod.stockMin ? 'border-brand-yellow/50 bg-yellow-50/10' : 'border-gray-100'} flex flex-col md:flex-row items-center gap-4 sm:gap-8 group relative overflow-hidden`}>
                   {prod.status === 'Inactivo' && <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center font-black uppercase text-xs text-gray-800">Desactivado</div>}
                   <div className="w-24 h-24 bg-gray-50 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden border border-gray-100">
                     {prod.mainImage ? <img src={prod.mainImage} className="w-full h-full object-cover" /> : <Package size={40} className="text-gray-200" />}
@@ -559,11 +559,11 @@ const AdminDashboard = () => {
                     <h4 className="text-xl font-black text-gray-800 uppercase italic truncate">{prod.name}</h4>
                     <p className="text-xs font-bold text-gray-400 uppercase">{prod.provider}</p>
                   </div>
-                  <div className="flex gap-6 text-center bg-gray-50/50 px-6 py-3 rounded-2xl border border-gray-100">
-                    <div><p className="text-[10px] font-black uppercase text-gray-400">Stock</p><p className="font-bold text-sm text-gray-800">{prod.stock}</p></div>
-                    <div><p className="text-[10px] font-black uppercase text-gray-400">Compra</p><p className="font-bold text-sm text-gray-600">${formatNum(prod.purchasePrice)}</p></div>
-                    <div><p className="text-[10px] font-black uppercase text-brand-red">Venta</p><p className="text-brand-red font-black text-lg">${formatNum(prod.price)}</p></div>
-                    <div><p className="text-[10px] font-black uppercase text-blue-500">Ganancia</p><p className="text-blue-600 font-bold">${formatNum(prod.profitMargin)}</p></div>
+                  <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-center bg-gray-50/50 px-4 sm:px-6 py-3 rounded-2xl border border-gray-100 w-full md:w-auto">
+                    <div><p className="text-[8px] sm:text-[10px] font-black uppercase text-gray-400">Stock</p><p className="font-bold text-xs sm:text-sm text-gray-800">{prod.stock}</p></div>
+                    <div><p className="text-[8px] sm:text-[10px] font-black uppercase text-gray-400">Compra</p><p className="font-bold text-xs sm:text-sm text-gray-600">${formatNum(prod.purchasePrice)}</p></div>
+                    <div><p className="text-[8px] sm:text-[10px] font-black uppercase text-brand-red">Venta</p><p className="text-brand-red font-black text-sm sm:text-lg">${formatNum(prod.price)}</p></div>
+                    <div className="hidden xs:block"><p className="text-[8px] sm:text-[10px] font-black uppercase text-blue-500">Ganancia</p><p className="text-blue-600 font-bold text-xs sm:text-sm">${formatNum(prod.profitMargin)}</p></div>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => { setIsEditingProduct(true); setProductForm(prod); setShowProductModal(true); }} className="p-3 rounded-xl bg-gray-100 transition-all hover:text-blue-500"><Edit size={20} /></button>
@@ -634,15 +634,15 @@ const SidebarLink = ({ icon, label, active, onClick }) => (
 );
 
 const MetricCard = ({ title, value, detail, icon, trend, showTrend = true, color = "bg-red-50 text-brand-red" }) => (
-  <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col gap-6 group hover:shadow-xl transition-all">
+  <div className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col gap-4 sm:gap-6 group hover:shadow-xl transition-all">
     <div className="flex justify-between items-start">
-      <div className={`p-4 rounded-2xl ${color} transition-transform group-hover:scale-110`}>{icon}</div>
-      {showTrend && <span className="bg-brand-green/10 text-brand-green px-2 py-1 rounded-lg text-[10px] font-black flex items-center gap-1"><ArrowUpRight size={10}/> {trend}</span>}
+      <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl ${color} transition-transform group-hover:scale-110`}>{icon}</div>
+      {showTrend && <span className="bg-brand-green/10 text-brand-green px-2 py-1 rounded-lg text-[8px] sm:text-[10px] font-black flex items-center gap-1"><ArrowUpRight size={10}/> {trend}</span>}
     </div>
     <div>
-      <h4 className="text-[10px] font-black uppercase text-gray-400 mb-1 tracking-widest">{title}</h4>
-      <p className="text-3xl font-black text-gray-800 italic tracking-tighter leading-none">{value}</p>
-      <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase">{detail}</p>
+      <h4 className="text-[8px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 tracking-widest">{title}</h4>
+      <p className="text-xl sm:text-3xl font-black text-gray-800 italic tracking-tighter leading-none">{value}</p>
+      <p className="text-[8px] sm:text-[10px] font-bold text-gray-400 mt-2 uppercase">{detail}</p>
     </div>
   </div>
 );
@@ -659,14 +659,14 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[300]">
-      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-5xl shadow-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in duration-300">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 z-[300]">
+      <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] p-6 sm:p-10 w-full max-w-5xl shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto animate-in zoom-in duration-300">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h3 className="text-3xl font-black text-gray-800 uppercase italic tracking-tighter leading-none">{isEditing ? 'Editar Producto' : 'Nuevo Producto'}</h3>
-            <p className="text-[10px] font-black uppercase text-brand-red tracking-widest mt-1">Gestión avanzada de inventario</p>
+            <h3 className="text-xl sm:text-3xl font-black text-gray-800 uppercase italic tracking-tighter leading-none">{isEditing ? 'Editar Producto' : 'Nuevo Producto'}</h3>
+            <p className="text-[8px] sm:text-[10px] font-black uppercase text-brand-red tracking-widest mt-1">Gestión avanzada de inventario</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-800"><X size={32} /></button>
+          <button onClick={onClose} className="p-1 sm:p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-800"><X size={24} className="sm:w-8 sm:h-8" /></button>
         </div>
 
         <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -735,7 +735,7 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
                )}
             </div>
           </div>
-          <button type="submit" className="md:col-span-3 bg-brand-red text-white font-black py-6 rounded-[2rem] uppercase tracking-tighter text-2xl shadow-2xl hover:scale-[1.01] active:scale-95 transition-all mt-4 border-b-8 border-red-800">
+          <button type="submit" className="md:col-span-3 bg-brand-red text-white font-black py-4 sm:py-6 rounded-[1.5rem] sm:rounded-[2rem] uppercase tracking-tighter text-xl sm:text-2xl shadow-2xl hover:scale-[1.01] active:scale-95 transition-all mt-4 border-b-4 sm:border-b-8 border-red-800">
             {isEditing ? 'Guardar Cambios' : 'Lanzar Producto Nuevo'}
           </button>
         </form>
@@ -747,9 +747,9 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
 const ProviderModal = ({ show, onClose, onSubmit, form, setForm, isEditing }) => {
   if (!show) return null;
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[200]">
-      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in duration-300">
-        <div className="flex justify-between items-center mb-6"><h3 className="text-xl font-black uppercase">{isEditing ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h3><button onClick={onClose}><X size={32}/></button></div>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 z-[200]">
+      <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] p-6 sm:p-10 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in duration-300">
+        <div className="flex justify-between items-center mb-6"><h3 className="text-lg sm:text-xl font-black uppercase italic tracking-tighter">{isEditing ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h3><button onClick={onClose}><X size={24} className="sm:w-8 sm:h-8"/></button></div>
         <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputGroup label="Nombre"><input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl" /></InputGroup>
           <InputGroup label="Teléfono"><input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl" /></InputGroup>
@@ -767,13 +767,13 @@ const ProviderModal = ({ show, onClose, onSubmit, form, setForm, isEditing }) =>
 const CategoryModal = ({ show, onClose, onSubmit, form, setForm, isEditing }) => {
   if (!show) return null;
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[200]">
-      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl animate-in zoom-in duration-300">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 z-[200]">
+      <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] p-6 sm:p-10 w-full max-w-md shadow-2xl animate-in zoom-in duration-300">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-black uppercase italic tracking-tighter">
+          <h3 className="text-lg sm:text-xl font-black uppercase italic tracking-tighter">
             {isEditing ? 'Editar Categoría' : 'Nueva Categoría'}
           </h3>
-          <button onClick={onClose}><X size={32}/></button>
+          <button onClick={onClose}><X size={24} className="sm:w-8 sm:h-8"/></button>
         </div>
         <form onSubmit={onSubmit} className="space-y-6">
           <InputGroup label="Nombre"><input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold" /></InputGroup>
