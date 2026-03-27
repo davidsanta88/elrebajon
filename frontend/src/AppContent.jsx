@@ -131,16 +131,16 @@ const AppContent = () => {
           </div>
 
           {/* BOTTOM ROW: SEARCH BAR */}
-          <div className="max-w-xl mx-auto flex bg-white/10 rounded-full border border-white/20 overflow-hidden mb-1 focus-within:bg-white/20 focus-within:border-white transition-all group">
+          <div className="max-w-xl mx-auto flex bg-white rounded-full border border-white/20 overflow-hidden mb-1 shadow-sm transition-all group">
             <input 
               type="text" 
               placeholder="¿Qué estás buscando en El Rebajón?" 
-              className="flex-1 bg-transparent px-5 py-2 outline-none text-white placeholder:text-white/60 font-bold text-xs sm:text-sm"
+              className="flex-1 bg-transparent px-5 py-2 outline-none text-gray-800 placeholder:text-gray-400 font-bold text-xs sm:text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button className="bg-white/20 text-white px-4 hover:bg-white hover:text-brand-red transition-all flex items-center justify-center">
-              <Search size={16} />
+            <button className="bg-brand-red text-white px-5 hover:bg-red-700 transition-all flex items-center justify-center">
+              <Search size={18} />
             </button>
           </div>
         </div>
