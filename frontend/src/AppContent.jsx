@@ -175,32 +175,11 @@ const AppContent = () => {
             </h1>
           </div>
           
-          {/* INLINE CATEGORIES (CENTER / MARQUEE) */}
-          <div className="flex-1 overflow-hidden h-10 flex items-center">
-            <Swiper
-              modules={[Autoplay, FreeMode]}
-              loop={true}
-              speed={15000}
-              autoplay={{
-                delay: 0,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true
-              }}
-              freeMode={true}
-              slidesPerView="auto"
-              spaceBetween={12}
-              className="w-full categories-marquee"
-            >
-              {categories.map((cat, idx) => (
-                <SwiperSlide key={cat._id || idx} style={{ width: 'auto' }}>
-                  <button className="flex items-center shrink-0 bg-white/10 hover:bg-brand-yellow hover:text-brand-red px-3 py-1.5 rounded-full transition-all active:scale-95 border border-white/5 group">
-                    <span className="text-[10px] sm:text-[13px] font-black uppercase tracking-tighter whitespace-nowrap">
-                      {cat.name}
-                    </span>
-                  </button>
-                </SwiperSlide>
-              ))}
-            </Swiper>
+          {/* HEADER MESSAGE (NEW & USED) - More compact for Row 1 */}
+          <div className="flex-1 flex justify-center items-center px-4 overflow-hidden">
+            <h2 className="text-white font-black uppercase italic tracking-tighter text-[10px] sm:text-sm leading-tight text-center drop-shadow-md">
+              ¡Productos <span className="text-brand-yellow underline decoration-brand-yellow/30">Nuevos</span> y <span className="text-brand-yellow underline decoration-brand-yellow/30">Usados</span>!
+            </h2>
           </div>
 
             {/* CONTACT BUTTON (WHATSAPP) */}
@@ -215,17 +194,32 @@ const AppContent = () => {
             </a>
         </div>
       </header>
-      {/* COMPACT WELCOME BANNER (Saves space) */}
-      <section className="bg-gradient-to-r from-brand-red to-red-600 py-3 px-4 shadow-inner">
-        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-center">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl animate-bounce">📦</span>
-            <h2 className="text-white font-black uppercase italic tracking-tighter text-sm sm:text-lg leading-tight">
-              ¡Productos <span className="text-brand-yellow">Nuevos</span> y <span className="text-brand-yellow">Usados</span>!
-            </h2>
-            <span className="text-2xl animate-bounce">♻️</span>
-          </div>
-        </div>
+      {/* FULL WIDTH CATEGORY MARQUEE (Below Header) */}
+      <section className="bg-brand-red border-t border-white/10 py-2 overflow-hidden flex items-center shadow-lg">
+        <Swiper
+          modules={[Autoplay, FreeMode]}
+          loop={true}
+          speed={15000}
+          autoplay={{
+            delay: 0,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true
+          }}
+          freeMode={true}
+          slidesPerView="auto"
+          spaceBetween={10}
+          className="w-full h-full categories-marquee-main"
+        >
+          {categories.map((cat, idx) => (
+            <SwiperSlide key={cat._id || idx} style={{ width: 'auto' }}>
+              <button className="flex items-center shrink-0 bg-brand-yellow/20 hover:bg-brand-yellow text-white hover:text-brand-red px-4 py-1.5 rounded-full transition-all active:scale-95 border border-white/10 group">
+                <span className="text-[11px] sm:text-xs font-black uppercase tracking-widest whitespace-nowrap">
+                  {cat.name}
+                </span>
+              </button>
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </section>
 
       {/* SEARCH BAR SECTION REMOVED (NOW IN HEADER) */}
