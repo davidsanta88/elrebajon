@@ -197,6 +197,15 @@ const AdminDashboard = () => {
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
+  const formatNum = (num) => {
+    if (!num && num !== 0) return '';
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+
+  const cleanNum = (val) => {
+    return val.replace(/\./g, '');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex font-sans overflow-hidden">
       
@@ -287,10 +296,10 @@ const AdminDashboard = () => {
                     <h4 className="text-xl font-black text-gray-800 uppercase italic truncate">{prod.name}</h4>
                     <p className="text-xs font-bold text-gray-400 uppercase">{prod.provider}</p>
                   </div>
-                  <div className="flex gap-6 text-center bg-gray-50/50 px-6 py-3 rounded-2xl">
-                    <div><p className="text-[10px] uppercase text-gray-400">Stock</p><p className="font-black text-sm">{prod.stock}</p></div>
-                    <div><p className="text-[10px] uppercase text-blue-500">Ganancia</p><p className="text-blue-600 font-bold">${prod.profitMargin?.toLocaleString()}</p></div>
-                    <div><p className="text-[10px] uppercase text-brand-red">Venta</p><p className="text-brand-red font-black text-lg">${prod.price?.toLocaleString()}</p></div>
+                  <div className="flex gap-6 text-center bg-gray-50/50 px-6 py-3 rounded-2xl border border-gray-100">
+                    <div><p className="text-[10px] font-black uppercase text-gray-400">Stock</p><p className="font-black text-sm text-gray-800">{prod.stock}</p></div>
+                    <div><p className="text-[10px] font-black uppercase text-blue-500">Ganancia</p><p className="text-blue-600 font-bold">${formatNum(prod.profitMargin)}</p></div>
+                    <div><p className="text-[10px] font-black uppercase text-brand-red">Venta</p><p className="text-brand-red font-black text-lg">${formatNum(prod.price)}</p></div>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => { setIsEditingProduct(true); setProductForm(prod); setShowProductModal(true); }} className="p-3 rounded-xl bg-gray-100 transition-all hover:text-blue-500"><Edit size={20} /></button>
@@ -334,7 +343,7 @@ const AdminDashboard = () => {
         </div>
       </main>
 
-      <ProductModal show={showProductModal} onClose={() => setShowProductModal(false)} onSubmit={handleProductSubmit} form={productForm} setForm={setProductForm} isEditing={isEditingProduct} categories={categories} providers={providers} />
+      <ProductModal show={showProductModal} onClose={() => setShowProductModal(false)} onSubmit={handleProductSubmit} form={productForm} setForm={setProductForm} isEditing={isEditingProduct} categories={categories} providers={providers} formatNum={formatNum} cleanNum={cleanNum} />
       <ProviderModal show={showProviderModal} onClose={() => setShowProviderModal(false)} onSubmit={handleProviderSubmit} form={providerForm} setForm={setProviderForm} isEditing={isEditingProvider} />
       <CategoryModal show={showCategoryModal} onClose={() => setShowCategoryModal(false)} onSubmit={handleAddCategory} form={newCategory} setForm={setNewCategory} />
     </div>
@@ -348,45 +357,122 @@ const SidebarLink = ({ icon, label, active, onClick }) => (
   </button>
 );
 
-const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categories, providers }) => {
+const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categories, providers, formatNum, cleanNum }) => {
   if (!show) return null;
   const margin = Number(form.price) - Number(form.purchasePrice);
+
+  const handlePriceChange = (field, e) => {
+    const rawVal = cleanNum(e.target.value);
+    if (!isNaN(rawVal) || rawVal === '') {
+      setForm({...form, [field]: rawVal});
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[200]">
-      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-4xl shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[300]">
+      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-5xl shadow-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in duration-300">
         <div className="flex justify-between items-center mb-8">
-          <h3 className="text-2xl font-black text-gray-800 uppercase italic">Producto</h3>
-          <button onClick={onClose}><X size={32} /></button>
+          <div>
+            <h3 className="text-3xl font-black text-gray-800 uppercase italic tracking-tighter leading-none">{isEditing ? 'Editar Producto' : 'Nuevo Producto'}</h3>
+            <p className="text-[10px] font-black uppercase text-brand-red tracking-widest mt-1">Gestión avanzada de inventario</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-800"><X size={32} /></button>
         </div>
+
         <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputGroup label="Nombre"><input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none" /></InputGroup>
-            <InputGroup label="Categoría">
-              <select required value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl">
-                <option value="">Selecciona</option>
-                {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
-              </select>
+          {/* Main Info */}
+          <div className="md:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <InputGroup label="Nombre del Producto" icon={<Package size={14}/>}>
+                <input required type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-brand-red transition-all" />
+              </InputGroup>
+              
+              <InputGroup label="Categoría" icon={<Tag size={14}/>}>
+                <select required value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold">
+                  <option value="">Selecciona</option>
+                  {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                </select>
+              </InputGroup>
+            </div>
+
+            <InputGroup label="Descripción" icon={<FileText size={14}/>}>
+              <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold min-h-[100px]" />
             </InputGroup>
-            <div className="md:col-span-2"><InputGroup label="Descripción"><textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl min-h-[80px]" /></InputGroup></div>
-            <InputGroup label="Valor Compra"><input type="number" value={form.purchasePrice} onChange={e => setForm({...form, purchasePrice: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl" /></InputGroup>
-            <InputGroup label="Valor Venta"><input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl" /></InputGroup>
-            <div className="md:col-span-2 bg-blue-50 p-6 rounded-3xl flex justify-between items-center">
-               <p className="text-xs font-black uppercase text-blue-500">Ganancia: <span className="text-2xl ml-2">${margin.toLocaleString()}</span></p>
-               <p className="text-xs font-black uppercase text-blue-400">{form.purchasePrice > 0 ? ((margin/form.purchasePrice)*100).toFixed(1) : 0}%</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <InputGroup label="Valor de Compra" icon={<DollarSign size={14}/>}>
+                <input required type="text" value={formatNum(form.purchasePrice)} onChange={e => handlePriceChange('purchasePrice', e)} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-black text-xl text-gray-800" placeholder="0" />
+              </InputGroup>
+
+              <InputGroup label="Valor de Venta" icon={<DollarSign size={14}/>}>
+                <input required type="text" value={formatNum(form.price)} onChange={e => handlePriceChange('price', e)} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-black text-xl text-brand-red border-2 border-transparent focus:border-brand-red" placeholder="0" />
+              </InputGroup>
+            </div>
+
+            {/* MARGIN DISPLAY */}
+            <div className="bg-blue-50 p-8 rounded-[2rem] flex justify-between items-center border border-blue-100 shadow-inner">
+               <div>
+                 <p className="text-[10px] font-black uppercase text-blue-500 mb-1">Ganancia Neta Estimada</p>
+                 <p className="text-4xl font-black text-blue-600">${formatNum(margin)}</p>
+               </div>
+               <div className="text-right">
+                 <p className="text-[10px] font-black uppercase text-blue-400 mb-1">Rentabilidad</p>
+                 <p className="text-xl font-black text-blue-500">{form.purchasePrice > 0 ? ((margin/form.purchasePrice)*100).toFixed(1) : 0}%</p>
+               </div>
             </div>
           </div>
+
+          {/* Sidebar Info */}
           <div className="space-y-6">
-            <InputGroup label="Proveedor"><select required value={form.provider} onChange={e => setForm({...form, provider: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl">
-              <option value="">Selecciona</option>
-              {providers.map(p => <option key={p._id} value={p.name}>{p.name}</option>)}
-            </select></InputGroup>
-            <div className="grid grid-cols-2 gap-2"><InputGroup label="Stock"><input type="number" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl" /></InputGroup><InputGroup label="Min"><input type="number" value={form.stockMin} onChange={e => setForm({...form, stockMin: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl" /></InputGroup></div>
-            <InputGroup label="Estado"><select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select></InputGroup>
-            <InputGroup label="Fotos"><input type="file" multiple onChange={e => setForm({...form, images: Array.from(e.target.files)})} className="text-xs" />
-               {form.images.length > 0 && <p className="text-[10px] uppercase font-bold text-brand-red mt-2">{form.images.length} archivos seleccionados</p>}
+            <InputGroup label="Proveedor" icon={<Users size={14}/>}>
+              <select required value={form.provider} onChange={e => setForm({...form, provider: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold">
+                <option value="">Selecciona Proveedor</option>
+                {providers.map(p => <option key={p._id} value={p.name}>{p.name}</option>)}
+              </select>
             </InputGroup>
+
+            <div className="grid grid-cols-2 gap-2">
+              <InputGroup label="Stock Actual">
+                <input required type="number" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold" />
+              </InputGroup>
+              <InputGroup label="Stock Mínimo">
+                <input required type="number" value={form.stockMin} onChange={e => setForm({...form, stockMin: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold" />
+              </InputGroup>
+            </div>
+
+            <InputGroup label="Estado">
+              <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl font-bold">
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </InputGroup>
+
+            <div className="p-6 bg-gray-50 rounded-[2rem] border border-gray-100 relative group overflow-hidden">
+               <input type="file" multiple onChange={e => setForm({...form, images: Array.from(e.target.files)})} className="absolute inset-0 opacity-0 cursor-pointer z-20" />
+               <div className="flex flex-col items-center gap-2 text-center">
+                  <Plus className="text-brand-red group-hover:rotate-90 transition-transform" />
+                  <p className="text-[10px] font-black uppercase text-gray-400">Clic para cargar fotos (Máx 5)</p>
+               </div>
+               
+               {form.images.length > 0 && (
+                 <div className="flex gap-2 overflow-x-auto mt-4 pb-2 relative z-10 no-scrollbar">
+                    {form.images.map((img, idx) => (
+                      <div key={idx} className="relative shrink-0">
+                        <div className="w-20 h-20 rounded-xl bg-white overflow-hidden border border-gray-200 shadow-sm">
+                           {img instanceof File && <img src={URL.createObjectURL(img)} className="w-full h-full object-cover" />}
+                        </div>
+                        {idx === 0 && <span className="absolute -top-1 -right-1 bg-brand-green text-white text-[8px] font-black uppercase px-2 py-0.5 rounded shadow-md border-2 border-white">Principal</span>}
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[8px] font-bold px-1.5 rounded opacity-80">{idx + 1}/5</span>
+                      </div>
+                    ))}
+                 </div>
+               )}
+            </div>
           </div>
-          <button type="submit" className="md:col-span-3 bg-brand-red text-white font-black py-5 rounded-2xl uppercase text-xl shadow-xl hover:scale-[1.01] transition-all">Guardar Producto</button>
+
+          <button type="submit" className="md:col-span-3 bg-brand-red text-white font-black py-6 rounded-[2rem] uppercase tracking-tighter text-2xl shadow-2xl hover:scale-[1.01] active:scale-95 transition-all mt-4 border-b-8 border-red-800">
+            {isEditing ? 'Guardar Cambios' : 'Lanzar Producto Nuevo'}
+          </button>
         </form>
       </div>
     </div>
