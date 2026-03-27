@@ -21,7 +21,6 @@ const AppContent = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('Todo'); // 'Todo', 'Nuevo', 'Usado'
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
@@ -70,63 +69,79 @@ const AppContent = () => {
     }
   };
 
-  const offers = products.filter(p => p.isOffer);
-  const allProducts = products.filter(p => {
-    const matchesFilter = filter === 'Todo' || p.condition === filter;
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          p.category.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  const matchesSearch = (p) => 
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    p.category.toLowerCase().includes(searchTerm.toLowerCase());
+
+  const offers = products.filter(p => p.isOffer && matchesSearch(p));
+  const allProducts = products.filter(matchesSearch);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       
       {/* HEADER */}
       <header className="bg-brand-red text-white p-2 px-3 sticky top-0 z-50 shadow-md">
-        <div className="container mx-auto flex items-center justify-between gap-2 sm:gap-4">
-          
-          {/* LOGO & MENU */}
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            <button className="p-1">
-              <Menu size={20} />
-            </button>
-            <h1 className="text-base sm:text-xl font-black uppercase italic tracking-tighter leading-none whitespace-nowrap">
-              El Rebajón
-            </h1>
-          </div>
-          
-          {/* INLINE CATEGORIES (CENTER / MARQUEE) */}
-          <div className="flex-1 overflow-hidden h-10 flex items-center">
-            <Swiper
-              modules={[Autoplay, FreeMode]}
-              loop={true}
-              speed={15000}
-              autoplay={{
-                delay: 0,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true
-              }}
-              freeMode={true}
-              slidesPerView="auto"
-              spaceBetween={12}
-              className="w-full categories-marquee"
-            >
-              {categories.map((cat, idx) => (
-                <SwiperSlide key={cat._id || idx} style={{ width: 'auto' }}>
-                  <button className="flex items-center shrink-0 bg-white/10 hover:bg-brand-yellow hover:text-brand-red px-3 py-1.5 rounded-full transition-all active:scale-95 border border-white/5 group">
-                    <span className="text-[10px] sm:text-[13px] font-black uppercase tracking-tighter whitespace-nowrap">
-                      {cat.name}
-                    </span>
-                  </button>
-                </SwiperSlide>
-              ))}
-            </Swiper>
+        <div className="container mx-auto">
+          {/* TOP ROW: Logo, Categories, Contact */}
+          <div className="flex items-center justify-between gap-2 sm:gap-4 mb-2">
+            
+            {/* LOGO & MENU */}
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <button className="p-1">
+                <Menu size={20} />
+              </button>
+              <h1 className="text-base sm:text-xl font-black uppercase italic tracking-tighter leading-none whitespace-nowrap">
+                El Rebajón
+              </h1>
+            </div>
+            
+            {/* INLINE CATEGORIES (CENTER / MARQUEE) */}
+            <div className="flex-1 overflow-hidden h-10 flex items-center">
+              <Swiper
+                modules={[Autoplay, FreeMode]}
+                loop={true}
+                speed={15000}
+                autoplay={{
+                  delay: 0,
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: true
+                }}
+                freeMode={true}
+                slidesPerView="auto"
+                spaceBetween={12}
+                className="w-full categories-marquee"
+              >
+                {categories.map((cat, idx) => (
+                  <SwiperSlide key={cat._id || idx} style={{ width: 'auto' }}>
+                    <button className="flex items-center shrink-0 bg-white/10 hover:bg-brand-yellow hover:text-brand-red px-3 py-1.5 rounded-full transition-all active:scale-95 border border-white/5 group">
+                      <span className="text-[10px] sm:text-[13px] font-black uppercase tracking-tighter whitespace-nowrap">
+                        {cat.name}
+                      </span>
+                    </button>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+
+            {/* CONTACT BUTTON */}
+            <div className="shrink-0 flex items-center gap-1 bg-white/15 border border-white/20 rounded-full px-2 py-1 hover:bg-white/30 transition-colors cursor-pointer">
+              <MessageCircle size={12} className="text-white" fill="white" />
+              <span className="text-[8px] sm:text-[10px] font-black uppercase hidden sm:inline">Chat</span>
+            </div>
           </div>
 
-          {/* CONTACT BUTTON */}
-          <div className="shrink-0 flex items-center gap-1 bg-white/15 border border-white/20 rounded-full px-2 py-1 hover:bg-white/30 transition-colors cursor-pointer">
-            <MessageCircle size={12} className="text-white" fill="white" />
-            <span className="text-[8px] sm:text-[10px] font-black uppercase hidden sm:inline">Chat</span>
+          {/* BOTTOM ROW: SEARCH BAR */}
+          <div className="max-w-xl mx-auto flex bg-white/10 rounded-full border border-white/20 overflow-hidden mb-1 focus-within:bg-white/20 focus-within:border-white transition-all group">
+            <input 
+              type="text" 
+              placeholder="¿Qué estás buscando en El Rebajón?" 
+              className="flex-1 bg-transparent px-5 py-2 outline-none text-white placeholder:text-white/60 font-bold text-xs sm:text-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <button className="bg-white/20 text-white px-4 hover:bg-white hover:text-brand-red transition-all flex items-center justify-center">
+              <Search size={16} />
+            </button>
           </div>
         </div>
       </header>
@@ -175,39 +190,8 @@ const AppContent = () => {
         `}} />
       </section>
 
-      {/* FILTERS & SEARCH */}
-      <section className="px-4 -mt-10 sm:-mt-12 relative z-20 flex flex-col items-center">
-        {/* CONDITION FILTERS */}
-        <div className="flex justify-center gap-2 mb-3">
-          {['Todo', 'Nuevo', 'Usado'].map((opt) => (
-            <button
-              key={opt}
-              onClick={() => setFilter(opt)}
-              className={`px-4 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-black uppercase transition-all border-2 shadow-sm ${
-                filter === opt 
-                ? 'bg-brand-red text-white border-brand-red shadow-lg scale-105' 
-                : 'bg-white text-gray-400 border-gray-100 hover:border-brand-red/30'
-              }`}
-            >
-              {opt === 'Todo' ? '✨ Todos' : opt === 'Nuevo' ? '📦 Nuevos' : '♻️ Usados'}
-            </button>
-          ))}
-        </div>
-
-        {/* SEARCH BAR */}
-        <div className="max-w-md w-full mx-auto flex bg-white rounded-full shadow-xl border-2 border-brand-red/10 overflow-hidden">
-          <input 
-            type="text" 
-            placeholder="¿Qué estás buscando?" 
-            className="flex-1 px-5 py-3 outline-none text-gray-700 font-bold text-sm sm:text-base"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button className="bg-brand-red text-white px-4 sm:px-6 hover:bg-red-700 transition-colors">
-            <Search size={22} />
-          </button>
-        </div>
-      </section>
+      {/* SEARCH BAR SECTION REMOVED (NOW IN HEADER) */}
+      <div className="h-6"></div>
 
 
       {/* OFFERS */}
@@ -256,15 +240,10 @@ const AppContent = () => {
             <div key={prod._id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="aspect-square bg-gray-100 relative">
                 <img src={prod.mainImage || `https://placehold.co/400x400?text=${prod.name}`} alt={prod.name} className="w-full h-full object-cover" />
-                <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+                <div className="absolute top-2 right-2">
                   <div className="bg-white/90 px-2 py-0.5 rounded text-[8px] font-black text-brand-red uppercase shadow-sm">
                     {prod.category}
                   </div>
-                  {prod.condition === 'Usado' && (
-                    <div className="bg-amber-500 px-2 py-0.5 rounded text-[8px] font-black text-white uppercase shadow-sm animate-pulse">
-                      Usado
-                    </div>
-                  )}
                 </div>
               </div>
               <div className="p-3 flex flex-col gap-1">
