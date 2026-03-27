@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 const Product = require('./models/Product');
 const Category = require('./models/Category');
+const Provider = require('./models/Provider');
 const { authMiddleware, adminMiddleware } = require('./middleware/authMiddleware');
 const { upload } = require('./config/cloudinary.js');
 
@@ -74,6 +75,44 @@ app.delete('/api/admin/categories/:id', authMiddleware, adminMiddleware, async (
   }
 });
 
+// Provider Routes
+app.get('/api/providers', async (req, res) => {
+  try {
+    const providers = await Provider.find().sort({ name: 1 });
+    res.json(providers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.post('/api/admin/providers', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const provider = new Provider(req.body);
+    await provider.save();
+    res.json(provider);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.put('/api/admin/providers/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const provider = await Provider.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(provider);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.delete('/api/admin/providers/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    await Provider.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Provider deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Admin-only: Fetch products with details (like purchase price)
 app.get('/api/admin/products', authMiddleware, adminMiddleware, async (req, res) => {
   try {
@@ -116,7 +155,16 @@ app.get('/api/seed', async (req, res) => {
     await Category.deleteMany({});
     const categories = await Category.insertMany(sampleCategories);
 
-    // 3. Seed Sample Products
+    // 3. Seed Providers
+    const sampleProviders = [
+      { name: 'Colchones ABC', phone: '3001234567', address: 'Calle 10 #20-30', email: 'ventas@abc.com', website: 'www.abc.com', observation: 'Distribuidor principal' },
+      { name: 'HACEB', phone: '3109876543', address: 'Zona Industrial', email: 'contacto@haceb.com', website: 'www.haceb.com' },
+      { name: 'Finca Local', phone: '3200000000', observation: 'Suministro semanal' }
+    ];
+    await Provider.deleteMany({});
+    const providers = await Provider.insertMany(sampleProviders);
+
+    // 4. Seed Sample Products
     const sampleProducts = [
       { name: 'Colchón Doble', price: 250000, purchasePrice: 180000, category: 'Hogar', isOffer: true, provider: 'Colchones ABC' },
       { name: 'Estufa a Gas', price: 300000, purchasePrice: 220000, category: 'Electrodomésticos', provider: 'HACEB' },
