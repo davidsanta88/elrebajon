@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Pagination, Navigation } from 'swiper/modules';
+import { Autoplay, Pagination, Navigation, FreeMode } from 'swiper/modules';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -95,15 +95,32 @@ const AppContent = () => {
             </h1>
           </div>
           
-          {/* INLINE CATEGORIES (CENTER) */}
-          <div className="flex-1 overflow-x-auto no-scrollbar flex items-center justify-center gap-1 sm:gap-4 py-1 scrollbar-hide">
-            {categories.map((cat, idx) => (
-              <button key={cat._id || idx} className="flex items-center shrink-0 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all active:scale-95 border border-white/5 group">
-                <span className="text-[10px] sm:text-[13px] font-black uppercase tracking-tighter whitespace-nowrap opacity-90 group-hover:opacity-100 group-hover:text-white transition-all">
-                  {cat.name}
-                </span>
-              </button>
-            ))}
+          {/* INLINE CATEGORIES (CENTER / MARQUEE) */}
+          <div className="flex-1 overflow-hidden h-10 flex items-center">
+            <Swiper
+              modules={[Autoplay, FreeMode]}
+              loop={true}
+              speed={15000}
+              autoplay={{
+                delay: 0,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true
+              }}
+              freeMode={true}
+              slidesPerView="auto"
+              spaceBetween={12}
+              className="w-full categories-marquee"
+            >
+              {categories.map((cat, idx) => (
+                <SwiperSlide key={cat._id || idx} style={{ width: 'auto' }}>
+                  <button className="flex items-center shrink-0 bg-white/10 hover:bg-brand-yellow hover:text-brand-red px-3 py-1.5 rounded-full transition-all active:scale-95 border border-white/5 group">
+                    <span className="text-[10px] sm:text-[13px] font-black uppercase tracking-tighter whitespace-nowrap">
+                      {cat.name}
+                    </span>
+                  </button>
+                </SwiperSlide>
+              ))}
+            </Swiper>
           </div>
 
           {/* CONTACT BUTTON */}
@@ -150,6 +167,11 @@ const AppContent = () => {
           .swiper-pagination-bullet-active { background: #fbbf24 !important; opacity: 1; transform: scale(1.2); }
           .swiper-button-next, .swiper-button-prev { color: rgba(255,255,255,0.7); transform: scale(0.6); }
           @media (max-width: 640px) { .swiper-button-next, .swiper-button-prev { display: none; } }
+          
+          /* MARQUEE LINEAR TRANSITION */
+          .categories-marquee .swiper-wrapper {
+            transition-timing-function: linear !important;
+          }
         `}} />
       </section>
 
