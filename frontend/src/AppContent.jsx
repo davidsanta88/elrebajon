@@ -134,9 +134,9 @@ const AppContent = () => {
         
         <div className="grid grid-cols-4 gap-3 max-w-lg mx-auto">
           {categories.map((cat, idx) => (
-            <button key={cat._id || idx} className="flex flex-col items-center gap-2 hover:scale-105 transition-transform">
-              <div className="bg-white border-2 border-gray-100 text-brand-red w-full aspect-square rounded-2xl flex items-center justify-center shadow-sm overflow-hidden p-2">
-                <img src={cat.image} alt={cat.name} className="w-full h-full object-contain" />
+            <button key={cat._id || idx} className="flex flex-col items-center gap-2 hover:scale-110 transition-transform group">
+              <div className="bg-brand-red border-2 border-red-600 text-white w-full aspect-square rounded-[2rem] flex items-center justify-center shadow-lg overflow-hidden p-0 group-hover:shadow-red-200 transition-shadow">
+                <img src={cat.image} alt={cat.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
               </div>
               <span className="text-[10px] sm:text-xs font-black uppercase text-gray-800 break-words w-full text-center leading-tight">
                 {cat.name}
