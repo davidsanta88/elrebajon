@@ -16,12 +16,24 @@ import { useNavigate } from 'react-router-dom';
 
 const AppContent = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      const res = await axios.get(`${API_URL}/api/categories`);
+      setCategories(res.data);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -121,21 +133,19 @@ const AppContent = () => {
         </div>
         
         <div className="grid grid-cols-4 gap-3 max-w-lg mx-auto">
-          {[
-            { name: 'Hogar', color: 'bg-red-600', icon: <Bed size={32} /> },
-            { name: 'Ropa', color: 'bg-orange-500', icon: <Shirt size={32} /> },
-            { name: 'Animales', color: 'bg-pink-500', icon: <Dog size={32} /> },
-            { name: 'Electrodomésticos', color: 'bg-blue-500', icon: <Plug size={32} /> }
-          ].map((cat, idx) => (
-            <button key={idx} className="flex flex-col items-center gap-2 hover:scale-105 transition-transform">
-              <div className={`${cat.color} text-white w-full aspect-square rounded-2xl flex items-center justify-center shadow-md`}>
-                {cat.icon}
+          {categories.map((cat, idx) => (
+            <button key={cat._id || idx} className="flex flex-col items-center gap-2 hover:scale-105 transition-transform">
+              <div className="bg-white border-2 border-gray-100 text-brand-red w-full aspect-square rounded-2xl flex items-center justify-center shadow-sm overflow-hidden p-2">
+                <img src={cat.image} alt={cat.name} className="w-full h-full object-contain" />
               </div>
               <span className="text-[10px] sm:text-xs font-black uppercase text-gray-600 truncate w-full text-center">
                 {cat.name}
               </span>
             </button>
           ))}
+          {categories.length === 0 && !loading && (
+            <p className="col-span-4 text-center text-gray-400 text-xs font-bold uppercase italic">No hay categorías cargadas</p>
+          )}
         </div>
       </section>
 
