@@ -297,9 +297,10 @@ const AdminDashboard = () => {
                     <p className="text-xs font-bold text-gray-400 uppercase">{prod.provider}</p>
                   </div>
                   <div className="flex gap-6 text-center bg-gray-50/50 px-6 py-3 rounded-2xl border border-gray-100">
-                    <div><p className="text-[10px] font-black uppercase text-gray-400">Stock</p><p className="font-black text-sm text-gray-800">{prod.stock}</p></div>
-                    <div><p className="text-[10px] font-black uppercase text-blue-500">Ganancia</p><p className="text-blue-600 font-bold">${formatNum(prod.profitMargin)}</p></div>
+                    <div><p className="text-[10px] font-black uppercase text-gray-400">Stock</p><p className="font-bold text-sm text-gray-800">{prod.stock}</p></div>
+                    <div><p className="text-[10px] font-black uppercase text-gray-400">Compra</p><p className="font-bold text-sm text-gray-600">${formatNum(prod.purchasePrice)}</p></div>
                     <div><p className="text-[10px] font-black uppercase text-brand-red">Venta</p><p className="text-brand-red font-black text-lg">${formatNum(prod.price)}</p></div>
+                    <div><p className="text-[10px] font-black uppercase text-blue-500">Ganancia</p><p className="text-blue-600 font-bold">${formatNum(prod.profitMargin)}</p></div>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => { setIsEditingProduct(true); setProductForm(prod); setShowProductModal(true); }} className="p-3 rounded-xl bg-gray-100 transition-all hover:text-blue-500"><Edit size={20} /></button>
