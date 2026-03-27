@@ -5,20 +5,41 @@ import {
   Search, 
   MessageCircle, 
   PhoneCall, 
-  Bed, 
-  Shirt, 
-  Dog, 
-  Plug, 
   Flame,
   Settings
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Pagination, Navigation } from 'swiper/modules';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
 
 const AppContent = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const slides = [
+    {
+      image: 'https://res.cloudinary.com/davidsanta88s/image/upload/v1774640924/banner_home_mixto_total_estufa_animales_final_1774640924220.png',
+      title: 'PRODUCTOS NUEVOS Y USADOS',
+      subtitle: 'DE LA MEJOR CALIDAD'
+    },
+    {
+      image: 'https://res.cloudinary.com/davidsanta88s/image/upload/v1774640642/banner_home_alternativa_mobiliario_electro_1774640642696.png',
+      title: 'TODO PARA TU HOGAR',
+      subtitle: 'AL MEJOR PRECIO'
+    },
+    {
+      image: 'https://res.cloudinary.com/davidsanta88s/image/upload/v1774640533/banner_home_el_rebajon_premium_final_1774640533505.png',
+      title: 'LO QUE NECESITAS',
+      subtitle: 'MUEBLES, ROPA Y MÁS'
+    }
+  ];
 
   useEffect(() => {
     fetchProducts();
@@ -71,43 +92,43 @@ const AppContent = () => {
         </div>
       </header>
 
-      {/* HERO BANNER */}
-      <section className="bg-brand-red relative overflow-hidden text-white pt-8 pb-12">
-        <div className="absolute inset-0 opacity-20 pointer-events-none" 
-             style={{ 
-               background: 'repeating-conic-gradient(from 0deg, white 0deg 10deg, transparent 10deg 20deg)',
-               transform: 'scale(3)' 
-             }}>
-        </div>
+      {/* HERO CAROUSEL */}
+      <section className="relative w-full aspect-[21/9] lg:aspect-[21/7] overflow-hidden bg-brand-red">
+        <Swiper
+          modules={[Autoplay, Pagination, Navigation]}
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          pagination={{ clickable: true }}
+          navigation={true}
+          loop={true}
+          className="h-full w-full mySwiper"
+        >
+          {slides.map((slide, index) => (
+            <SwiperSlide key={index}>
+              <div className="relative w-full h-full">
+                <img 
+                  src={slide.image} 
+                  alt={slide.title} 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/5 flex flex-col items-center justify-center p-4">
+                  <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20">
+                    <button className="bg-brand-yellow text-brand-red text-sm sm:text-lg font-black py-2.5 px-8 rounded-xl shadow-[0_4px_0_0_rgba(180,140,0,1)] hover:translate-y-0.5 hover:shadow-none transition-all uppercase whitespace-nowrap">
+                      Ver Productos
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
         
-        <div className="container mx-auto px-4 relative z-10 flex flex-col items-center">
-          <div className="relative w-full max-w-sm h-64 mb-6 flex justify-center items-center">
-            <div className="absolute top-0 transform -translate-y-4">
-               <div className="bg-white rounded-xl shadow-2xl p-2 w-48 h-32 flex items-center justify-center">
-                 <Bed size={64} className="text-gray-400" />
-               </div>
-            </div>
-            <div className="absolute left-0 bottom-4 transform -rotate-12 translate-x-4">
-               <div className="bg-white rounded-lg shadow-xl p-1 w-24 h-24 flex items-center justify-center">
-                 <Shirt size={48} className="text-gray-400" />
-               </div>
-            </div>
-            <div className="absolute right-0 bottom-4 transform rotate-12 -translate-x-4">
-               <div className="bg-white rounded-lg shadow-xl p-1 w-24 h-24 flex items-center justify-center font-black text-gray-400 text-center text-xs">
-                  MEJORES<br/>PRECIOS
-               </div>
-            </div>
-          </div>
-
-          <h2 className="text-4xl font-extrabold text-center leading-tight mb-6 tracking-tighter">
-            <span className="text-brand-yellow italic">¡TODO</span> lo que necesitas <br/>
-            al mejor <span className="text-brand-yellow">precio!</span>
-          </h2>
-
-          <button className="bg-brand-yellow text-brand-red text-xl font-black py-3 px-10 rounded-xl shadow-[0_5px_0_0_rgba(180,140,0,1)] hover:translate-y-1 hover:shadow-none transition-all uppercase">
-            Ver Productos
-          </button>
-        </div>
+        {/* CUSTOM CSS FOR SWIPER HITS */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          .swiper-pagination-bullet { background: white !important; opacity: 0.5; }
+          .swiper-pagination-bullet-active { background: #fbbf24 !important; opacity: 1; transform: scale(1.2); }
+          .swiper-button-next, .swiper-button-prev { color: rgba(255,255,255,0.7); transform: scale(0.6); }
+          @media (max-width: 640px) { .swiper-button-next, .swiper-button-prev { display: none; } }
+        `}} />
       </section>
 
       {/* SEARCH BAR */}
