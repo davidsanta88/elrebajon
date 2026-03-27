@@ -210,14 +210,16 @@ const AdminDashboard = () => {
             ) : (
                 products.map((prod) => (
                   <div key={prod._id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-6 hover:shadow-md transition-shadow">
-                    {/* ... (Existing product card code) ... */}
-                    <div className="w-24 h-24 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
+                    {/* Image */}
+                    <div className="w-24 h-24 bg-gray-100 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
                       {prod.image ? (
-                        <img src={prod.image} alt={prod.name} className="w-full h-full object-cover rounded-xl" />
+                        <img src={prod.image} alt={prod.name} className="w-full h-full object-cover" />
                       ) : (
                         <Package size={40} className="text-gray-300" />
                       )}
                     </div>
+
+                    {/* Basic Info */}
                     <div className="flex-1 w-full text-center md:text-left">
                       <span className="text-[10px] font-black uppercase text-brand-red bg-red-50 px-2 py-0.5 rounded-full mb-1 inline-block">
                         {prod.category}
@@ -227,6 +229,8 @@ const AdminDashboard = () => {
                         <UserIcon size={12} /> Proveedor: <span className="text-gray-600">{prod.provider || 'Sin asignar'}</span>
                       </p>
                     </div>
+
+                    {/* Prices */}
                     <div className="flex gap-4 md:gap-8 bg-gray-50 px-6 py-3 rounded-2xl w-full md:w-auto justify-center">
                       <div className="text-center">
                         <p className="text-[10px] font-black uppercase text-gray-400 mb-0.5">Costo</p>
@@ -237,6 +241,8 @@ const AdminDashboard = () => {
                         <p className="text-brand-red font-black text-xl">${prod.price?.toLocaleString() || '0'}</p>
                       </div>
                     </div>
+
+                    {/* Actions */}
                     <div className="flex gap-2 w-full md:w-auto justify-center">
                       <button className="p-3 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all">
                         <Edit size={20} />
