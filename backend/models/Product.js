@@ -3,17 +3,17 @@ const mongoose = require('mongoose');
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String },
-  price: { type: Number, required: true },
-  purchasePrice: { type: Number }, // For Admin to track profit
-  category: { 
-    type: String, 
-    enum: ['Hogar', 'Ropa', 'Animales', 'Electrodomésticos'],
-    required: true 
-  },
-  image: { type: String }, // Cloudinary URL
-  isOffer: { type: Boolean, default: false },
-  stock: { type: Number, default: 0 },
+  purchasePrice: { type: Number, required: true, default: 0 },
+  price: { type: Number, required: true, default: 0 },
+  profitMargin: { type: Number, default: 0 },
+  category: { type: String, required: true },
   provider: { type: String },
+  stock: { type: Number, default: 0 },
+  stockMin: { type: Number, default: 0 },
+  status: { type: String, enum: ['Activo', 'Inactivo'], default: 'Activo' },
+  images: [{ type: String }], // Array of Cloudinary URLs
+  mainImage: { type: String }, // Primary Cloudinary URL for cards
+  isOffer: { type: Boolean, default: false },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);

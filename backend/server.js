@@ -123,6 +123,55 @@ app.get('/api/admin/products', authMiddleware, adminMiddleware, async (req, res)
   }
 });
 
+app.post('/api/admin/products', authMiddleware, adminMiddleware, upload.array('images', 5), async (req, res) => {
+  try {
+    const images = req.files ? req.files.map(file => file.path) : [];
+    const productData = {
+      ...req.body,
+      images,
+      mainImage: images.length > 0 ? images[0] : null,
+      profitMargin: Number(req.body.price) - Number(req.body.purchasePrice)
+    };
+    const product = new Product(productData);
+    await product.save();
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.put('/api/admin/products/:id', authMiddleware, adminMiddleware, upload.array('images', 5), async (req, res) => {
+  try {
+    let updateData = { ...req.body };
+    
+    // If new images are uploaded, add them to the existing ones or replace? 
+    // For now, let's treat it as a replace or append correctly.
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map(file => file.path);
+      updateData.images = newImages;
+      updateData.mainImage = newImages[0];
+    }
+
+    if (req.body.price && req.body.purchasePrice) {
+      updateData.profitMargin = Number(req.body.price) - Number(req.body.purchasePrice);
+    }
+
+    const product = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.delete('/api/admin/products/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Product deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Public: Fetch products for Home
 app.get('/api/products', async (req, res) => {
   try {
