@@ -44,6 +44,7 @@ import {
   Legend
 } from 'recharts';
 import { format, subDays } from 'date-fns';
+import * as XLSX from 'xlsx';
 
 const AdminDashboard = () => {
   const [products, setProducts] = useState([]);
@@ -119,6 +120,61 @@ const AdminDashboard = () => {
       fetchStats();
     } catch (err) {
       Swal.fire('Error', 'No se pudieron generar ventas', 'error');
+    }
+  };
+
+  const handleExportExcel = () => {
+    if (!stats) return;
+
+    try {
+      const wb = XLSX.utils.book_new();
+
+      // 1. Resumen Sheet
+      const resumenData = [
+        ["REPORTE DE INTELIGENCIA DE NEGOCIO - EL REBAJÓN"],
+        ["Fecha de Generación", new Date().toLocaleDateString()],
+        [],
+        ["INDICADOR", "VALOR"],
+        ["Ventas Totales", stats.metrics.totalRevenue],
+        ["Ganancia Neta", stats.metrics.totalProfit],
+        ["Total Transacciones", stats.metrics.count],
+        ["Ticket Promedio", Math.round(stats.metrics.totalRevenue / stats.metrics.count || 0)]
+      ];
+      const wsResumen = XLSX.utils.aoa_to_sheet(resumenData);
+      XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen Global");
+
+      // 2. Tendencia Sheet
+      const trendData = stats.dailyTrend.map(day => ({
+        "Fecha": day._id,
+        "Ingresos": day.revenue,
+        "Ganancia": day.profit
+      }));
+      const wsTrend = XLSX.utils.json_to_sheet(trendData);
+      XLSX.utils.book_append_sheet(wb, wsTrend, "Histórico Diario");
+
+      // 3. Categorías Sheet
+      const categoryData = stats.categoryStats.map(cat => ({
+        "Categoría": cat._id,
+        "Total Ventas": cat.value
+      }));
+      const wsCat = XLSX.utils.json_to_sheet(categoryData);
+      XLSX.utils.book_append_sheet(wb, wsCat, "Ventas por Categoría");
+
+      // 4. Top Productos
+      const productData = stats.topProducts.map(prod => ({
+        "Producto": prod._id,
+        "Unidades Vendidas": prod.sales,
+        "Ingresos Generados": prod.revenue
+      }));
+      const wsProd = XLSX.utils.json_to_sheet(productData);
+      XLSX.utils.book_append_sheet(wb, wsProd, "Productos Estrella");
+
+      // Download
+      XLSX.writeFile(wb, `Reporte_BI_ElRebajon_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      Swal.fire('Éxito', 'Reporte Excel descargado', 'success');
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', 'No se pudo generar el Excel', 'error');
     }
   };
 
@@ -350,9 +406,14 @@ const AdminDashboard = () => {
             
             <div className="flex gap-3">
               {activeTab === 'stats' ? (
-                <button onClick={handleSeedOrders} className="bg-brand-red text-white font-black px-6 py-3 rounded-xl shadow-lg hover:scale-105 transition-transform flex items-center gap-2 uppercase text-sm">
-                  <TrendingUp size={20} /> Simular Ventas (Demo)
-                </button>
+                <div className="flex gap-3">
+                  <button onClick={handleExportExcel} className="bg-white border-2 border-brand-green text-brand-green font-black px-6 py-3 rounded-xl shadow-sm hover:bg-brand-green hover:text-white transition-all flex items-center gap-2 uppercase text-sm">
+                    <FileText size={20} /> Descargar Reporte
+                  </button>
+                  <button onClick={handleSeedOrders} className="bg-brand-red text-white font-black px-6 py-3 rounded-xl shadow-lg hover:scale-105 transition-transform flex items-center gap-2 uppercase text-sm">
+                    <TrendingUp size={20} /> Simular Ventas (Demo)
+                  </button>
+                </div>
               ) : activeTab === 'products' ? (
                 <>
                   <button onClick={handleSeed} className="bg-white border-2 border-brand-red text-brand-red font-black p-3 rounded-xl hover:bg-brand-red hover:text-white transition-all">
