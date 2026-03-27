@@ -156,28 +156,15 @@ const AppContent = () => {
         `}} />
       </section>
 
-      {/* SEARCH BAR */}
-      <section className="px-4 -mt-5 relative z-20">
-        <div className="max-w-md mx-auto flex bg-white rounded-full shadow-lg border-2 border-gray-100 overflow-hidden">
-          <input 
-            type="text" 
-            placeholder="¿Qué estás buscando?" 
-            className="flex-1 px-5 py-3 outline-none text-gray-700 font-bold"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button className="bg-brand-red text-white p-3">
-            <Search size={24} />
-          </button>
-        </div>
-
+      {/* FILTERS & SEARCH */}
+      <section className="px-4 -mt-10 sm:-mt-12 relative z-20 flex flex-col items-center">
         {/* CONDITION FILTERS */}
-        <div className="flex justify-center gap-2 mt-4">
+        <div className="flex justify-center gap-2 mb-3">
           {['Todo', 'Nuevo', 'Usado'].map((opt) => (
             <button
               key={opt}
               onClick={() => setFilter(opt)}
-              className={`px-6 py-2 rounded-full text-[10px] font-black uppercase transition-all border-2 ${
+              className={`px-4 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-black uppercase transition-all border-2 shadow-sm ${
                 filter === opt 
                 ? 'bg-brand-red text-white border-brand-red shadow-lg scale-105' 
                 : 'bg-white text-gray-400 border-gray-100 hover:border-brand-red/30'
@@ -186,6 +173,20 @@ const AppContent = () => {
               {opt === 'Todo' ? '✨ Todos' : opt === 'Nuevo' ? '📦 Nuevos' : '♻️ Usados'}
             </button>
           ))}
+        </div>
+
+        {/* SEARCH BAR */}
+        <div className="max-w-md w-full mx-auto flex bg-white rounded-full shadow-xl border-2 border-brand-red/10 overflow-hidden">
+          <input 
+            type="text" 
+            placeholder="¿Qué estás buscando?" 
+            className="flex-1 px-5 py-3 outline-none text-gray-700 font-bold text-sm sm:text-base"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <button className="bg-brand-red text-white px-4 sm:px-6 hover:bg-red-700 transition-colors">
+            <Search size={22} />
+          </button>
         </div>
       </section>
 
