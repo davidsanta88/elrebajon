@@ -21,15 +21,38 @@ import {
   MapPin,
   Menu,
   X,
-  FileText
+  FileText,
+  BarChart3,
+  TrendingUp,
+  ShoppingBag,
+  ArrowUpRight,
+  Calendar
 } from 'lucide-react';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  PieChart, 
+  Pie, 
+  Cell,
+  BarChart,
+  Bar,
+  Legend
+} from 'recharts';
+import { format, subDays } from 'date-fns';
 
 const AdminDashboard = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [providers, setProviders] = useState([]);
-  const [activeTab, setActiveTab] = useState('products'); // 'products', 'categories', 'providers'
+  const [stats, setStats] = useState(null);
+  const [activeTab, setActiveTab] = useState('products'); // 'products', 'categories', 'providers', 'stats'
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Modals
@@ -57,10 +80,46 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (activeTab === 'stats') {
+      fetchStats();
+    }
+  }, [activeTab]);
+
   const fetchData = async () => {
     setLoading(true);
     await Promise.all([fetchProducts(), fetchCategories(), fetchProviders()]);
     setLoading(false);
+  };
+
+  const fetchStats = async () => {
+    setStatsLoading(true);
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/admin/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setStats(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  const handleSeedOrders = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      const token = localStorage.getItem('token');
+      await axios.get(`${API_URL}/api/admin/seed-orders`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      Swal.fire('Éxito', 'Ventas simuladas generadas correctamente', 'success');
+      fetchStats();
+    } catch (err) {
+      Swal.fire('Error', 'No se pudieron generar ventas', 'error');
+    }
   };
 
   const fetchProviders = async () => {
@@ -82,7 +141,10 @@ const AdminDashboard = () => {
   const fetchProducts = async () => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-      const res = await axios.get(`${API_URL}/api/admin/products`);
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/admin/products`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setProducts(res.data);
     } catch (err) {
       console.error(err);
@@ -107,8 +169,12 @@ const AdminDashboard = () => {
     formData.append('image', newCategory.image);
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      const token = localStorage.getItem('token');
       await axios.post(`${API_URL}/api/admin/categories`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
+        }
       });
       setShowCategoryModal(false);
       setNewCategory({ name: '', image: null });
@@ -122,7 +188,10 @@ const AdminDashboard = () => {
     if (confirm.isConfirmed) {
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-        await axios.delete(`${API_URL}/api/admin/categories/${id}`);
+        const token = localStorage.getItem('token');
+        await axios.delete(`${API_URL}/api/admin/categories/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         fetchCategories();
       } catch (err) { Swal.fire('Error', 'Error al eliminar', 'error'); }
     }
@@ -133,10 +202,15 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      const token = localStorage.getItem('token');
       if (isEditingProvider) {
-        await axios.put(`${API_URL}/api/admin/providers/${providerForm._id}`, providerForm);
+        await axios.put(`${API_URL}/api/admin/providers/${providerForm._id}`, providerForm, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
       } else {
-        await axios.post(`${API_URL}/api/admin/providers`, providerForm);
+        await axios.post(`${API_URL}/api/admin/providers`, providerForm, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
       }
       setShowProviderModal(false);
       fetchProviders();
@@ -149,7 +223,10 @@ const AdminDashboard = () => {
     if (confirm.isConfirmed) {
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-        await axios.delete(`${API_URL}/api/admin/providers/${id}`);
+        const token = localStorage.getItem('token');
+        await axios.delete(`${API_URL}/api/admin/providers/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         fetchProviders();
       } catch (err) { Swal.fire('Error', 'No se pudo eliminar', 'error'); }
     }
@@ -169,13 +246,20 @@ const AdminDashboard = () => {
 
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      const token = localStorage.getItem('token');
       if (isEditingProduct) {
         await axios.put(`${API_URL}/api/admin/products/${productForm._id}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
+          }
         });
       } else {
         await axios.post(`${API_URL}/api/admin/products`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
+          }
         });
       }
       setShowProductModal(false);
@@ -189,7 +273,10 @@ const AdminDashboard = () => {
     if (confirm.isConfirmed) {
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-        await axios.delete(`${API_URL}/api/admin/products/${id}`);
+        const token = localStorage.getItem('token');
+        await axios.delete(`${API_URL}/api/admin/products/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         fetchProducts();
       } catch (err) { Swal.fire('Error', 'No se pudo eliminar', 'error'); }
     }
@@ -198,13 +285,15 @@ const AdminDashboard = () => {
   const handleLogout = () => { logout(); navigate('/login'); };
 
   const formatNum = (num) => {
-    if (!num && num !== 0) return '';
+    if (!num && num !== 0) return '0';
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
   const cleanNum = (val) => {
     return val.replace(/\./g, '');
   };
+
+  const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
 
   return (
     <div className="min-h-screen bg-gray-50 flex font-sans overflow-hidden">
@@ -224,12 +313,13 @@ const AdminDashboard = () => {
           <span className="bg-white text-brand-red px-2 py-0.5 rounded text-[10px] font-black italic">PANEL ADMINISTRATIVO</span>
         </div>
         <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
+          <SidebarLink icon={<BarChart3 size={20} />} label="Centro BI" active={activeTab === 'stats'} onClick={() => { setActiveTab('stats'); setSidebarOpen(false); }} />
           <SidebarLink icon={<LayoutDashboard size={20} />} label="Inventario" active={activeTab === 'products'} onClick={() => { setActiveTab('products'); setSidebarOpen(false); }} />
           <SidebarLink icon={<Tag size={20} />} label="Categorías" active={activeTab === 'categories'} onClick={() => { setActiveTab('categories'); setSidebarOpen(false); }} />
           <SidebarLink icon={<Users size={20} />} label="Proveedores" active={activeTab === 'providers'} onClick={() => { setActiveTab('providers'); setSidebarOpen(false); }} />
-          <div className="pt-8 pb-4">
-            <p className="px-4 text-[10px] font-black uppercase text-white/50 mb-2">Accesos Directos</p>
-            <SidebarLink icon={<Home size={20} />} label="Ver Tienda" onClick={() => navigate('/')} />
+          <div className="pt-8 pb-4 border-t border-white/10 mt-4">
+            <p className="px-4 text-[10px] font-black uppercase text-white/50 mb-4 tracking-widest">Accesos Rápidos</p>
+            <SidebarLink icon={<Home size={20} />} label="Ir a la Tienda" onClick={() => navigate('/')} />
           </div>
         </nav>
         <div className="p-4 bg-black/10">
@@ -243,18 +333,27 @@ const AdminDashboard = () => {
       <main className="flex-1 overflow-y-auto pt-20 lg:pt-0">
         <div className="p-4 md:p-10 max-w-7xl mx-auto">
           
+          {/* DYNAMIC HEADER */}
           <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <h2 className="text-4xl font-black text-gray-800 uppercase italic tracking-tighter leading-tight">
-                {activeTab === 'products' ? 'Gestión de Inventario' : activeTab === 'categories' ? 'Gestión de Categorías' : 'Nuestros Proveedores'}
+                {activeTab === 'products' ? 'Gestión de Inventario' : 
+                 activeTab === 'categories' ? 'Gestión de Categorías' : 
+                 activeTab === 'providers' ? 'Nuestros Proveedores' : 'Inteligencia de Negocio'}
               </h2>
               <p className="text-gray-400 font-bold uppercase text-xs tracking-wider mt-1">
-                {activeTab === 'products' ? 'Administra precios, stock y visibilidad de productos' : activeTab === 'categories' ? 'Organiza tu catálogo con categorías dinámicas' : 'Base de datos de suministros'}
+                {activeTab === 'products' ? 'Administra precios, stock y visibilidad' : 
+                 activeTab === 'categories' ? 'Organiza tu catálogo con categorías' : 
+                 activeTab === 'providers' ? 'Base de datos de suministros' : 'Analítica avanzada de ventas y rentabilidad'}
               </p>
             </div>
             
             <div className="flex gap-3">
-              {activeTab === 'products' ? (
+              {activeTab === 'stats' ? (
+                <button onClick={handleSeedOrders} className="bg-brand-red text-white font-black px-6 py-3 rounded-xl shadow-lg hover:scale-105 transition-transform flex items-center gap-2 uppercase text-sm">
+                  <TrendingUp size={20} /> Simular Ventas (Demo)
+                </button>
+              ) : activeTab === 'products' ? (
                 <>
                   <button onClick={handleSeed} className="bg-white border-2 border-brand-red text-brand-red font-black p-3 rounded-xl hover:bg-brand-red hover:text-white transition-all">
                     <RefreshCw size={20} />
@@ -275,10 +374,96 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {loading ? (
+          {loading || (activeTab === 'stats' && statsLoading) ? (
             <div className="flex flex-col items-center justify-center py-40 gap-4">
               <RefreshCw className="animate-spin text-brand-red" size={64} />
-              <p className="text-gray-400 font-black uppercase italic animate-pulse">Cargando...</p>
+              <p className="text-gray-400 font-black uppercase italic animate-pulse">Sincronizando Inteligencia...</p>
+            </div>
+          ) : activeTab === 'stats' ? (
+            <div className="space-y-10">
+              {/* STATS CARDS */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <MetricCard title="Ventas Totales" value={`$${formatNum(stats?.metrics?.totalRevenue)}`} detail={`${stats?.metrics?.count} transacciones`} icon={<ShoppingBag className="text-brand-red"/>} trend="+12%" />
+                <MetricCard title="Ganancia Neta" value={`$${formatNum(stats?.metrics?.totalProfit)}`} detail="Margen real" icon={<DollarSign className="text-brand-green"/>} trend="+8%" color="bg-brand-green/10 text-brand-green" />
+                <MetricCard title="Ticket Promedio" value={`$${formatNum(Math.round(stats?.metrics?.totalRevenue / stats?.metrics?.count || 0))}`} detail="Por cliente" icon={<TrendingUp className="text-blue-500"/>} trend="+5%" color="bg-blue-50 text-blue-500" />
+                <MetricCard title="Productos Activos" value={products.length} detail="En el catálogo" icon={<Package className="text-purple-500"/>} showTrend={false} color="bg-purple-50 text-purple-500" />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* SALES TREND CHART */}
+                <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
+                  <div className="flex justify-between items-center mb-8">
+                    <h3 className="text-xl font-black text-gray-800 uppercase italic tracking-tighter">Tendencia de Ingresos</h3>
+                    <div className="flex items-center gap-2 text-xs font-black uppercase text-gray-400"><Calendar size={14}/> Últimos 30 días</div>
+                  </div>
+                  <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={stats?.dailyTrend}>
+                        <defs>
+                          <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                        <XAxis dataKey="_id" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
+                        <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
+                        <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+                        <Area type="monotone" dataKey="revenue" stroke="#ef4444" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* CATEGORY DIST */}
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col">
+                  <h3 className="text-xl font-black text-gray-800 uppercase italic tracking-tighter mb-8">Ventas por Categoría</h3>
+                  <div className="h-[250px] w-full flex-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={stats?.categoryStats} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                          {stats?.categoryStats?.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend iconType="circle" />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* TOP PRODUCTS */}
+              <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
+                <h3 className="text-xl font-black text-gray-800 uppercase italic tracking-tighter mb-8">Productos Top de Línea</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-[10px] font-black uppercase text-gray-400 border-b border-gray-50 pb-4">
+                        <th className="pb-4">Producto</th>
+                        <th className="pb-4">Unidades</th>
+                        <th className="pb-4">Ingresos</th>
+                        <th className="pb-4 text-right">Rendimiento</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {stats?.topProducts?.map((item, idx) => (
+                        <tr key={idx} className="group hover:bg-gray-50/50 transition-colors">
+                          <td className="py-4 font-black text-gray-800 uppercase italic text-sm">{item._id}</td>
+                          <td className="py-4 font-bold text-gray-500">{item.sales} ud</td>
+                          <td className="py-4 font-black text-gray-800">${formatNum(item.revenue)}</td>
+                          <td className="py-4 text-right">
+                             <span className="bg-brand-green/10 text-brand-green px-3 py-1 rounded-full text-[10px] font-black uppercase inline-flex items-center gap-1">
+                                <ArrowUpRight size={12}/> High
+                             </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           ) : activeTab === 'products' ? (
             <div className="grid grid-cols-1 gap-4">
@@ -353,9 +538,23 @@ const AdminDashboard = () => {
 
 // HELPER COMPONENTS
 const SidebarLink = ({ icon, label, active, onClick }) => (
-  <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl transition-all text-sm font-black uppercase ${active ? 'bg-white text-brand-red shadow-lg' : 'hover:bg-white/10 text-white/80'}`}>
+  <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl transition-all text-sm font-black uppercase ${active ? 'bg-white text-brand-red shadow-xl scale-105' : 'hover:bg-white/10 text-white/80'}`}>
     {icon} <span>{label}</span>
   </button>
+);
+
+const MetricCard = ({ title, value, detail, icon, trend, showTrend = true, color = "bg-red-50 text-brand-red" }) => (
+  <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col gap-6 group hover:shadow-xl transition-all">
+    <div className="flex justify-between items-start">
+      <div className={`p-4 rounded-2xl ${color} transition-transform group-hover:scale-110`}>{icon}</div>
+      {showTrend && <span className="bg-brand-green/10 text-brand-green px-2 py-1 rounded-lg text-[10px] font-black flex items-center gap-1"><ArrowUpRight size={10}/> {trend}</span>}
+    </div>
+    <div>
+      <h4 className="text-[10px] font-black uppercase text-gray-400 mb-1 tracking-widest">{title}</h4>
+      <p className="text-3xl font-black text-gray-800 italic tracking-tighter leading-none">{value}</p>
+      <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase">{detail}</p>
+    </div>
+  </div>
 );
 
 const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categories, providers, formatNum, cleanNum }) => {
@@ -381,13 +580,11 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
         </div>
 
         <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Main Info */}
           <div className="md:col-span-2 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputGroup label="Nombre del Producto" icon={<Package size={14}/>}>
                 <input required type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-brand-red transition-all" />
               </InputGroup>
-              
               <InputGroup label="Categoría" icon={<Tag size={14}/>}>
                 <select required value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold">
                   <option value="">Selecciona</option>
@@ -395,22 +592,17 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
                 </select>
               </InputGroup>
             </div>
-
             <InputGroup label="Descripción" icon={<FileText size={14}/>}>
               <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold min-h-[100px]" />
             </InputGroup>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputGroup label="Valor de Compra" icon={<DollarSign size={14}/>}>
                 <input required type="text" value={formatNum(form.purchasePrice)} onChange={e => handlePriceChange('purchasePrice', e)} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-black text-xl text-gray-800" placeholder="0" />
               </InputGroup>
-
               <InputGroup label="Valor de Venta" icon={<DollarSign size={14}/>}>
                 <input required type="text" value={formatNum(form.price)} onChange={e => handlePriceChange('price', e)} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-black text-xl text-brand-red border-2 border-transparent focus:border-brand-red" placeholder="0" />
               </InputGroup>
             </div>
-
-            {/* MARGIN DISPLAY */}
             <div className="bg-blue-50 p-8 rounded-[2rem] flex justify-between items-center border border-blue-100 shadow-inner">
                <div>
                  <p className="text-[10px] font-black uppercase text-blue-500 mb-1">Ganancia Neta Estimada</p>
@@ -422,8 +614,6 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
                </div>
             </div>
           </div>
-
-          {/* Sidebar Info */}
           <div className="space-y-6">
             <InputGroup label="Proveedor" icon={<Users size={14}/>}>
               <select required value={form.provider} onChange={e => setForm({...form, provider: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold">
@@ -431,37 +621,22 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
                 {providers.map(p => <option key={p._id} value={p.name}>{p.name}</option>)}
               </select>
             </InputGroup>
-
             <div className="grid grid-cols-2 gap-2">
-              <InputGroup label="Stock Actual">
-                <input required type="number" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold" />
-              </InputGroup>
-              <InputGroup label="Stock Mínimo">
-                <input required type="number" value={form.stockMin} onChange={e => setForm({...form, stockMin: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold" />
-              </InputGroup>
+              <InputGroup label="Stock Actual"><input required type="number" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold" /></InputGroup>
+              <InputGroup label="Stock Mínimo"><input required type="number" value={form.stockMin} onChange={e => setForm({...form, stockMin: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold" /></InputGroup>
             </div>
-
-            <InputGroup label="Estado">
-              <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl font-bold">
-                <option value="Activo">Activo</option>
-                <option value="Inactivo">Inactivo</option>
-              </select>
-            </InputGroup>
-
+            <InputGroup label="Estado"><select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl font-bold"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select></InputGroup>
             <div className="p-6 bg-gray-50 rounded-[2rem] border border-gray-100 relative group overflow-hidden">
                <input type="file" multiple onChange={e => setForm({...form, images: Array.from(e.target.files)})} className="absolute inset-0 opacity-0 cursor-pointer z-20" />
                <div className="flex flex-col items-center gap-2 text-center">
                   <Plus className="text-brand-red group-hover:rotate-90 transition-transform" />
-                  <p className="text-[10px] font-black uppercase text-gray-400">Clic para cargar fotos (Máx 5)</p>
+                  <p className="text-[10px] font-black uppercase text-gray-400">Clic para fotos (Máx 5)</p>
                </div>
-               
                {form.images.length > 0 && (
                  <div className="flex gap-2 overflow-x-auto mt-4 pb-2 relative z-10 no-scrollbar">
                     {form.images.map((img, idx) => (
                       <div key={idx} className="relative shrink-0">
-                        <div className="w-20 h-20 rounded-xl bg-white overflow-hidden border border-gray-200 shadow-sm">
-                           {img instanceof File && <img src={URL.createObjectURL(img)} className="w-full h-full object-cover" />}
-                        </div>
+                        <div className="w-20 h-20 rounded-xl bg-white overflow-hidden border border-gray-200 shadow-sm">{img instanceof File && <img src={URL.createObjectURL(img)} className="w-full h-full object-cover" />}</div>
                         {idx === 0 && <span className="absolute -top-1 -right-1 bg-brand-green text-white text-[8px] font-black uppercase px-2 py-0.5 rounded shadow-md border-2 border-white">Principal</span>}
                         <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[8px] font-bold px-1.5 rounded opacity-80">{idx + 1}/5</span>
                       </div>
@@ -470,7 +645,6 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
                )}
             </div>
           </div>
-
           <button type="submit" className="md:col-span-3 bg-brand-red text-white font-black py-6 rounded-[2rem] uppercase tracking-tighter text-2xl shadow-2xl hover:scale-[1.01] active:scale-95 transition-all mt-4 border-b-8 border-red-800">
             {isEditing ? 'Guardar Cambios' : 'Lanzar Producto Nuevo'}
           </button>
@@ -484,7 +658,7 @@ const ProviderModal = ({ show, onClose, onSubmit, form, setForm, isEditing }) =>
   if (!show) return null;
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[200]">
-      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in duration-300">
         <div className="flex justify-between items-center mb-6"><h3 className="text-xl font-black uppercase">{isEditing ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h3><button onClick={onClose}><X size={32}/></button></div>
         <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputGroup label="Nombre"><input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl" /></InputGroup>
@@ -493,7 +667,7 @@ const ProviderModal = ({ show, onClose, onSubmit, form, setForm, isEditing }) =>
           <InputGroup label="Sitio Web"><input value={form.website} onChange={e => setForm({...form, website: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl" /></InputGroup>
           <div className="md:col-span-2"><InputGroup label="Email"><input value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl" /></InputGroup></div>
           <div className="md:col-span-2"><InputGroup label="Observaciones"><textarea value={form.observation} onChange={e => setForm({...form, observation: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl min-h-[80px]" /></InputGroup></div>
-          <button type="submit" className="md:col-span-2 bg-brand-red text-white font-black py-4 rounded-2xl uppercase">Guardar</button>
+          <button type="submit" className="md:col-span-2 bg-brand-red text-white font-black py-4 rounded-2xl uppercase shadow-xl">Guardar</button>
         </form>
       </div>
     </div>
@@ -504,11 +678,11 @@ const CategoryModal = ({ show, onClose, onSubmit, form, setForm }) => {
   if (!show) return null;
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[200]">
-      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl">
-        <div className="flex justify-between items-center mb-6"><h3 className="text-xl font-black uppercase italic">Nueva Categoría</h3><button onClick={onClose}><X size={32}/></button></div>
+      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl animate-in zoom-in duration-300">
+        <div className="flex justify-between items-center mb-6"><h3 className="text-xl font-black uppercase italic tracking-tighter">Nueva Categoría</h3><button onClick={onClose}><X size={32}/></button></div>
         <form onSubmit={onSubmit} className="space-y-6">
-          <InputGroup label="Nombre"><input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none" /></InputGroup>
-          <InputGroup label="Icono"><input required type="file" onChange={e => setForm({...form, image: e.target.files[0]})} className="w-full border-2 border-dashed border-gray-100 p-8 rounded-2xl" /></InputGroup>
+          <InputGroup label="Nombre"><input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold" /></InputGroup>
+          <InputGroup label="Icono"><input required type="file" onChange={e => setForm({...form, image: e.target.files[0]})} className="w-full border-2 border-dashed border-gray-100 p-8 rounded-2xl cursor-pointer" /></InputGroup>
           <button type="submit" className="w-full bg-brand-green text-white font-black py-4 rounded-2xl uppercase shadow-lg">Crear</button>
         </form>
       </div>
@@ -517,7 +691,7 @@ const CategoryModal = ({ show, onClose, onSubmit, form, setForm }) => {
 };
 
 const InputGroup = ({ label, icon, children }) => (
-  <div className="flex flex-col gap-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-2 flex items-center gap-2">{icon} {label}</label>{children}</div>
+  <div className="flex flex-col gap-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-2 flex items-center gap-2 tracking-widest">{icon} {label}</label>{children}</div>
 );
 
 export default AdminDashboard;

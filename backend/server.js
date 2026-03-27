@@ -8,6 +8,7 @@ const User = require('./models/User');
 const Product = require('./models/Product');
 const Category = require('./models/Category');
 const Provider = require('./models/Provider');
+const Order = require('./models/Order');
 const { authMiddleware, adminMiddleware } = require('./middleware/authMiddleware');
 const { upload } = require('./config/cloudinary.js');
 
@@ -167,6 +168,117 @@ app.delete('/api/admin/products/:id', authMiddleware, adminMiddleware, async (re
   try {
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: 'Product deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// STATS & REPORTS
+app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { start, end } = req.query;
+    const dateQuery = {};
+    if (start && end) {
+      dateQuery.createdAt = { $gte: new Date(start), $lte: new Date(end) };
+    }
+
+    // 1. Basic Metrics
+    const basicMetrics = await Order.aggregate([
+      { $match: dateQuery },
+      { $group: {
+        _id: null,
+        totalRevenue: { $sum: "$totalRevenue" },
+        totalProfit: { $sum: "$totalProfit" },
+        count: { $sum: 1 }
+      }}
+    ]);
+
+    // 2. Daily Trend
+    const dailyTrend = await Order.aggregate([
+      { $match: dateQuery },
+      { $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        revenue: { $sum: "$totalRevenue" },
+        profit: { $sum: "$totalProfit" }
+      }},
+      { $sort: { "_id": 1 } }
+    ]);
+
+    // 3. Category Distribution
+    const categoryStats = await Order.aggregate([
+      { $match: dateQuery },
+      { $unwind: "$items" },
+      { $group: {
+        _id: "$items.category",
+        value: { $sum: "$items.price" }
+      }}
+    ]);
+
+    // 4. Top Products
+    const topProducts = await Order.aggregate([
+      { $match: dateQuery },
+      { $unwind: "$items" },
+      { $group: {
+        _id: "$items.name",
+        sales: { $sum: "$items.quantity" },
+        revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } }
+      }},
+      { $sort: { revenue: -1 } },
+      { $limit: 5 }
+    ]);
+
+    res.json({
+      metrics: basicMetrics[0] || { totalRevenue: 0, totalProfit: 0, count: 0 },
+      dailyTrend,
+      categoryStats,
+      topProducts
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// MOCK DATA GENERATOR
+app.get('/api/admin/seed-orders', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    await Order.deleteMany({});
+    const products = await Product.find();
+    if (products.length === 0) return res.status(400).json({ message: 'No hay productos para simular ventas' });
+
+    const mockOrders = [];
+    const now = new Date();
+
+    for (let i = 0; i < 30; i++) { // Last 30 days
+      const date = new Date();
+      date.setDate(now.getDate() - i);
+      
+      const ordersPerDay = Math.floor(Math.random() * 5) + 1;
+      for (let j = 0; j < ordersPerDay; j++) {
+        const product = products[Math.floor(Math.random() * products.length)];
+        const qty = Math.floor(Math.random() * 3) + 1;
+        
+        const totalRevenue = product.price * qty;
+        const totalCost = product.purchasePrice * qty;
+        
+        mockOrders.push({
+          items: [{
+            productId: product._id,
+            name: product.name,
+            quantity: qty,
+            price: product.price,
+            purchasePrice: product.purchasePrice,
+            category: product.category
+          }],
+          totalRevenue,
+          totalCost,
+          totalProfit: totalRevenue - totalCost,
+          createdAt: date
+        });
+      }
+    }
+
+    await Order.insertMany(mockOrders);
+    res.json({ message: `${mockOrders.length} ventas simuladas creadas` });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
