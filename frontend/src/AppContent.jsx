@@ -136,7 +136,7 @@ const AppContent = () => {
             </div>
 
             <a 
-              href={`https://wa.me/573000000000?text=Hola!%20Me%20interesa%20este%20producto:%20${encodeURIComponent(product.name)}`}
+              href={`https://wa.me/573114018724?text=Hola!%20Me%20interesa%20este%20producto:%20${encodeURIComponent(product.name)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-brand-green text-white font-black text-xl py-4 sm:py-5 rounded-2xl sm:rounded-3xl shadow-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 shadow-green-200 mt-auto"
@@ -201,11 +201,16 @@ const AppContent = () => {
             </Swiper>
           </div>
 
-          {/* CONTACT BUTTON */}
-          <div className="shrink-0 flex items-center gap-1 bg-white/15 border border-white/20 rounded-full px-2 py-1 hover:bg-white/30 transition-colors cursor-pointer">
-            <MessageCircle size={12} className="text-white" fill="white" />
-            <span className="text-[8px] sm:text-[10px] font-black uppercase hidden sm:inline">Chat</span>
-          </div>
+            {/* CONTACT BUTTON (WHATSAPP) */}
+            <a 
+              href="https://wa.me/573114018724" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="shrink-0 flex items-center gap-1 bg-brand-green border border-white/20 rounded-full px-3 py-1.5 hover:bg-green-600 transition-colors cursor-pointer shadow-lg"
+            >
+              <MessageCircle size={14} className="text-white" fill="white" />
+              <span className="text-[10px] font-black uppercase inline">Chat</span>
+            </a>
         </div>
       </header>
       {/* COMPACT WELCOME BANNER (Saves space) */}
@@ -284,21 +289,26 @@ const AppContent = () => {
           <div className="h-[1px] w-12 bg-gray-200"></div>
         </div>
         
-        <button className="w-full max-w-sm mx-auto bg-brand-green text-white font-black text-xl py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3 hover:scale-105 transition-transform active:scale-95 shadow-green-200">
+        <a 
+          href="https://wa.me/573114018724"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full max-w-sm mx-auto bg-brand-green text-white font-black text-xl py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3 hover:scale-105 transition-transform active:scale-95 shadow-green-200 inline-flex"
+        >
           <MessageCircle size={32} fill="white" />
           Hablar por WhatsApp
-        </button>
+        </a>
       </section>
 
       {/* FOOTER */}
       <footer className="mt-auto bg-white border-t border-gray-100 py-8 px-4">
         <p className="text-gray-400 text-xs font-bold italic tracking-wider mb-6 text-center uppercase">Compra fácil y seguro en tu pueblo</p>
         <div className="flex justify-center gap-12 mb-8">
-          <a href="tel:+573000000000" className="flex flex-col items-center gap-1 text-brand-red transition-opacity hover:opacity-70">
+          <a href="tel:+573114018724" className="flex flex-col items-center gap-1 text-brand-red transition-opacity hover:opacity-70">
             <PhoneCall size={24} />
             <span className="font-black uppercase text-[10px]">Llámanos</span>
           </a>
-          <a href="https://wa.me/573000000000" className="flex flex-col items-center gap-1 text-brand-green transition-opacity hover:opacity-70">
+          <a href="https://wa.me/573114018724" className="flex flex-col items-center gap-1 text-brand-green transition-opacity hover:opacity-70">
             <MessageCircle size={24} />
             <span className="font-black uppercase text-[10px]">Escríbenos</span>
           </a>
