@@ -21,7 +21,6 @@ const AppContent = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
   // Carousel slides removed for space optimization
@@ -53,79 +52,57 @@ const AppContent = () => {
     }
   };
 
-  const matchesSearch = (p) => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.category.toLowerCase().includes(searchTerm.toLowerCase());
-
-  const offers = products.filter(p => p.isOffer && matchesSearch(p));
-  const allProducts = products.filter(matchesSearch);
+  const allProducts = products;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       
       {/* HEADER */}
       <header className="bg-brand-red text-white p-2 px-3 sticky top-0 z-50 shadow-md">
-        <div className="container mx-auto">
-          {/* TOP ROW: Logo, Categories, Contact */}
-          <div className="flex items-center justify-between gap-2 sm:gap-4 mb-2">
-            
-            {/* LOGO & MENU */}
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-              <button className="p-1">
-                <Menu size={20} />
-              </button>
-              <h1 className="text-base sm:text-xl font-black uppercase italic tracking-tighter leading-none whitespace-nowrap">
-                El Rebajón
-              </h1>
-            </div>
-            
-            {/* INLINE CATEGORIES (CENTER / MARQUEE) */}
-            <div className="flex-1 overflow-hidden h-10 flex items-center">
-              <Swiper
-                modules={[Autoplay, FreeMode]}
-                loop={true}
-                speed={15000}
-                autoplay={{
-                  delay: 0,
-                  disableOnInteraction: false,
-                  pauseOnMouseEnter: true
-                }}
-                freeMode={true}
-                slidesPerView="auto"
-                spaceBetween={12}
-                className="w-full categories-marquee"
-              >
-                {categories.map((cat, idx) => (
-                  <SwiperSlide key={cat._id || idx} style={{ width: 'auto' }}>
-                    <button className="flex items-center shrink-0 bg-white/10 hover:bg-brand-yellow hover:text-brand-red px-3 py-1.5 rounded-full transition-all active:scale-95 border border-white/5 group">
-                      <span className="text-[10px] sm:text-[13px] font-black uppercase tracking-tighter whitespace-nowrap">
-                        {cat.name}
-                      </span>
-                    </button>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
-
-            {/* CONTACT BUTTON */}
-            <div className="shrink-0 flex items-center gap-1 bg-white/15 border border-white/20 rounded-full px-2 py-1 hover:bg-white/30 transition-colors cursor-pointer">
-              <MessageCircle size={12} className="text-white" fill="white" />
-              <span className="text-[8px] sm:text-[10px] font-black uppercase hidden sm:inline">Chat</span>
-            </div>
+        <div className="container mx-auto flex items-center justify-between gap-2 sm:gap-4">
+          
+          {/* LOGO & MENU */}
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            <button className="p-1">
+              <Menu size={20} />
+            </button>
+            <h1 className="text-base sm:text-xl font-black uppercase italic tracking-tighter leading-none whitespace-nowrap">
+              El Rebajón
+            </h1>
+          </div>
+          
+          {/* INLINE CATEGORIES (CENTER / MARQUEE) */}
+          <div className="flex-1 overflow-hidden h-10 flex items-center">
+            <Swiper
+              modules={[Autoplay, FreeMode]}
+              loop={true}
+              speed={15000}
+              autoplay={{
+                delay: 0,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true
+              }}
+              freeMode={true}
+              slidesPerView="auto"
+              spaceBetween={12}
+              className="w-full categories-marquee"
+            >
+              {categories.map((cat, idx) => (
+                <SwiperSlide key={cat._id || idx} style={{ width: 'auto' }}>
+                  <button className="flex items-center shrink-0 bg-white/10 hover:bg-brand-yellow hover:text-brand-red px-3 py-1.5 rounded-full transition-all active:scale-95 border border-white/5 group">
+                    <span className="text-[10px] sm:text-[13px] font-black uppercase tracking-tighter whitespace-nowrap">
+                      {cat.name}
+                    </span>
+                  </button>
+                </SwiperSlide>
+              ))}
+            </Swiper>
           </div>
 
-          {/* BOTTOM ROW: SEARCH BAR */}
-          <div className="max-w-xl mx-auto flex bg-white rounded-full border border-white/20 overflow-hidden mb-1 shadow-sm transition-all group">
-            <input 
-              type="text" 
-              placeholder="¿Qué estás buscando en El Rebajón?" 
-              className="flex-1 bg-transparent px-5 py-2 outline-none text-gray-800 placeholder:text-gray-400 font-bold text-xs sm:text-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button className="bg-brand-red text-white px-5 hover:bg-red-700 transition-all flex items-center justify-center">
-              <Search size={18} />
-            </button>
+          {/* CONTACT BUTTON */}
+          <div className="shrink-0 flex items-center gap-1 bg-white/15 border border-white/20 rounded-full px-2 py-1 hover:bg-white/30 transition-colors cursor-pointer">
+            <MessageCircle size={12} className="text-white" fill="white" />
+            <span className="text-[8px] sm:text-[10px] font-black uppercase hidden sm:inline">Chat</span>
           </div>
         </div>
       </header>
@@ -146,63 +123,44 @@ const AppContent = () => {
       
 
 
-      {/* OFFERS */}
-      <section className="bg-brand-yellow py-6">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Flame className="text-brand-red fill-brand-red" />
-            <h3 className="text-xl font-black uppercase text-brand-red italic">Ofertas de Hoy</h3>
-            <Flame className="text-brand-red fill-brand-red" />
-          </div>
+      {/* HERO BANNERS ARE REMOVED ACCORDING TO USER REQUEST */}
 
-          <div className="flex overflow-x-auto gap-4 pb-2 snap-x px-2 scrollbar-hide">
-            {offers.length > 0 ? offers.map((prod) => (
-              <div key={prod._id} className="min-w-[280px] bg-white rounded-2xl p-3 flex gap-3 shadow-md snap-center border border-yellow-200">
-                <div className="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden shrink-0">
-                  <img src={prod.mainImage || `https://placehold.co/200x200?text=${prod.name}`} alt={prod.name} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex flex-col justify-between">
-                  <div>
-                    <h4 className="font-bold text-sm text-gray-800 line-clamp-2 uppercase leading-tight">{prod.name}</h4>
-                    <p className="text-brand-red font-black text-xl italic">${prod.price.toLocaleString()}</p>
-                  </div>
-                  <button className="bg-brand-red text-white text-[10px] font-black uppercase py-1.5 px-3 rounded-lg self-start shadow-sm">
-                    Ver Oferta
-                  </button>
-                </div>
-              </div>
-            )) : (
-              <p className="text-brand-red font-bold text-center w-full uppercase text-xs italic opacity-50">Cargando ofertas...</p>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* NEW PRODUCTS */}
-      <section className="py-8 container mx-auto px-4">
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <div className="h-[2px] w-12 bg-gray-200"></div>
-          <div className="bg-brand-red rounded-full p-1 text-white text-[10px] font-black italic">NEW</div>
-          <h3 className="text-xl font-black uppercase text-gray-800 tracking-wide italic">Recién Publicados</h3>
-          <div className="h-[2px] w-12 bg-gray-200"></div>
+      {/* CATALOGO COMPLETO */}
+      <section className="py-8 container mx-auto px-4" id="catalogo">
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <div className="h-[3px] w-16 bg-brand-red rounded-full"></div>
+          <h3 className="text-2xl sm:text-3xl font-black uppercase text-gray-800 tracking-tight italic">Nuestros Productos</h3>
+          <div className="h-[3px] w-16 bg-brand-red rounded-full"></div>
         </div>
 
         <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {allProducts.map((prod) => (
-            <div key={prod._id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+            <div key={prod._id} className={`bg-white rounded-3xl overflow-hidden shadow-sm flex flex-col hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative ${
+              prod.isOffer ? 'border-4 border-brand-yellow scale-[1.02] z-10' : 'border border-gray-100'
+            }`}>
+              {/* OFFER BADGE */}
+              {prod.isOffer && (
+                <div className="absolute top-4 left-[-10px] z-20 bg-brand-red text-white font-black px-4 py-1.5 rounded-r-full shadow-lg text-[10px] uppercase italic tracking-widest animate-pulse border-y-2 border-brand-yellow">
+                  🔥 ¡OFERTA!
+                </div>
+              )}
+
               <div className="aspect-square bg-gray-100 relative">
                 <img src={prod.mainImage || `https://placehold.co/400x400?text=${prod.name}`} alt={prod.name} className="w-full h-full object-cover" />
                 <div className="absolute top-2 right-2">
-                  <div className="bg-white/90 px-2 py-0.5 rounded text-[8px] font-black text-brand-red uppercase shadow-sm">
+                  <div className="bg-white/90 px-2 py-0.5 rounded text-[8px] font-black text-brand-red uppercase shadow-md border border-gray-100">
                     {prod.category}
                   </div>
                 </div>
               </div>
-              <div className="p-3 flex flex-col gap-1">
-                <h4 className="text-xs font-black text-gray-700 uppercase line-clamp-1">{prod.name}</h4>
-                <div className="flex items-center justify-between">
-                  <span className="text-brand-red font-black text-lg italic tracking-tighter">${prod.price.toLocaleString()}</span>
-                  <button className="bg-brand-red text-white rounded-md px-3 py-1 font-black uppercase text-[10px] shadow-sm">
+              <div className="p-4 flex flex-col gap-1 grow">
+                <h4 className="text-[11px] font-black text-gray-800 uppercase line-clamp-1 italic tracking-tight">{prod.name}</h4>
+                <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-50">
+                  <div className="flex flex-col">
+                    {prod.isOffer && <span className="text-[9px] text-gray-400 line-through font-bold">${(prod.price * 1.2).toLocaleString()}</span>}
+                    <span className="text-brand-red font-black text-xl italic tracking-tighter leading-none">${prod.price.toLocaleString()}</span>
+                  </div>
+                  <button className="bg-brand-red text-white rounded-lg px-4 py-2 font-black uppercase text-[10px] shadow-sm hover:scale-105 active:scale-95 transition-transform">
                     VER
                   </button>
                 </div>
