@@ -151,6 +151,8 @@ const AppContent = () => {
         <style dangerouslySetInnerHTML={{ __html: `
           .product-detail-swiper .swiper-pagination-bullet { background: #ff0000 !important; }
           .product-detail-swiper .swiper-button-next, .product-detail-swiper .swiper-button-prev { color: #ff0000 !important; transform: scale(0.6); }
+          .card-inner-swiper .swiper-pagination-bullet { width: 4px; height: 4px; background: white !important; opacity: 0.7; }
+          .card-inner-swiper .swiper-pagination-bullet-active { background: #fbbf24 !important; opacity: 1; transform: scale(1.5); }
         `}} />
       </div>
     );
@@ -241,43 +243,74 @@ const AppContent = () => {
         </div>
 
         <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {allProducts.map((prod) => (
-            <div 
-              key={prod._id} 
-              onClick={() => setSelectedProduct(prod)}
-              className={`bg-white rounded-3xl overflow-hidden shadow-sm flex flex-col hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative cursor-pointer ${
-                prod.isOffer ? 'border-4 border-brand-yellow scale-[1.02] z-10' : 'border border-gray-100'
-              }`}
-            >
-              {/* OFFER BADGE */}
-              {prod.isOffer && (
-                <div className="absolute top-4 left-[-10px] z-20 bg-brand-red text-white font-black px-4 py-1.5 rounded-r-full shadow-lg text-[10px] uppercase italic tracking-widest animate-pulse border-y-2 border-brand-yellow">
-                  🔥 ¡OFERTA!
-                </div>
-              )}
+          {allProducts.map((prod) => {
+            const cardImages = prod.images && prod.images.length > 0 ? prod.images : [prod.mainImage];
+            return (
+              <div 
+                key={prod._id} 
+                onClick={(e) => {
+                  // Prevenir que el click en los botones de navegación del swiper abra el modal
+                  if (e.target.closest('.swiper-button-next') || e.target.closest('.swiper-button-prev') || e.target.closest('.swiper-pagination')) return;
+                  setSelectedProduct(prod);
+                }}
+                className={`group bg-white rounded-[2rem] overflow-hidden shadow-sm flex flex-col hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 relative cursor-pointer border-2 ${
+                  prod.isOffer ? 'border-brand-yellow bg-amber-50/50 scale-[1.02]' : 'border-gray-50'
+                }`}
+              >
+                {/* DYNAMIC CARD CAROUSEL */}
+                <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                  <Swiper
+                    modules={[Autoplay, Pagination]}
+                    autoplay={{ delay: 3000 + Math.random() * 2000, disableOnInteraction: false }}
+                    pagination={{ clickable: true, dynamicBullets: true }}
+                    loop={cardImages.length > 1}
+                    className="h-full w-full card-inner-swiper"
+                  >
+                    {cardImages.map((img, idx) => (
+                      <SwiperSlide key={idx}>
+                        <img src={img} alt={prod.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
 
-              <div className="aspect-square bg-gray-100 relative">
-                <img src={prod.mainImage || `https://placehold.co/400x400?text=${prod.name}`} alt={prod.name} className="w-full h-full object-cover" />
-                <div className="absolute top-2 right-2">
-                  <div className="bg-white/90 px-2 py-0.5 rounded text-[8px] font-black text-brand-red uppercase shadow-md border border-gray-100">
-                    {prod.category}
+                  {/* OFFER BADGE/RIBON */}
+                  {prod.isOffer && (
+                    <div className="absolute top-4 left-[-10px] z-20 bg-brand-red text-white font-black px-4 py-1.5 rounded-r-full shadow-lg text-[10px] uppercase italic tracking-widest animate-pulse border-y-2 border-brand-yellow">
+                      🔥 ¡SÚPER OFERTA!
+                    </div>
+                  )}
+
+                  {/* CATEGORY TAG */}
+                  <div className="absolute top-4 right-4 z-20">
+                    <div className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-black text-brand-red uppercase shadow-md border border-white/50">
+                      {prod.category}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-5 flex flex-col gap-1 grow">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{prod.condition}</p>
+                  <h4 className="text-sm font-black text-gray-800 uppercase line-clamp-1 italic tracking-tight mb-2 group-hover:text-brand-red transition-colors">{prod.name}</h4>
+                  
+                  <div className="flex items-end justify-between mt-auto">
+                    <div className="flex flex-col">
+                      {prod.isOffer && (
+                        <span className="text-[10px] text-gray-400 line-through font-bold">
+                          ANTES: ${(prod.price * 1.3).toLocaleString()}
+                        </span>
+                      )}
+                      <span className="text-brand-red font-black text-2xl italic tracking-tighter leading-none">
+                        ${prod.price.toLocaleString()}
+                      </span>
+                    </div>
+                    <button className="bg-brand-red text-white rounded-xl px-5 py-2.5 font-black uppercase text-[10px] shadow-lg hover:bg-brand-yellow hover:text-brand-red transition-all transform active:scale-90">
+                      DETALLES
+                    </button>
                   </div>
                 </div>
               </div>
-              <div className="p-4 flex flex-col gap-1 grow">
-                <h4 className="text-[11px] font-black text-gray-800 uppercase line-clamp-1 italic tracking-tight">{prod.name}</h4>
-                <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-50">
-                  <div className="flex flex-col">
-                    {prod.isOffer && <span className="text-[9px] text-gray-400 line-through font-bold">${(prod.price * 1.2).toLocaleString()}</span>}
-                    <span className="text-brand-red font-black text-xl italic tracking-tighter leading-none">${prod.price.toLocaleString()}</span>
-                  </div>
-                  <button className="bg-brand-red text-white rounded-lg px-4 py-2 font-black uppercase text-[10px] shadow-sm hover:scale-105 active:scale-95 transition-transform">
-                    VER
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
