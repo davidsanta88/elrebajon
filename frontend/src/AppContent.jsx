@@ -6,7 +6,11 @@ import {
   MessageCircle, 
   PhoneCall, 
   Flame,
-  Settings
+  Settings,
+  X,
+  Package,
+  ShieldCheck,
+  Tag
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -21,6 +25,7 @@ const AppContent = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const navigate = useNavigate();
 
   // Carousel slides removed for space optimization
@@ -53,6 +58,103 @@ const AppContent = () => {
   };
 
   const allProducts = products;
+
+  const ProductDetailModal = ({ product, onClose }) => {
+    if (!product) return null;
+    const images = product.images && product.images.length > 0 ? product.images : [product.mainImage];
+    
+    return (
+      <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4 overflow-hidden animate-in fade-in duration-300">
+        <div className="bg-white w-full h-full sm:h-auto sm:max-w-4xl sm:rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row relative flex-1 sm:max-h-[90vh]">
+          
+          {/* CLOSE BUTTON */}
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 z-[110] bg-white/20 hover:bg-white text-white hover:text-brand-red p-2 rounded-full backdrop-blur-md transition-all sm:text-gray-400 sm:hover:bg-gray-100"
+          >
+            <X size={24} />
+          </button>
+
+          {/* GALLERY AREA */}
+          <div className="w-full md:w-1/2 h-[50vh] md:h-full bg-gray-50 relative group">
+            <Swiper
+              modules={[Pagination, Navigation]}
+              pagination={{ clickable: true }}
+              navigation={true}
+              loop={images.length > 1}
+              className="h-full w-full product-detail-swiper"
+            >
+              {images.map((img, idx) => (
+                <SwiperSlide key={idx}>
+                  <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-contain" />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            
+            {/* BADGES ON IMAGE */}
+            <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+               {product.isOffer && (
+                 <span className="bg-brand-red text-white text-[10px] font-black px-3 py-1 rounded-full uppercase italic tracking-widest shadow-lg animate-pulse">🔥 Oferta</span>
+               )}
+               <span className="bg-white/90 text-brand-red text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-sm border border-gray-100">{product.category}</span>
+            </div>
+          </div>
+
+          {/* INFO AREA */}
+          <div className="w-full md:w-1/2 p-6 sm:p-10 flex flex-col overflow-y-auto">
+            <div className="mb-6">
+              <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.3em] mb-1">{product.condition === 'Usado' ? '♻️ Usado Seleccionado' : '🔥 Nuevo de Paquete'}</p>
+              <h2 className="text-2xl sm:text-4xl font-black text-gray-800 uppercase italic tracking-tighter leading-none mb-2">{product.name}</h2>
+              <div className="flex items-center gap-2">
+                <span className="text-3xl sm:text-4xl font-black text-brand-red italic">${product.price.toLocaleString()}</span>
+                {product.isOffer && <span className="text-gray-300 line-through font-bold text-sm sm:text-lg">${(product.price * 1.2).toLocaleString()}</span>}
+              </div>
+            </div>
+
+            <div className="space-y-6 mb-8 flex-1">
+              <div>
+                <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 flex items-center gap-1"><Package size={12}/> Descripción Técnica</h4>
+                <p className="text-sm font-bold text-gray-600 leading-relaxed uppercase italic">{product.description || 'Sin descripción disponible para este artículo.'}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-3 rounded-2xl flex items-center gap-3 border border-gray-100">
+                  <ShieldCheck className="text-brand-green" size={20}/>
+                  <div>
+                    <p className="text-[8px] font-black text-gray-400 uppercase">Garantía</p>
+                    <p className="text-[10px] font-black text-gray-800 uppercase italic">Calidad 100%</p>
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded-2xl flex items-center gap-3 border border-gray-100">
+                  <Tag className="text-brand-red" size={20}/>
+                  <div>
+                    <p className="text-[8px] font-black text-gray-400 uppercase">Estado</p>
+                    <p className="text-[10px] font-black text-gray-800 uppercase italic">{product.condition}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <a 
+              href={`https://wa.me/573000000000?text=Hola!%20Me%20interesa%20este%20producto:%20${encodeURIComponent(product.name)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-brand-green text-white font-black text-xl py-4 sm:py-5 rounded-2xl sm:rounded-3xl shadow-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 shadow-green-200 mt-auto"
+            >
+              <MessageCircle size={28} fill="white" />
+              COMPRAR POR WHATSAPP
+            </a>
+          </div>
+        </div>
+
+        {/* SWIPER CUSTOM STYLES */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          .product-detail-swiper .swiper-pagination-bullet { background: #ff0000 !important; }
+          .product-detail-swiper .swiper-button-next, .product-detail-swiper .swiper-button-prev { color: #ff0000 !important; transform: scale(0.6); }
+        `}} />
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -135,9 +237,13 @@ const AppContent = () => {
 
         <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {allProducts.map((prod) => (
-            <div key={prod._id} className={`bg-white rounded-3xl overflow-hidden shadow-sm flex flex-col hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative ${
-              prod.isOffer ? 'border-4 border-brand-yellow scale-[1.02] z-10' : 'border border-gray-100'
-            }`}>
+            <div 
+              key={prod._id} 
+              onClick={() => setSelectedProduct(prod)}
+              className={`bg-white rounded-3xl overflow-hidden shadow-sm flex flex-col hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative cursor-pointer ${
+                prod.isOffer ? 'border-4 border-brand-yellow scale-[1.02] z-10' : 'border border-gray-100'
+              }`}
+            >
               {/* OFFER BADGE */}
               {prod.isOffer && (
                 <div className="absolute top-4 left-[-10px] z-20 bg-brand-red text-white font-black px-4 py-1.5 rounded-r-full shadow-lg text-[10px] uppercase italic tracking-widest animate-pulse border-y-2 border-brand-yellow">
@@ -203,6 +309,12 @@ const AppContent = () => {
         </div>
         <p className="text-[10px] text-gray-300 font-bold uppercase text-center tracking-widest">© 2026 EL REBAJÓN COLOMBIA</p>
       </footer>
+
+      {/* PRODUCT DETAIL MODAL */}
+      <ProductDetailModal 
+        product={selectedProduct} 
+        onClose={() => setSelectedProduct(null)} 
+      />
 
     </div>
   );

@@ -734,7 +734,12 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
                  <div className="flex gap-2 overflow-x-auto mt-4 pb-2 relative z-10 no-scrollbar">
                     {form.images.map((img, idx) => (
                       <div key={idx} className="relative shrink-0">
-                        <div className="w-20 h-20 rounded-xl bg-white overflow-hidden border border-gray-200 shadow-sm">{img instanceof File && <img src={URL.createObjectURL(img)} className="w-full h-full object-cover" />}</div>
+                        <div className="w-20 h-20 rounded-xl bg-white overflow-hidden border border-gray-200 shadow-sm">
+                           <img 
+                             src={img instanceof File ? URL.createObjectURL(img) : img} 
+                             className="w-full h-full object-cover" 
+                           />
+                        </div>
                         {idx === 0 && <span className="absolute -top-1 -right-1 bg-brand-green text-white text-[8px] font-black uppercase px-2 py-0.5 rounded shadow-md border-2 border-white">Principal</span>}
                         <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[8px] font-bold px-1.5 rounded opacity-80">{idx + 1}/5</span>
                       </div>
