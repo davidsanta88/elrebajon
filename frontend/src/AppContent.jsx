@@ -75,19 +75,36 @@ const AppContent = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       
       {/* HEADER */}
-      <header className="bg-brand-red text-white p-3 sticky top-0 z-50 shadow-md">
-        <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button className="p-1">
-              <Menu size={32} />
-            </button>
-            <h1 className="text-2xl font-black uppercase italic tracking-tighter">
-              El Rebajón
-            </h1>
+      <header className="bg-brand-red text-white p-2 sticky top-0 z-50 shadow-md px-4">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <div className="flex items-center gap-2">
+              <button className="p-1">
+                <Menu size={28} />
+              </button>
+              <h1 className="text-xl sm:text-2xl font-black uppercase italic tracking-tighter leading-none">
+                El Rebajón
+              </h1>
+            </div>
+            
+            <div className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1.5 hover:bg-white/20 transition-colors">
+              <MessageCircle size={16} className="text-white" fill="white" />
+              <span className="text-[10px] font-bold uppercase whitespace-nowrap">Contáctanos</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2 bg-brand-red border border-white/30 rounded-full px-3 py-1">
-            <MessageCircle size={20} className="text-white" fill="white" />
-            <span className="text-xs font-bold uppercase">Contáctanos</span>
+
+          {/* COMPACT CATEGORIES IN HEADER */}
+          <div className="flex overflow-x-auto gap-4 pb-1 no-scrollbar items-center border-t border-white/10 pt-2 scrollbar-hide">
+            {categories.map((cat, idx) => (
+              <button key={cat._id || idx} className="flex flex-col items-center gap-1 shrink-0 group transition-transform active:scale-95">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-white/20 group-hover:border-brand-yellow transition-all shadow-sm">
+                  <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+                </div>
+                <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-tighter opacity-80 group-hover:opacity-100 group-hover:text-brand-yellow transition-colors leading-none">
+                  {cat.name}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </header>
@@ -132,7 +149,7 @@ const AppContent = () => {
       </section>
 
       {/* SEARCH BAR */}
-      <section className="px-4 -mt-6 relative z-20">
+      <section className="px-4 -mt-5 relative z-20">
         <div className="max-w-md mx-auto flex bg-white rounded-full shadow-lg border-2 border-gray-100 overflow-hidden">
           <input 
             type="text" 
@@ -145,30 +162,6 @@ const AppContent = () => {
         </div>
       </section>
 
-      {/* CATEGORIES */}
-      <section className="py-8 container mx-auto px-4">
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <div className="h-[2px] w-12 bg-gray-200"></div>
-          <h3 className="text-xl font-black uppercase text-gray-800 tracking-wide italic">Categorías</h3>
-          <div className="h-[2px] w-12 bg-gray-200"></div>
-        </div>
-        
-        <div className="grid grid-cols-2 xs:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 gap-4 sm:gap-3 max-w-sm sm:max-w-lg mx-auto">
-          {categories.map((cat, idx) => (
-            <button key={cat._id || idx} className="flex flex-col items-center gap-2 hover:scale-110 transition-transform group">
-              <div className="bg-brand-red border-2 border-red-600 text-white w-full aspect-square rounded-[2rem] flex items-center justify-center shadow-lg overflow-hidden p-0 group-hover:shadow-red-200 transition-shadow">
-                <img src={cat.image} alt={cat.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-              </div>
-              <span className="text-[10px] xs:text-xs sm:text-xs font-black uppercase text-gray-800 break-words w-full text-center leading-tight px-1">
-                {cat.name}
-              </span>
-            </button>
-          ))}
-          {categories.length === 0 && !loading && (
-            <p className="col-span-4 text-center text-gray-400 text-xs font-bold uppercase italic">No hay categorías cargadas</p>
-          )}
-        </div>
-      </section>
 
       {/* OFFERS */}
       <section className="bg-brand-yellow py-6">
