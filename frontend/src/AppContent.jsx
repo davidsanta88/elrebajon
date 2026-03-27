@@ -21,6 +21,8 @@ const AppContent = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('Todo'); // 'Todo', 'Nuevo', 'Usado'
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
   const slides = [
@@ -69,7 +71,12 @@ const AppContent = () => {
   };
 
   const offers = products.filter(p => p.isOffer);
-  const allProducts = products;
+  const allProducts = products.filter(p => {
+    const matchesFilter = filter === 'Todo' || p.condition === filter;
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          p.category.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -156,10 +163,29 @@ const AppContent = () => {
             type="text" 
             placeholder="¿Qué estás buscando?" 
             className="flex-1 px-5 py-3 outline-none text-gray-700 font-bold"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
           <button className="bg-brand-red text-white p-3">
             <Search size={24} />
           </button>
+        </div>
+
+        {/* CONDITION FILTERS */}
+        <div className="flex justify-center gap-2 mt-4">
+          {['Todo', 'Nuevo', 'Usado'].map((opt) => (
+            <button
+              key={opt}
+              onClick={() => setFilter(opt)}
+              className={`px-6 py-2 rounded-full text-[10px] font-black uppercase transition-all border-2 ${
+                filter === opt 
+                ? 'bg-brand-red text-white border-brand-red shadow-lg scale-105' 
+                : 'bg-white text-gray-400 border-gray-100 hover:border-brand-red/30'
+              }`}
+            >
+              {opt === 'Todo' ? '✨ Todos' : opt === 'Nuevo' ? '📦 Nuevos' : '♻️ Usados'}
+            </button>
+          ))}
         </div>
       </section>
 
@@ -210,8 +236,15 @@ const AppContent = () => {
             <div key={prod._id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="aspect-square bg-gray-100 relative">
                 <img src={prod.mainImage || `https://placehold.co/400x400?text=${prod.name}`} alt={prod.name} className="w-full h-full object-cover" />
-                <div className="absolute top-2 right-2 bg-white/90 px-2 py-0.5 rounded text-[8px] font-black text-brand-red uppercase">
-                  {prod.category}
+                <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+                  <div className="bg-white/90 px-2 py-0.5 rounded text-[8px] font-black text-brand-red uppercase shadow-sm">
+                    {prod.category}
+                  </div>
+                  {prod.condition === 'Usado' && (
+                    <div className="bg-amber-500 px-2 py-0.5 rounded text-[8px] font-black text-white uppercase shadow-sm animate-pulse">
+                      Usado
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="p-3 flex flex-col gap-1">

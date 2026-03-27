@@ -72,7 +72,7 @@ const AdminDashboard = () => {
   });
   const [productForm, setProductForm] = useState({
     name: '', description: '', purchasePrice: 0, price: 0, category: '', provider: '', 
-    stock: 0, stockMin: 0, status: 'Activo', images: []
+    stock: 0, stockMin: 0, status: 'Activo', condition: 'Nuevo', images: []
   });
 
   const { logout } = useAuth();
@@ -336,6 +336,10 @@ const AdminDashboard = () => {
         });
       }
       setShowProductModal(false);
+      setProductForm({
+        name: '', description: '', purchasePrice: 0, price: 0, category: '', provider: '', 
+        stock: 0, stockMin: 0, status: 'Activo', condition: 'Nuevo', images: []
+      });
       fetchProducts();
       Swal.fire('Éxito', 'Producto guardado', 'success');
     } catch (err) { Swal.fire('Error', 'Error al guardar', 'error'); }
@@ -554,6 +558,7 @@ const AdminDashboard = () => {
                   <div className="flex-1 text-center md:text-left">
                     <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
                       <span className="text-[10px] font-black uppercase text-brand-red bg-red-50 px-2 py-1 rounded-full">{prod.category}</span>
+                      <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${prod.condition === 'Usado' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>{prod.condition}</span>
                       {prod.stock <= prod.stockMin && <span className="text-[10px] font-black uppercase text-white bg-brand-yellow px-2 py-1 rounded-full">Bajo Stock</span>}
                     </div>
                     <h4 className="text-xl font-black text-gray-800 uppercase italic truncate">{prod.name}</h4>
@@ -715,7 +720,10 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
               <InputGroup label="Stock Actual"><input required type="number" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold" /></InputGroup>
               <InputGroup label="Stock Mínimo"><input required type="number" value={form.stockMin} onChange={e => setForm({...form, stockMin: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold" /></InputGroup>
             </div>
-            <InputGroup label="Estado"><select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl font-bold"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select></InputGroup>
+            <div className="grid grid-cols-2 gap-2">
+              <InputGroup label="Estado"><select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl font-bold"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select></InputGroup>
+              <InputGroup label="Condición"><select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl font-bold text-brand-red"><option value="Nuevo">📦 Nuevo</option><option value="Usado">♻️ Usado</option></select></InputGroup>
+            </div>
             <div className="p-6 bg-gray-50 rounded-[2rem] border border-gray-100 relative group overflow-hidden">
                <input type="file" multiple onChange={e => setForm({...form, images: Array.from(e.target.files)})} className="absolute inset-0 opacity-0 cursor-pointer z-20" />
                <div className="flex flex-col items-center gap-2 text-center">

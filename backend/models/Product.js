@@ -13,6 +13,7 @@ const productSchema = new mongoose.Schema({
   status: { type: String, enum: ['Activo', 'Inactivo'], default: 'Activo' },
   images: [{ type: String }], // Array of Cloudinary URLs
   mainImage: { type: String }, // Primary Cloudinary URL for cards
+  condition: { type: String, enum: ['Nuevo', 'Usado'], default: 'Nuevo' },
   isOffer: { type: Boolean, default: false },
 }, { timestamps: true });
 
