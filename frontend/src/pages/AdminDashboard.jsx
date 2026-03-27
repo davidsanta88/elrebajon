@@ -559,12 +559,14 @@ const AdminDashboard = () => {
           ) : activeTab === 'categories' ? (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
               {categories.map((cat) => (
-                <div key={cat._id} className="bg-brand-red rounded-[2.5rem] p-6 shadow-xl border border-red-800/20 text-center relative group overflow-hidden transition-transform hover:scale-105">
-                  <div className="w-full aspect-square bg-white/10 backdrop-blur-sm rounded-[2rem] mb-4 flex items-center justify-center p-4">
-                    <img src={cat.image} className="w-full h-full object-contain drop-shadow-2xl" />
+                <div key={cat._id} className="bg-brand-red rounded-[2.5rem] shadow-xl border border-red-800/20 text-center relative group overflow-hidden transition-transform hover:scale-105">
+                  <div className="w-full aspect-square flex items-center justify-center overflow-hidden">
+                    <img src={cat.image} className="w-full h-full object-cover" />
                   </div>
-                  <h4 className="font-black text-white uppercase italic truncate tracking-tighter">{cat.name}</h4>
-                  <button onClick={() => handleDeleteCategory(cat._id)} className="absolute top-4 right-4 p-2 bg-black/20 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:text-brand-red">
+                  <div className="p-6">
+                    <h4 className="font-black text-white uppercase italic truncate tracking-tighter leading-none mb-1">{cat.name}</h4>
+                  </div>
+                  <button onClick={() => handleDeleteCategory(cat._id)} className="absolute top-4 right-4 p-2 bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:text-brand-red">
                     <Trash2 size={16} />
                   </button>
                 </div>
