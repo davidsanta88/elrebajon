@@ -63,9 +63,10 @@ const AdminDashboard = () => {
   
   const [isEditingProvider, setIsEditingProvider] = useState(false);
   const [isEditingProduct, setIsEditingProduct] = useState(false);
+  const [isEditingCategory, setIsEditingCategory] = useState(false);
   
   // Form States
-  const [newCategory, setNewCategory] = useState({ name: '', image: null });
+  const [categoryForm, setCategoryForm] = useState({ name: '', image: null, status: 'Activo' });
   const [providerForm, setProviderForm] = useState({
     name: '', phone: '', address: '', email: '', website: '', observation: ''
   });
@@ -189,7 +190,10 @@ const AdminDashboard = () => {
   const fetchCategories = async () => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-      const res = await axios.get(`${API_URL}/api/categories`);
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/admin/categories`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setCategories(res.data);
     } catch (err) { console.error(err); }
   };
@@ -218,25 +222,38 @@ const AdminDashboard = () => {
   };
 
   // CATEGORY CRUD
-  const handleAddCategory = async (e) => {
+  const handleCategorySubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
-    formData.append('name', newCategory.name);
-    formData.append('image', newCategory.image);
+    formData.append('name', categoryForm.name);
+    formData.append('status', categoryForm.status);
+    if (categoryForm.image) {
+      formData.append('image', categoryForm.image);
+    }
+    
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
       const token = localStorage.getItem('token');
-      await axios.post(`${API_URL}/api/admin/categories`, formData, {
-        headers: { 
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`
-        }
-      });
+      if (isEditingCategory) {
+        await axios.put(`${API_URL}/api/admin/categories/${categoryForm._id}`, formData, {
+          headers: { 
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
+          }
+        });
+      } else {
+        await axios.post(`${API_URL}/api/admin/categories`, formData, {
+          headers: { 
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
+          }
+        });
+      }
       setShowCategoryModal(false);
-      setNewCategory({ name: '', image: null });
+      setCategoryForm({ name: '', image: null, status: 'Activo' });
       fetchCategories();
-      Swal.fire('Éxito', 'Categoría creada', 'success');
-    } catch (err) { Swal.fire('Error', 'No se pudo crear', 'error'); }
+      Swal.fire('Éxito', 'Categoría guardada', 'success');
+    } catch (err) { Swal.fire('Error', 'No se pudo guardar', 'error'); }
   };
 
   const handleDeleteCategory = async (id) => {
@@ -424,7 +441,7 @@ const AdminDashboard = () => {
                   </button>
                 </>
               ) : activeTab === 'categories' ? (
-                <button onClick={() => setShowCategoryModal(true)} className="bg-brand-green text-white font-black px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 uppercase text-sm">
+                <button onClick={() => { setIsEditingCategory(false); setCategoryForm({ name: '', image: null, status: 'Activo' }); setShowCategoryModal(true); }} className="bg-brand-green text-white font-black px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 uppercase text-sm">
                   <Plus size={20} /> Nueva Categoría
                 </button>
               ) : (
@@ -559,16 +576,26 @@ const AdminDashboard = () => {
           ) : activeTab === 'categories' ? (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
               {categories.map((cat) => (
-                <div key={cat._id} className="bg-brand-red rounded-[2.5rem] shadow-xl border border-red-800/20 text-center relative group overflow-hidden transition-transform hover:scale-105">
+                <div key={cat._id} className={`bg-brand-red rounded-[2.5rem] shadow-xl border border-red-800/20 text-center relative group overflow-hidden transition-transform hover:scale-105 ${cat.status === 'Inactivo' ? 'opacity-75 grayscale-[0.5]' : ''}`}>
+                  {cat.status === 'Inactivo' && (
+                    <div className="absolute top-4 left-4 bg-gray-800/80 text-white text-[8px] font-black uppercase px-2 py-1 rounded-full z-20">
+                      Inactivo
+                    </div>
+                  )}
                   <div className="w-full aspect-square flex items-center justify-center overflow-hidden">
                     <img src={cat.image} className="w-full h-full object-cover" />
                   </div>
                   <div className="p-6">
                     <h4 className="font-black text-white uppercase italic truncate tracking-tighter leading-none mb-1">{cat.name}</h4>
                   </div>
-                  <button onClick={() => handleDeleteCategory(cat._id)} className="absolute top-4 right-4 p-2 bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:text-brand-red">
-                    <Trash2 size={16} />
-                  </button>
+                  <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all z-20">
+                    <button onClick={() => { setIsEditingCategory(true); setCategoryForm(cat); setShowCategoryModal(true); }} className="p-2 bg-white text-blue-500 rounded-full hover:bg-blue-500 hover:text-white">
+                      <Edit size={16} />
+                    </button>
+                    <button onClick={() => handleDeleteCategory(cat._id)} className="p-2 bg-white text-brand-red rounded-full hover:bg-brand-red hover:text-white">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -594,7 +621,7 @@ const AdminDashboard = () => {
 
       <ProductModal show={showProductModal} onClose={() => setShowProductModal(false)} onSubmit={handleProductSubmit} form={productForm} setForm={setProductForm} isEditing={isEditingProduct} categories={categories} providers={providers} formatNum={formatNum} cleanNum={cleanNum} />
       <ProviderModal show={showProviderModal} onClose={() => setShowProviderModal(false)} onSubmit={handleProviderSubmit} form={providerForm} setForm={setProviderForm} isEditing={isEditingProvider} />
-      <CategoryModal show={showCategoryModal} onClose={() => setShowCategoryModal(false)} onSubmit={handleAddCategory} form={newCategory} setForm={setNewCategory} />
+      <CategoryModal show={showCategoryModal} onClose={() => setShowCategoryModal(false)} onSubmit={handleCategorySubmit} form={categoryForm} setForm={setCategoryForm} isEditing={isEditingCategory} />
     </div>
   );
 };
@@ -737,16 +764,32 @@ const ProviderModal = ({ show, onClose, onSubmit, form, setForm, isEditing }) =>
   );
 };
 
-const CategoryModal = ({ show, onClose, onSubmit, form, setForm }) => {
+const CategoryModal = ({ show, onClose, onSubmit, form, setForm, isEditing }) => {
   if (!show) return null;
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[200]">
       <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl animate-in zoom-in duration-300">
-        <div className="flex justify-between items-center mb-6"><h3 className="text-xl font-black uppercase italic tracking-tighter">Nueva Categoría</h3><button onClick={onClose}><X size={32}/></button></div>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-black uppercase italic tracking-tighter">
+            {isEditing ? 'Editar Categoría' : 'Nueva Categoría'}
+          </h3>
+          <button onClick={onClose}><X size={32}/></button>
+        </div>
         <form onSubmit={onSubmit} className="space-y-6">
           <InputGroup label="Nombre"><input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold" /></InputGroup>
-          <InputGroup label="Icono"><input required type="file" onChange={e => setForm({...form, image: e.target.files[0]})} className="w-full border-2 border-dashed border-gray-100 p-8 rounded-2xl cursor-pointer" /></InputGroup>
-          <button type="submit" className="w-full bg-brand-green text-white font-black py-4 rounded-2xl uppercase shadow-lg">Crear</button>
+          <InputGroup label="Estado">
+            <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold">
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+          </InputGroup>
+          <InputGroup label="Icono">
+            <input type="file" onChange={e => setForm({...form, image: e.target.files[0]})} className="w-full border-2 border-dashed border-gray-100 p-8 rounded-2xl cursor-pointer" required={!isEditing} />
+            {isEditing && <p className="text-[10px] text-gray-400 mt-2 italic px-2">Deja vacío para mantener la imagen actual</p>}
+          </InputGroup>
+          <button type="submit" className={`w-full text-white font-black py-4 rounded-2xl uppercase shadow-lg ${isEditing ? 'bg-blue-500' : 'bg-brand-green'}`}>
+            {isEditing ? 'Guardar Cambios' : 'Crear Categoría'}
+          </button>
         </form>
       </div>
     </div>

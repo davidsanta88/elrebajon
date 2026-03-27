@@ -41,8 +41,18 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Category Routes
+// Public: Fetch only active categories
 app.get('/api/categories', async (req, res) => {
+  try {
+    const categories = await Category.find({ status: 'Activo' }).sort({ name: 1 });
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Admin: Fetch all categories including inactive ones
+app.get('/api/admin/categories', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const categories = await Category.find().sort({ name: 1 });
     res.json(categories);
@@ -58,9 +68,24 @@ app.post('/api/admin/categories', authMiddleware, adminMiddleware, upload.single
     
     const category = new Category({
       name,
-      image: req.file.path
+      image: req.file.path,
+      status: req.body.status || 'Activo'
     });
     await category.save();
+    res.json(category);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.put('/api/admin/categories/:id', authMiddleware, adminMiddleware, upload.single('image'), async (req, res) => {
+  try {
+    const { name, status } = req.body;
+    let updateData = { name, status };
+    if (req.file) {
+      updateData.image = req.file.path;
+    }
+    const category = await Category.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json(category);
   } catch (err) {
     res.status(500).json({ message: err.message });
