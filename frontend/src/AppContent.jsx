@@ -158,6 +158,18 @@ const AppContent = () => {
           .categories-marquee-main .swiper-wrapper {
             transition-timing-function: linear !important;
           }
+
+          @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-33.33%); } /* Since we use 3 copies */
+          }
+          .animate-marquee {
+            display: flex;
+            animation: marquee 30s linear infinite;
+          }
+          .animate-marquee:hover {
+            animation-play-state: paused;
+          }
         `}} />
       </div>
     );
@@ -199,32 +211,25 @@ const AppContent = () => {
             </a>
         </div>
       </header>
-      {/* FULL WIDTH CATEGORY MARQUEE (Below Header) */}
-      <section className="bg-brand-red border-t border-white/10 py-2 overflow-hidden flex items-center shadow-lg">
-        <Swiper
-          modules={[Autoplay, FreeMode]}
-          loop={true}
-          speed={15000}
-          autoplay={{
-            delay: 0,
-            disableOnInteraction: false,
-            pauseOnMouseEnter: true
-          }}
-          freeMode={true}
-          slidesPerView="auto"
-          spaceBetween={10}
-          className="w-full h-full categories-marquee-main"
-        >
-          {(categories.length > 0 ? [...categories, ...categories, ...categories] : []).map((cat, idx) => (
-            <SwiperSlide key={`${cat._id}-${idx}`} style={{ width: 'auto' }}>
-              <button className="flex items-center shrink-0 bg-brand-yellow/10 hover:bg-brand-yellow text-white hover:text-brand-red px-4 py-2 rounded-full transition-all active:scale-95 border border-white/10 group">
-                <span className="text-[11px] sm:text-xs font-black uppercase tracking-widest whitespace-nowrap">
+      {/* FULL WIDTH CATEGORY MARQUEE (Below Header) - Custom CSS Marquee for 100% Reliability */}
+      <section className="bg-brand-red border-t border-white/10 py-3 overflow-hidden shadow-lg relative h-14 flex items-center">
+        <div className="marquee-wrapper flex whitespace-nowrap">
+          <div className="marquee-content flex gap-4 px-4 animate-marquee">
+            {[...categories, ...categories, ...categories].map((cat, idx) => (
+              <button 
+                key={`${cat._id}-${idx}`}
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-1.5 rounded-full border border-white/10 transition-all active:scale-95 group shrink-0"
+              >
+                <div className="w-6 h-6 rounded-full overflow-hidden border border-brand-yellow/50 bg-gray-800">
+                  <img src={cat.image || `https://placehold.co/100x100?text=${cat.name[0]}`} alt={cat.name} className="w-full h-full object-cover" />
+                </div>
+                <span className="text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
                   {cat.name}
                 </span>
               </button>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* SEARCH BAR SECTION REMOVED (NOW IN HEADER) */}
