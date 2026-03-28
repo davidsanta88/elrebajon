@@ -153,6 +153,11 @@ const AppContent = () => {
           .product-detail-swiper .swiper-button-next, .product-detail-swiper .swiper-button-prev { color: #ff0000 !important; transform: scale(0.6); }
           .card-inner-swiper .swiper-pagination-bullet { width: 4px; height: 4px; background: white !important; opacity: 0.7; }
           .card-inner-swiper .swiper-pagination-bullet-active { background: #fbbf24 !important; opacity: 1; transform: scale(1.5); }
+          
+          /* Linear Marquee Effect */
+          .categories-marquee-main .swiper-wrapper {
+            transition-timing-function: linear !important;
+          }
         `}} />
       </div>
     );
@@ -210,9 +215,9 @@ const AppContent = () => {
           spaceBetween={10}
           className="w-full h-full categories-marquee-main"
         >
-          {categories.map((cat, idx) => (
-            <SwiperSlide key={cat._id || idx} style={{ width: 'auto' }}>
-              <button className="flex items-center shrink-0 bg-brand-yellow/20 hover:bg-brand-yellow text-white hover:text-brand-red px-4 py-1.5 rounded-full transition-all active:scale-95 border border-white/10 group">
+          {(categories.length > 0 ? [...categories, ...categories, ...categories] : []).map((cat, idx) => (
+            <SwiperSlide key={`${cat._id}-${idx}`} style={{ width: 'auto' }}>
+              <button className="flex items-center shrink-0 bg-brand-yellow/10 hover:bg-brand-yellow text-white hover:text-brand-red px-4 py-2 rounded-full transition-all active:scale-95 border border-white/10 group">
                 <span className="text-[11px] sm:text-xs font-black uppercase tracking-widest whitespace-nowrap">
                   {cat.name}
                 </span>
