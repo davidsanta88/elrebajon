@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 const Product = require('./models/Product');
 const Category = require('./models/Category');
+const Brand = require('./models/Brand');
 const Provider = require('./models/Provider');
 const Order = require('./models/Order');
 const { authMiddleware, adminMiddleware } = require('./middleware/authMiddleware');
@@ -96,6 +97,53 @@ app.delete('/api/admin/categories/:id', authMiddleware, adminMiddleware, async (
   try {
     await Category.findByIdAndDelete(req.params.id);
     res.json({ message: 'Category deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Brand Routes
+app.get('/api/brands', async (req, res) => {
+  try {
+    const brands = await Brand.find({ status: { $ne: 'Inactivo' } }).sort({ name: 1 });
+    res.json(brands);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.get('/api/admin/brands', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const brands = await Brand.find().sort({ category: 1, name: 1 });
+    res.json(brands);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.post('/api/admin/brands', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const brand = new Brand(req.body);
+    await brand.save();
+    res.json(brand);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.put('/api/admin/brands/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const brand = await Brand.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(brand);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.delete('/api/admin/brands/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    await Brand.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Brand deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

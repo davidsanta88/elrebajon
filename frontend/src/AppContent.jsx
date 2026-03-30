@@ -136,7 +136,9 @@ const AppContent = () => {
             </div>
 
             <a 
-              href={`https://wa.me/573114018724?text=Hola!%20Me%20interesa%20este%20producto:%20${encodeURIComponent(product.name)}`}
+              href={`https://wa.me/573114018724?text=${encodeURIComponent(
+                `¡Hola! Me interesa este producto:\n\n*${product.name}*\n💰 *Precio:* $${product.price.toLocaleString()}\n📝 *Descripción:* ${product.description || 'Sin descripción'}\n🖼️ *Referencia:* ${images[0]}`
+              )}`}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-brand-green text-white font-black text-xl py-4 sm:py-5 rounded-2xl sm:rounded-3xl shadow-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 shadow-green-200 mt-auto"
@@ -286,7 +288,9 @@ const AppContent = () => {
                     </div>
                     <div className="flex gap-2 shrink-0">
                       <a 
-                        href={`https://wa.me/573114018724?text=Hola!%20Me%20interesa%20este%20producto:%20${encodeURIComponent(prod.name)}`}
+                        href={`https://wa.me/573114018724?text=${encodeURIComponent(
+                          `¡Hola! Me interesa este producto:\n\n*${prod.name}*\n💰 *Precio:* $${prod.price.toLocaleString()}\n📝 *Descripción:* ${prod.description || 'Sin descripción'}\n🖼️ *Referencia:* ${cardImages[0]}`
+                        )}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}

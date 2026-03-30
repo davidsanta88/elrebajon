@@ -26,7 +26,8 @@ import {
   TrendingUp,
   ShoppingBag,
   ArrowUpRight,
-  Calendar
+  Calendar,
+  ShieldCheck
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -49,6 +50,7 @@ import * as XLSX from 'xlsx';
 const AdminDashboard = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [providers, setProviders] = useState([]);
   const [stats, setStats] = useState(null);
   const [activeTab, setActiveTab] = useState('products'); // 'products', 'categories', 'providers', 'stats'
@@ -60,18 +62,21 @@ const AdminDashboard = () => {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
+  const [showBrandModal, setShowBrandModal] = useState(false);
   
   const [isEditingProvider, setIsEditingProvider] = useState(false);
   const [isEditingProduct, setIsEditingProduct] = useState(false);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
+  const [isEditingBrand, setIsEditingBrand] = useState(false);
   
   // Form States
   const [categoryForm, setCategoryForm] = useState({ name: '', image: null, status: 'Activo' });
+  const [brandForm, setBrandForm] = useState({ name: '', category: '', status: 'Activo' });
   const [providerForm, setProviderForm] = useState({
     name: '', phone: '', address: '', email: '', website: '', observation: ''
   });
   const [productForm, setProductForm] = useState({
-    name: '', description: '', purchasePrice: 0, price: 0, category: '', provider: '', 
+    name: '', description: '', purchasePrice: 0, price: 0, category: '', brand: '', provider: '', 
     stock: 0, stockMin: 0, status: 'Activo', condition: 'Nuevo', images: []
   });
 
@@ -90,7 +95,7 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    await Promise.all([fetchProducts(), fetchCategories(), fetchProviders()]);
+    await Promise.all([fetchProducts(), fetchCategories(), fetchProviders(), fetchBrands()]);
     setLoading(false);
   };
 
@@ -197,7 +202,16 @@ const AdminDashboard = () => {
       setCategories(res.data);
     } catch (err) { console.error(err); }
   };
-
+  const fetchBrands = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/admin/brands`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setBrands(res.data);
+    } catch (err) { console.error(err); }
+  };
   const fetchProducts = async () => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
@@ -393,6 +407,7 @@ const AdminDashboard = () => {
           <SidebarLink icon={<BarChart3 size={20} />} label="Centro BI" active={activeTab === 'stats'} onClick={() => { setActiveTab('stats'); setSidebarOpen(false); }} />
           <SidebarLink icon={<LayoutDashboard size={20} />} label="Inventario" active={activeTab === 'products'} onClick={() => { setActiveTab('products'); setSidebarOpen(false); }} />
           <SidebarLink icon={<Tag size={20} />} label="Categorías" active={activeTab === 'categories'} onClick={() => { setActiveTab('categories'); setSidebarOpen(false); }} />
+          <SidebarLink icon={<ShieldCheck size={20} />} label="Marcas" active={activeTab === 'brands'} onClick={() => { setActiveTab('brands'); setSidebarOpen(false); }} />
           <SidebarLink icon={<Users size={20} />} label="Proveedores" active={activeTab === 'providers'} onClick={() => { setActiveTab('providers'); setSidebarOpen(false); }} />
           <div className="pt-8 pb-4 border-t border-white/10 mt-4">
             <p className="px-4 text-[10px] font-black uppercase text-white/50 mb-4 tracking-widest">Accesos Rápidos</p>
@@ -416,11 +431,13 @@ const AdminDashboard = () => {
               <h2 className="text-4xl font-black text-gray-800 uppercase italic tracking-tighter leading-tight">
                 {activeTab === 'products' ? 'Gestión de Inventario' : 
                  activeTab === 'categories' ? 'Gestión de Categorías' : 
+                 activeTab === 'brands' ? 'Gestión de Marcas' : 
                  activeTab === 'providers' ? 'Nuestros Proveedores' : 'Inteligencia de Negocio'}
               </h2>
               <p className="text-gray-400 font-bold uppercase text-xs tracking-wider mt-1">
                 {activeTab === 'products' ? 'Administra precios, stock y visibilidad' : 
                  activeTab === 'categories' ? 'Organiza tu catálogo con categorías' : 
+                 activeTab === 'brands' ? 'Marcas filtradas por categoría' : 
                  activeTab === 'providers' ? 'Base de datos de suministros' : 'Analítica avanzada de ventas y rentabilidad'}
               </p>
             </div>
@@ -447,6 +464,10 @@ const AdminDashboard = () => {
               ) : activeTab === 'categories' ? (
                 <button onClick={() => { setIsEditingCategory(false); setCategoryForm({ name: '', image: null, status: 'Activo' }); setShowCategoryModal(true); }} className="bg-brand-green text-white font-black px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 uppercase text-sm">
                   <Plus size={20} /> Nueva Categoría
+                </button>
+              ) : activeTab === 'brands' ? (
+                <button onClick={() => { setIsEditingBrand(false); setBrandForm({ name: '', category: '', status: 'Activo' }); setShowBrandModal(true); }} className="bg-brand-green text-white font-black px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 uppercase text-sm">
+                  <Plus size={20} /> Nueva Marca
                 </button>
               ) : (
                 <button onClick={() => { setIsEditingProvider(false); setProviderForm({ name: '', phone: '', address: '', email: '', website: '', observation: '' }); setShowProviderModal(true); }} className="bg-brand-green text-white font-black px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 uppercase text-sm">
@@ -547,36 +568,21 @@ const AdminDashboard = () => {
                 </div>
               </div>
             </div>
-          ) : activeTab === 'products' ? (
-            <div className="grid grid-cols-1 gap-4">
-              {products.map((prod) => (
-                <div key={prod._id} className={`bg-white rounded-3xl p-4 sm:p-6 shadow-sm border ${prod.stock <= prod.stockMin ? 'border-brand-yellow/50 bg-yellow-50/10' : 'border-gray-100'} flex flex-col md:flex-row items-center gap-4 sm:gap-8 group relative overflow-hidden`}>
-                  {prod.status === 'Inactivo' && <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center font-black uppercase text-xs text-gray-800">Desactivado</div>}
-                  <div className="w-24 h-24 bg-gray-50 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden border border-gray-100">
-                    {prod.mainImage ? <img src={prod.mainImage} className="w-full h-full object-cover" /> : <Package size={40} className="text-gray-200" />}
+          ) : activeTab === 'brands' ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {brands.map((brand) => (
+                <div key={brand._id} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex items-center justify-between group">
+                  <div>
+                    <h4 className="font-black text-gray-800 uppercase italic leading-none">{brand.name}</h4>
+                    <span className="text-[10px] font-bold text-brand-red uppercase">{brand.category}</span>
                   </div>
-                  <div className="flex-1 text-center md:text-left">
-                    <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
-                      <span className="text-[10px] font-black uppercase text-brand-red bg-red-50 px-2 py-1 rounded-full">{prod.category}</span>
-                      <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${prod.condition === 'Usado' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>{prod.condition}</span>
-                      {prod.stock <= prod.stockMin && <span className="text-[10px] font-black uppercase text-white bg-brand-yellow px-2 py-1 rounded-full">Bajo Stock</span>}
-                    </div>
-                    <h4 className="text-xl font-black text-gray-800 uppercase italic truncate">{prod.name}</h4>
-                    <p className="text-xs font-bold text-gray-400 uppercase">{prod.provider}</p>
-                  </div>
-                  <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-center bg-gray-50/50 px-4 sm:px-6 py-3 rounded-2xl border border-gray-100 w-full md:w-auto">
-                    <div><p className="text-[8px] sm:text-[10px] font-black uppercase text-gray-400">Stock</p><p className="font-bold text-xs sm:text-sm text-gray-800">{prod.stock}</p></div>
-                    <div><p className="text-[8px] sm:text-[10px] font-black uppercase text-gray-400">Compra</p><p className="font-bold text-xs sm:text-sm text-gray-600">${formatNum(prod.purchasePrice)}</p></div>
-                    <div><p className="text-[8px] sm:text-[10px] font-black uppercase text-brand-red">Venta</p><p className="text-brand-red font-black text-sm sm:text-lg">${formatNum(prod.price)}</p></div>
-                    <div className="hidden xs:block"><p className="text-[8px] sm:text-[10px] font-black uppercase text-blue-500">Ganancia</p><p className="text-blue-600 font-bold text-xs sm:text-sm">${formatNum(prod.profitMargin)}</p></div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => { setIsEditingProduct(true); setProductForm(prod); setShowProductModal(true); }} className="p-3 rounded-xl bg-gray-100 transition-all hover:text-blue-500"><Edit size={20} /></button>
-                    <button onClick={() => handleDeleteProduct(prod._id)} className="p-3 rounded-xl bg-gray-100 transition-all hover:text-red-500"><Trash2 size={20} /></button>
+                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                    <button onClick={() => { setIsEditingBrand(true); setBrandForm(brand); setShowBrandModal(true); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><Edit size={18} /></button>
+                    <button onClick={() => handleDeleteBrand(brand._id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
                   </div>
                 </div>
               ))}
-              {products.length === 0 && <div className="text-center py-20 bg-white rounded-3xl text-gray-400 font-black uppercase italic">No hay productos</div>}
+              {brands.length === 0 && <div className="md:col-span-3 text-center py-20 bg-white rounded-3xl text-gray-400 font-black uppercase italic">No hay marcas registradas</div>}
             </div>
           ) : activeTab === 'categories' ? (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -603,6 +609,39 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               ))}
+              {categories.length === 0 && <div className="col-span-full text-center py-20 bg-white rounded-3xl text-gray-400 font-black uppercase italic">No hay categorías</div>}
+            </div>
+          ) : activeTab === 'products' ? (
+            <div className="grid grid-cols-1 gap-4">
+              {products.map((prod) => (
+                <div key={prod._id} className={`bg-white rounded-3xl p-4 sm:p-6 shadow-sm border ${prod.stock <= prod.stockMin ? 'border-brand-yellow/50 bg-yellow-50/10' : 'border-gray-100'} flex flex-col md:flex-row items-center gap-4 sm:gap-8 group relative overflow-hidden`}>
+                  {prod.status === 'Inactivo' && <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center font-black uppercase text-xs text-gray-800">Desactivado</div>}
+                  <div className="w-24 h-24 bg-gray-50 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden border border-gray-100">
+                    {prod.mainImage ? <img src={prod.mainImage} className="w-full h-full object-cover" /> : <Package size={40} className="text-gray-200" />}
+                  </div>
+                  <div className="flex-1 text-center md:text-left">
+                    <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                      <span className="text-[10px] font-black uppercase text-brand-red bg-red-50 px-2 py-1 rounded-full">{prod.category}</span>
+                      {prod.brand && <span className="text-[10px] font-black uppercase text-brand-green bg-green-50 px-2 py-1 rounded-full">{prod.brand}</span>}
+                      <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${prod.condition === 'Usado' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>{prod.condition}</span>
+                      {prod.stock <= prod.stockMin && <span className="text-[10px] font-black uppercase text-white bg-brand-yellow px-2 py-1 rounded-full">Bajo Stock</span>}
+                    </div>
+                    <h4 className="text-xl font-black text-gray-800 uppercase italic truncate">{prod.name}</h4>
+                    <p className="text-xs font-bold text-gray-400 uppercase">{prod.provider}</p>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-center bg-gray-50/50 px-4 sm:px-6 py-3 rounded-2xl border border-gray-100 w-full md:w-auto">
+                    <div><p className="text-[8px] sm:text-[10px] font-black uppercase text-gray-400">Stock</p><p className="font-bold text-xs sm:text-sm text-gray-800">{prod.stock}</p></div>
+                    <div><p className="text-[8px] sm:text-[10px] font-black uppercase text-gray-400">Compra</p><p className="font-bold text-xs sm:text-sm text-gray-600">${formatNum(prod.purchasePrice)}</p></div>
+                    <div><p className="text-[8px] sm:text-[10px] font-black uppercase text-brand-red">Venta</p><p className="text-brand-red font-black text-sm sm:text-lg">${formatNum(prod.price)}</p></div>
+                    <div className="hidden xs:block"><p className="text-[8px] sm:text-[10px] font-black uppercase text-blue-500">Ganancia</p><p className="text-blue-600 font-bold text-xs sm:text-sm">${formatNum(prod.profitMargin)}</p></div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => { setIsEditingProduct(true); setProductForm(prod); setShowProductModal(true); }} className="p-3 rounded-xl bg-gray-100 transition-all hover:text-blue-500"><Edit size={20} /></button>
+                    <button onClick={() => handleDeleteProduct(prod._id)} className="p-3 rounded-xl bg-gray-100 transition-all hover:text-red-500"><Trash2 size={20} /></button>
+                  </div>
+                </div>
+              ))}
+              {products.length === 0 && <div className="text-center py-20 bg-white rounded-3xl text-gray-400 font-black uppercase italic">No hay productos</div>}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -619,14 +658,16 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               ))}
+              {providers.length === 0 && <div className="col-span-full text-center py-20 bg-white rounded-3xl text-gray-400 font-black uppercase italic">No hay proveedores</div>}
             </div>
           )}
         </div>
       </main>
 
-      <ProductModal show={showProductModal} onClose={() => setShowProductModal(false)} onSubmit={handleProductSubmit} form={productForm} setForm={setProductForm} isEditing={isEditingProduct} categories={categories} providers={providers} formatNum={formatNum} cleanNum={cleanNum} />
+      <ProductModal show={showProductModal} onClose={() => setShowProductModal(false)} onSubmit={handleProductSubmit} form={productForm} setForm={setProductForm} isEditing={isEditingProduct} categories={categories} brands={brands} providers={providers} formatNum={formatNum} cleanNum={cleanNum} />
       <ProviderModal show={showProviderModal} onClose={() => setShowProviderModal(false)} onSubmit={handleProviderSubmit} form={providerForm} setForm={setProviderForm} isEditing={isEditingProvider} />
       <CategoryModal show={showCategoryModal} onClose={() => setShowCategoryModal(false)} onSubmit={handleCategorySubmit} form={categoryForm} setForm={setCategoryForm} isEditing={isEditingCategory} />
+      <BrandModal show={showBrandModal} onClose={() => setShowBrandModal(false)} onSubmit={handleBrandSubmit} form={brandForm} setForm={setBrandForm} isEditing={isEditingBrand} categories={categories} />
     </div>
   );
 };
@@ -681,9 +722,17 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
                 <input required type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-brand-red transition-all" />
               </InputGroup>
               <InputGroup label="Categoría" icon={<Tag size={14}/>}>
-                <select required value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold">
+                <select required value={form.category} onChange={e => setForm({...form, category: e.target.value, brand: ''})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold">
                   <option value="">Selecciona</option>
                   {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                </select>
+              </InputGroup>
+              <InputGroup label="Marca" icon={<ShieldCheck size={14}/>}>
+                <select value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold">
+                  <option value="">Sin Marca / Otra</option>
+                  {brands.filter(b => b.category === form.category).map(b => (
+                    <option key={b._id} value={b.name}>{b.name}</option>
+                  ))}
                 </select>
               </InputGroup>
             </div>
@@ -824,6 +873,40 @@ const CategoryModal = ({ show, onClose, onSubmit, form, setForm, isEditing }) =>
           </InputGroup>
           <button type="submit" className={`w-full text-white font-black py-4 rounded-2xl uppercase shadow-lg ${isEditing ? 'bg-blue-500' : 'bg-brand-green'}`}>
             {isEditing ? 'Guardar Cambios' : 'Crear Categoría'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const BrandModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categories }) => {
+  if (!show) return null;
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 z-[200]">
+      <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] p-6 sm:p-10 w-full max-w-md shadow-2xl animate-in zoom-in duration-300">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-lg sm:text-xl font-black uppercase italic tracking-tighter">
+            {isEditing ? 'Editar Marca' : 'Nueva Marca'}
+          </h3>
+          <button onClick={onClose}><X size={24} className="sm:w-8 sm:h-8"/></button>
+        </div>
+        <form onSubmit={onSubmit} className="space-y-6">
+          <InputGroup label="Nombre de la Marca"><input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold" /></InputGroup>
+          <InputGroup label="Categoría Asignada">
+            <select required value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold">
+              <option value="">Selecciona Categoría</option>
+              {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+            </select>
+          </InputGroup>
+          <InputGroup label="Estado">
+            <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold">
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+          </InputGroup>
+          <button type="submit" className={`w-full text-white font-black py-4 rounded-2xl uppercase shadow-lg ${isEditing ? 'bg-blue-500' : 'bg-brand-green'}`}>
+            {isEditing ? 'Guardar Cambios' : 'Crear Marca'}
           </button>
         </form>
       </div>
