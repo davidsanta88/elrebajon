@@ -16,6 +16,10 @@ const productSchema = new mongoose.Schema({
   mainImage: { type: String }, // Primary Cloudinary URL for cards
   condition: { type: String, enum: ['Nuevo', 'Usado'], default: 'Nuevo' },
   isOffer: { type: Boolean, default: false },
+  offerPrice: { type: Number, default: null },       // Precio durante la oferta
+  originalPrice: { type: Number, default: null },    // Precio antes de la oferta
+  offerStartDate: { type: Date, default: null },     // Fecha inicio oferta
+  offerEndDate: { type: Date, default: null },       // Fecha fin oferta
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);

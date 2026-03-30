@@ -27,7 +27,12 @@ import {
   ShoppingBag,
   ArrowUpRight,
   Calendar,
-  ShieldCheck
+  ShieldCheck,
+  Flame,
+  ToggleLeft,
+  ToggleRight,
+  Percent,
+  Clock
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -53,7 +58,7 @@ const AdminDashboard = () => {
   const [brands, setBrands] = useState([]);
   const [providers, setProviders] = useState([]);
   const [stats, setStats] = useState(null);
-  const [activeTab, setActiveTab] = useState('products'); // 'products', 'categories', 'providers', 'stats'
+  const [activeTab, setActiveTab] = useState('products'); // 'products', 'categories', 'providers', 'stats', 'offers'
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -63,11 +68,13 @@ const AdminDashboard = () => {
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [showBrandModal, setShowBrandModal] = useState(false);
+  const [showOfferModal, setShowOfferModal] = useState(false);
   
   const [isEditingProvider, setIsEditingProvider] = useState(false);
   const [isEditingProduct, setIsEditingProduct] = useState(false);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [isEditingBrand, setIsEditingBrand] = useState(false);
+  const [selectedOfferProduct, setSelectedOfferProduct] = useState(null);
   
   // Form States
   const [categoryForm, setCategoryForm] = useState({ name: '', image: null, status: 'Activo' });
@@ -78,6 +85,13 @@ const AdminDashboard = () => {
   const [productForm, setProductForm] = useState({
     name: '', description: '', purchasePrice: 0, price: 0, category: '', brand: '', provider: '', 
     stock: 0, stockMin: 0, status: 'Activo', condition: 'Nuevo', images: []
+  });
+  const [offerForm, setOfferForm] = useState({
+    isOffer: true,
+    offerPrice: 0,
+    originalPrice: 0,
+    offerStartDate: '',
+    offerEndDate: ''
   });
 
   const { logout } = useAuth();
@@ -408,6 +422,70 @@ const AdminDashboard = () => {
     }
   };
 
+  // OFFER CRUD
+  const handleOpenOfferModal = (product) => {
+    setSelectedOfferProduct(product);
+    setOfferForm({
+      isOffer: product.isOffer || false,
+      offerPrice: product.offerPrice || product.price || 0,
+      originalPrice: product.originalPrice || product.price || 0,
+      offerStartDate: product.offerStartDate ? product.offerStartDate.split('T')[0] : '',
+      offerEndDate: product.offerEndDate ? product.offerEndDate.split('T')[0] : ''
+    });
+    setShowOfferModal(true);
+  };
+
+  const handleOfferSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedOfferProduct) return;
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/admin/products/${selectedOfferProduct._id}/offer`,
+        offerForm,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setShowOfferModal(false);
+      fetchProducts();
+      Swal.fire('¡Éxito!', offerForm.isOffer ? '🔥 ¡Oferta activada!' : 'Oferta desactivada', 'success');
+    } catch (err) {
+      Swal.fire('Error', 'No se pudo guardar la oferta', 'error');
+    }
+  };
+
+  const handleToggleOffer = async (product) => {
+    if (!product.isOffer) {
+      // Open modal to configure offer
+      handleOpenOfferModal(product);
+    } else {
+      // Deactivate directly
+      const confirm = await Swal.fire({
+        title: '¿Desactivar oferta?',
+        text: `El producto "${product.name}" saldrá de las ofertas`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, desactivar',
+        cancelButtonText: 'Cancelar'
+      });
+      if (confirm.isConfirmed) {
+        try {
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+          const token = localStorage.getItem('token');
+          await axios.put(
+            `${API_URL}/api/admin/products/${product._id}/offer`,
+            { isOffer: false },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          fetchProducts();
+          Swal.fire('Listo', 'Oferta desactivada', 'success');
+        } catch (err) {
+          Swal.fire('Error', 'No se pudo desactivar', 'error');
+        }
+      }
+    }
+  };
+
   const handleLogout = () => { logout(); navigate('/login'); };
 
   const formatNum = (num) => {
@@ -441,6 +519,7 @@ const AdminDashboard = () => {
         <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
           <SidebarLink icon={<BarChart3 size={20} />} label="Centro BI" active={activeTab === 'stats'} onClick={() => { setActiveTab('stats'); setSidebarOpen(false); }} />
           <SidebarLink icon={<LayoutDashboard size={20} />} label="Inventario" active={activeTab === 'products'} onClick={() => { setActiveTab('products'); setSidebarOpen(false); }} />
+          <SidebarLink icon={<Flame size={20} />} label="Ofertas" active={activeTab === 'offers'} onClick={() => { setActiveTab('offers'); setSidebarOpen(false); }} />
           <SidebarLink icon={<Tag size={20} />} label="Categorías" active={activeTab === 'categories'} onClick={() => { setActiveTab('categories'); setSidebarOpen(false); }} />
           <SidebarLink icon={<ShieldCheck size={20} />} label="Marcas" active={activeTab === 'brands'} onClick={() => { setActiveTab('brands'); setSidebarOpen(false); }} />
           <SidebarLink icon={<Users size={20} />} label="Proveedores" active={activeTab === 'providers'} onClick={() => { setActiveTab('providers'); setSidebarOpen(false); }} />
@@ -467,13 +546,15 @@ const AdminDashboard = () => {
                 {activeTab === 'products' ? 'Gestión de Inventario' : 
                  activeTab === 'categories' ? 'Gestión de Categorías' : 
                  activeTab === 'brands' ? 'Gestión de Marcas' : 
-                 activeTab === 'providers' ? 'Nuestros Proveedores' : 'Inteligencia de Negocio'}
+                 activeTab === 'providers' ? 'Nuestros Proveedores' :
+                 activeTab === 'offers' ? '🔥 Gestión de Ofertas' : 'Inteligencia de Negocio'}
               </h2>
               <p className="text-gray-400 font-bold uppercase text-xs tracking-wider mt-1">
                 {activeTab === 'products' ? 'Administra precios, stock y visibilidad' : 
                  activeTab === 'categories' ? 'Organiza tu catálogo con categorías' : 
                  activeTab === 'brands' ? 'Marcas filtradas por categoría' : 
-                 activeTab === 'providers' ? 'Base de datos de suministros' : 'Analítica avanzada de ventas y rentabilidad'}
+                 activeTab === 'providers' ? 'Base de datos de suministros' :
+                 activeTab === 'offers' ? 'Activa ofertas con precios especiales y fechas' : 'Analítica avanzada de ventas y rentabilidad'}
               </p>
             </div>
             
@@ -603,6 +684,104 @@ const AdminDashboard = () => {
                 </div>
               </div>
             </div>
+          ) : activeTab === 'offers' ? (
+            <div className="space-y-4">
+              {/* OFFERS SUMMARY BANNER */}
+              <div className="bg-gradient-to-r from-brand-red to-red-700 rounded-[2rem] p-6 text-white flex items-center justify-between shadow-xl">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-70">Ofertas Activas</p>
+                  <p className="text-5xl font-black italic tracking-tighter leading-none">{products.filter(p => p.isOffer).length}</p>
+                  <p className="text-xs font-bold opacity-70 mt-1 uppercase">de {products.length} productos totales</p>
+                </div>
+                <Flame size={64} className="opacity-20" />
+              </div>
+
+              {/* PRODUCT LIST WITH OFFER TOGGLE */}
+              <div className="grid grid-cols-1 gap-3">
+                {products.map((prod) => {
+                  const isActive = prod.isOffer;
+                  const discount = prod.originalPrice && prod.offerPrice
+                    ? Math.round(((prod.originalPrice - prod.offerPrice) / prod.originalPrice) * 100)
+                    : null;
+                  const now = new Date();
+                  const isExpired = prod.offerEndDate && new Date(prod.offerEndDate) < now;
+
+                  return (
+                    <div key={prod._id} className={`bg-white rounded-3xl p-4 sm:p-5 border-2 transition-all duration-300 shadow-sm flex flex-col md:flex-row items-center gap-4 ${
+                      isActive ? 'border-brand-yellow bg-amber-50/30 shadow-amber-100' : 'border-gray-100'
+                    }`}>
+                      {/* PRODUCT IMAGE */}
+                      <div className="w-16 h-16 bg-gray-50 rounded-2xl overflow-hidden shrink-0 border border-gray-100">
+                        {prod.mainImage
+                          ? <img src={prod.mainImage} className="w-full h-full object-cover" />
+                          : <Package size={28} className="m-auto mt-3 text-gray-200" />}
+                      </div>
+
+                      {/* PRODUCT INFO */}
+                      <div className="flex-1 text-center md:text-left">
+                        <div className="flex flex-wrap items-center gap-2 justify-center md:justify-start mb-1">
+                          <span className="text-[10px] font-black uppercase text-brand-red bg-red-50 px-2 py-0.5 rounded-full">{prod.category}</span>
+                          {isActive && !isExpired && (
+                            <span className="text-[10px] font-black uppercase text-white bg-brand-red px-2 py-0.5 rounded-full animate-pulse">🔥 En Oferta</span>
+                          )}
+                          {isActive && isExpired && (
+                            <span className="text-[10px] font-black uppercase text-white bg-gray-400 px-2 py-0.5 rounded-full">⏰ Vencida</span>
+                          )}
+                        </div>
+                        <h4 className="font-black text-gray-800 uppercase italic tracking-tight text-sm sm:text-base">{prod.name}</h4>
+                        {isActive && prod.offerPrice && (
+                          <div className="flex items-center gap-2 mt-1 justify-center md:justify-start">
+                            {prod.originalPrice && <span className="text-xs text-gray-400 line-through">${formatNum(prod.originalPrice)}</span>}
+                            <span className="text-brand-red font-black text-sm">${formatNum(prod.offerPrice)}</span>
+                            {discount && <span className="bg-brand-green text-white text-[9px] font-black px-2 py-0.5 rounded-full">-{discount}%</span>}
+                          </div>
+                        )}
+                        {!isActive && (
+                          <span className="text-xs text-gray-400 font-bold">${formatNum(prod.price)}</span>
+                        )}
+                        {isActive && prod.offerStartDate && (
+                          <p className="text-[9px] font-bold text-gray-400 mt-0.5 flex items-center gap-1 justify-center md:justify-start">
+                            <Clock size={10} />
+                            {prod.offerStartDate ? new Date(prod.offerStartDate).toLocaleDateString('es-CO') : ''}
+                            {' → '}
+                            {prod.offerEndDate ? new Date(prod.offerEndDate).toLocaleDateString('es-CO') : 'Sin fecha fin'}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* ACTIONS */}
+                      <div className="flex items-center gap-3 shrink-0">
+                        {isActive && (
+                          <button
+                            onClick={() => handleOpenOfferModal(prod)}
+                            className="p-2.5 bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-all"
+                            title="Editar oferta"
+                          >
+                            <Edit size={16} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleToggleOffer(prod)}
+                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs uppercase transition-all shadow-sm ${
+                            isActive
+                              ? 'bg-brand-yellow border-2 border-amber-300 text-amber-800 hover:bg-red-500 hover:text-white hover:border-red-500'
+                              : 'bg-gray-100 text-gray-500 hover:bg-brand-red hover:text-white'
+                          }`}
+                        >
+                          {isActive ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+                          {isActive ? 'Activa' : 'Activar'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {products.length === 0 && (
+                  <div className="col-span-full text-center py-20 bg-white rounded-3xl text-gray-400 font-black uppercase italic">
+                    No hay productos en el inventario
+                  </div>
+                )}
+              </div>
+            </div>
           ) : activeTab === 'brands' ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {brands.map((brand) => (
@@ -703,6 +882,7 @@ const AdminDashboard = () => {
       <ProviderModal show={showProviderModal} onClose={() => setShowProviderModal(false)} onSubmit={handleProviderSubmit} form={providerForm} setForm={setProviderForm} isEditing={isEditingProvider} />
       <CategoryModal show={showCategoryModal} onClose={() => setShowCategoryModal(false)} onSubmit={handleCategorySubmit} form={categoryForm} setForm={setCategoryForm} isEditing={isEditingCategory} />
       <BrandModal show={showBrandModal} onClose={() => setShowBrandModal(false)} onSubmit={handleBrandSubmit} form={brandForm} setForm={setBrandForm} isEditing={isEditingBrand} categories={categories} />
+      <OfferModal show={showOfferModal} onClose={() => setShowOfferModal(false)} onSubmit={handleOfferSubmit} form={offerForm} setForm={setOfferForm} product={selectedOfferProduct} formatNum={formatNum} cleanNum={cleanNum} />
     </div>
   );
 };
@@ -952,5 +1132,153 @@ const BrandModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categor
 const InputGroup = ({ label, icon, children }) => (
   <div className="flex flex-col gap-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-2 flex items-center gap-2 tracking-widest">{icon} {label}</label>{children}</div>
 );
+
+const OfferModal = ({ show, onClose, onSubmit, form, setForm, product, formatNum, cleanNum }) => {
+  if (!show || !product) return null;
+  const discount = form.originalPrice && form.offerPrice && form.originalPrice > 0
+    ? Math.round(((form.originalPrice - form.offerPrice) / form.originalPrice) * 100)
+    : 0;
+  const savings = form.originalPrice && form.offerPrice ? form.originalPrice - form.offerPrice : 0;
+
+  const handlePriceChange = (field, e) => {
+    const rawVal = cleanNum(e.target.value);
+    if (rawVal === '') {
+      setForm({ ...form, [field]: 0 });
+    } else {
+      const numVal = parseInt(rawVal, 10);
+      if (!isNaN(numVal)) {
+        setForm({ ...form, [field]: numVal });
+      }
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 z-[300]">
+      <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] p-6 sm:p-10 w-full max-w-2xl shadow-2xl max-h-[95vh] overflow-y-auto animate-in zoom-in duration-300">
+        
+        {/* HEADER */}
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Flame className="text-brand-red" size={24} />
+              <h3 className="text-xl sm:text-2xl font-black text-gray-800 uppercase italic tracking-tighter">Configurar Oferta</h3>
+            </div>
+            <p className="text-[10px] font-black uppercase text-brand-red tracking-widest">Producto: {product.name}</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400">
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* PRODUCT PREVIEW */}
+        <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-4 mb-6 border border-gray-100">
+          <div className="w-16 h-16 rounded-xl overflow-hidden border border-gray-100 shrink-0">
+            {product.mainImage
+              ? <img src={product.mainImage} className="w-full h-full object-cover" />
+              : <Package size={28} className="m-3 text-gray-300" />}
+          </div>
+          <div>
+            <h4 className="font-black text-gray-800 uppercase italic text-sm">{product.name}</h4>
+            <p className="text-xs text-gray-400 font-bold uppercase">{product.category} · {product.condition}</p>
+            <p className="text-brand-red font-black text-sm">Precio actual: ${formatNum(product.price)}</p>
+          </div>
+        </div>
+
+        {/* FORM */}
+        <form onSubmit={onSubmit} className="space-y-5">
+          {/* TOGGLE OFERTA */}
+          <div className="flex items-center justify-between bg-gray-50 p-4 rounded-2xl border border-gray-100">
+            <div>
+              <p className="font-black text-gray-800 uppercase text-sm">¿Producto en Oferta?</p>
+              <p className="text-[10px] text-gray-400 font-bold uppercase">Activa para mostrar en la sección de ofertas</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, isOffer: !form.isOffer })}
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl font-black text-sm uppercase transition-all ${
+                form.isOffer ? 'bg-brand-red text-white shadow-lg shadow-red-200' : 'bg-gray-200 text-gray-500'
+              }`}
+            >
+              {form.isOffer ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+              {form.isOffer ? 'ACTIVA' : 'INACTIVA'}
+            </button>
+          </div>
+
+          {form.isOffer && (
+            <>
+              {/* PRICES */}
+              <div className="grid grid-cols-2 gap-4">
+                <InputGroup label="Precio Antes" icon={<DollarSign size={14}/>}>
+                  <input
+                    required
+                    type="text"
+                    value={formatNum(form.originalPrice)}
+                    onChange={e => handlePriceChange('originalPrice', e)}
+                    className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-gray-300 transition-all line-through text-gray-500"
+                    placeholder="0"
+                  />
+                </InputGroup>
+                <InputGroup label="Precio Oferta (Ahora)" icon={<Flame size={14}/>}>
+                  <input
+                    required
+                    type="text"
+                    value={formatNum(form.offerPrice)}
+                    onChange={e => handlePriceChange('offerPrice', e)}
+                    className="w-full bg-red-50 p-4 rounded-2xl outline-none font-black text-xl text-brand-red border-2 border-brand-red/20 focus:border-brand-red transition-all"
+                    placeholder="0"
+                  />
+                </InputGroup>
+              </div>
+
+              {/* DISCOUNT PREVIEW */}
+              {discount > 0 && (
+                <div className="bg-gradient-to-r from-brand-red to-red-600 rounded-[1.5rem] p-5 text-white flex items-center justify-between shadow-lg">
+                  <div>
+                    <p className="text-[10px] font-black uppercase opacity-70">Descuento aplicado</p>
+                    <p className="text-4xl font-black italic">-{discount}%</p>
+                    <p className="text-xs font-bold opacity-70">El cliente ahorra ${formatNum(savings)}</p>
+                  </div>
+                  <Percent size={48} className="opacity-20" />
+                </div>
+              )}
+
+              {/* DATES */}
+              <div className="grid grid-cols-2 gap-4">
+                <InputGroup label="Fecha Inicio" icon={<Calendar size={14}/>}>
+                  <input
+                    type="date"
+                    value={form.offerStartDate}
+                    onChange={e => setForm({ ...form, offerStartDate: e.target.value })}
+                    className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-brand-red transition-all"
+                  />
+                </InputGroup>
+                <InputGroup label="Fecha Fin" icon={<Clock size={14}/>}>
+                  <input
+                    type="date"
+                    value={form.offerEndDate}
+                    onChange={e => setForm({ ...form, offerEndDate: e.target.value })}
+                    className="w-full bg-gray-50 p-4 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-brand-red transition-all"
+                  />
+                </InputGroup>
+              </div>
+              <p className="text-[10px] text-gray-400 font-bold uppercase px-2">💡 Deja las fechas vacías para que la oferta no tenga límite de tiempo</p>
+            </>
+          )}
+
+          <button
+            type="submit"
+            className={`w-full font-black py-5 rounded-[1.5rem] uppercase tracking-tighter text-xl shadow-2xl hover:scale-[1.01] active:scale-95 transition-all border-b-4 ${
+              form.isOffer
+                ? 'bg-brand-red text-white border-red-800 shadow-red-200'
+                : 'bg-gray-400 text-white border-gray-600'
+            }`}
+          >
+            {form.isOffer ? '🔥 Activar Oferta' : 'Guardar (sin oferta)'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 export default AdminDashboard;

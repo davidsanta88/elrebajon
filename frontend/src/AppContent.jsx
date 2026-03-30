@@ -10,7 +10,9 @@ import {
   X,
   Package,
   ShieldCheck,
-  Tag
+  Tag,
+  Percent,
+  Clock
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -23,6 +25,7 @@ import 'swiper/css/navigation';
 
 const AppContent = () => {
   const [products, setProducts] = useState([]);
+  const [offers, setOffers] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -33,6 +36,7 @@ const AppContent = () => {
   useEffect(() => {
     fetchProducts();
     fetchCategories();
+    fetchOffers();
   }, []);
 
   const fetchCategories = async () => {
@@ -54,6 +58,16 @@ const AppContent = () => {
     } catch (err) {
       console.error('Error fetching products:', err);
       setLoading(false);
+    }
+  };
+
+  const fetchOffers = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      const res = await axios.get(`${API_URL}/api/offers`);
+      setOffers(res.data);
+    } catch (err) {
+      console.error('Error fetching offers:', err);
     }
   };
 
@@ -106,8 +120,8 @@ const AppContent = () => {
               <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.3em] mb-1">{product.condition === 'Usado' ? '♻️ Usado Seleccionado' : '🔥 Nuevo de Paquete'}</p>
               <h2 className="text-2xl sm:text-4xl font-black text-gray-800 uppercase italic tracking-tighter leading-none mb-2">{product.name}</h2>
               <div className="flex items-center gap-2">
-                <span className="text-3xl sm:text-4xl font-black text-brand-red italic">${product.price.toLocaleString()}</span>
-                {product.isOffer && <span className="text-gray-300 line-through font-bold text-sm sm:text-lg">${(product.price * 1.2).toLocaleString()}</span>}
+                <span className="text-3xl sm:text-4xl font-black text-brand-red italic">${(product.isOffer && product.offerPrice ? product.offerPrice : product.price).toLocaleString()}</span>
+                {product.isOffer && product.originalPrice && <span className="text-gray-300 line-through font-bold text-sm sm:text-lg">${product.originalPrice.toLocaleString()}</span>}
               </div>
             </div>
 
@@ -189,15 +203,20 @@ const AppContent = () => {
             </a>
         </div>
       </header>
-      {/* FULL WIDTH CATEGORY MARQUEE (Below Header) - Custom CSS Marquee for 100% Reliability */}
-      <section className="bg-brand-red border-t border-white/10 py-3 overflow-hidden shadow-lg relative h-14 flex items-center">
-        <div className="marquee-wrapper flex whitespace-nowrap">
-          <div className="marquee-content flex gap-4 px-4 animate-marquee">
-            {[...categories, ...categories, ...categories].map((cat, idx) => (
-              <button 
-                key={`${cat._id}-${idx}`}
-                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-1.5 rounded-full border border-white/10 transition-all active:scale-95 group shrink-0"
-              >
+      {/* FULL WIDTH CATEGORY CAROUSEL — Swiper FreeMode infinite */}
+      <section className="bg-brand-red border-t border-white/10 shadow-lg overflow-hidden">
+        <Swiper
+          modules={[Autoplay, FreeMode]}
+          slidesPerView="auto"
+          loop={true}
+          speed={3000}
+          autoplay={{ delay: 0, disableOnInteraction: false, pauseOnMouseEnter: true }}
+          freeMode={{ enabled: true, momentum: false }}
+          className="category-marquee-swiper py-2.5"
+        >
+          {[...categories, ...categories].map((cat, idx) => (
+            <SwiperSlide key={`${cat._id}-${idx}`} style={{ width: 'auto' }} className="px-2">
+              <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-1.5 rounded-full border border-white/10 transition-all active:scale-95 group shrink-0">
                 <div className="w-6 h-6 rounded-full overflow-hidden border border-brand-yellow/50 bg-gray-800">
                   <img src={cat.image || `https://placehold.co/100x100?text=${cat.name[0]}`} alt={cat.name} className="w-full h-full object-cover" />
                 </div>
@@ -205,9 +224,9 @@ const AppContent = () => {
                   {cat.name}
                 </span>
               </button>
-            ))}
-          </div>
-        </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </section>
 
       {/* SEARCH BAR SECTION REMOVED (NOW IN HEADER) */}
@@ -215,6 +234,171 @@ const AppContent = () => {
 
 
       {/* HERO BANNERS ARE REMOVED ACCORDING TO USER REQUEST */}
+
+      {/* 🔥 SUPER OFERTAS SECTION */}
+      {offers.length > 0 && (
+        <section className="py-10 px-4 relative overflow-hidden" id="ofertas"
+          style={{ background: 'linear-gradient(135deg, #1a0000 0%, #3d0000 40%, #1a0000 100%)' }}
+        >
+          {/* ANIMATED BACKGROUND PARTICLES */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-4 left-1/4 w-2 h-2 bg-brand-yellow rounded-full opacity-60 animate-ping" style={{animationDelay:'0s'}}></div>
+            <div className="absolute top-12 right-1/3 w-1.5 h-1.5 bg-orange-400 rounded-full opacity-50 animate-ping" style={{animationDelay:'0.5s'}}></div>
+            <div className="absolute bottom-8 left-1/3 w-2 h-2 bg-brand-red rounded-full opacity-40 animate-ping" style={{animationDelay:'1s'}}></div>
+            <div className="absolute bottom-4 right-1/4 w-1 h-1 bg-brand-yellow rounded-full opacity-60 animate-ping" style={{animationDelay:'1.5s'}}></div>
+          </div>
+
+          <div className="container mx-auto relative z-10">
+            {/* SECTION HEADER */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-3 mb-3">
+                <span className="text-3xl animate-bounce" style={{animationDelay:'0s'}}>🔥</span>
+                <h3 className="text-3xl sm:text-4xl font-black uppercase italic tracking-tighter text-white leading-none"
+                  style={{ textShadow: '0 0 30px rgba(239,68,68,0.8), 0 2px 4px rgba(0,0,0,0.8)' }}
+                >
+                  SUPER OFERTAS
+                </h3>
+                <span className="text-3xl animate-bounce" style={{animationDelay:'0.3s'}}>🔥</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <div className="h-px flex-1 max-w-[80px] bg-gradient-to-r from-transparent to-brand-yellow opacity-60"></div>
+                <p className="text-brand-yellow font-black text-[10px] uppercase tracking-[0.3em]">¡Precios que no puedes dejar pasar!</p>
+                <div className="h-px flex-1 max-w-[80px] bg-gradient-to-l from-transparent to-brand-yellow opacity-60"></div>
+              </div>
+            </div>
+
+            {/* OFFERS GRID */}
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              {offers.map((prod, index) => {
+                const displayPrice = prod.offerPrice || prod.price;
+                const originalPrice = prod.originalPrice || prod.price;
+                const discount = originalPrice > 0
+                  ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
+                  : 0;
+                const cardImages = prod.images && prod.images.length > 0 ? prod.images : [prod.mainImage].filter(Boolean);
+                const hasImage = cardImages.length > 0 && cardImages[0];
+
+                return (
+                  <div
+                    key={prod._id}
+                    onClick={() => setSelectedProduct(prod)}
+                    className="group relative cursor-pointer rounded-[2rem] overflow-hidden transition-all duration-500 hover:-translate-y-3 hover:scale-[1.02]"
+                    style={{
+                      background: 'white',
+                      boxShadow: '0 0 0 2px #fbbf24, 0 0 20px rgba(251,191,36,0.3), 0 8px 32px rgba(0,0,0,0.4)',
+                      animation: `offerGlow ${2 + index * 0.3}s ease-in-out infinite alternate`
+                    }}
+                  >
+                    {/* SHIMMER OVERLAY on hover */}
+                    <div className="absolute inset-0 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                      style={{
+                        background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%)',
+                        backgroundSize: '200% 100%',
+                        animation: 'shimmer 0.8s ease-in-out'
+                      }}
+                    ></div>
+
+                    {/* IMAGE */}
+                    <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                      {hasImage ? (
+                        <img src={cardImages[0]} alt={prod.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-amber-50"><Package size={48} className="text-gray-200" /></div>
+                      )}
+
+                      {/* TOP RIBBON */}
+                      <div className="absolute top-0 left-0 right-0 z-20"
+                        style={{ background: 'linear-gradient(90deg, #dc2626, #ef4444, #dc2626)', backgroundSize: '200% auto', animation: 'gradientMove 2s linear infinite' }}
+                      >
+                        <p className="text-white text-center text-[9px] font-black uppercase tracking-[0.2em] py-1.5">🔥 OFERTA ESPECIAL 🔥</p>
+                      </div>
+
+                      {/* DISCOUNT BADGE — large & animated */}
+                      {discount > 0 && (
+                        <div className="absolute bottom-2 left-2 z-20">
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-brand-yellow rounded-full animate-ping opacity-40"></div>
+                            <div className="relative bg-brand-yellow text-gray-900 rounded-full w-14 h-14 flex flex-col items-center justify-center shadow-xl border-2 border-white">
+                              <span className="text-[11px] font-black leading-none">-{discount}</span>
+                              <span className="text-[10px] font-black leading-none">%</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* CATEGORY TAG */}
+                      <div className="absolute top-9 right-2 z-20">
+                        <div className="bg-white/95 backdrop-blur-md px-2 py-0.5 rounded-full text-[8px] font-black text-brand-red uppercase shadow-sm">
+                          {prod.category}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* INFO */}
+                    <div className="p-4 flex flex-col gap-1 bg-white">
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{prod.condition}</p>
+                      <h4 className="text-sm font-black text-gray-800 uppercase line-clamp-1 italic tracking-tight group-hover:text-brand-red transition-colors">{prod.name}</h4>
+
+                      {/* PRICES */}
+                      <div className="flex items-end gap-2 mt-1">
+                        <div className="flex flex-col">
+                          {originalPrice !== displayPrice && (
+                            <span className="text-[11px] text-gray-400 line-through font-bold">${originalPrice.toLocaleString('es-CO')}</span>
+                          )}
+                          <span className="text-brand-red font-black text-2xl italic tracking-tighter leading-none"
+                            style={{ textShadow: '0 2px 8px rgba(239,68,68,0.3)' }}
+                          >${displayPrice.toLocaleString('es-CO')}</span>
+                        </div>
+                        {discount > 0 && (
+                          <span className="text-brand-green font-black text-[8px] bg-green-50 border border-green-100 px-2 py-0.5 rounded-full mb-0.5">Ahorras ${(originalPrice - displayPrice).toLocaleString('es-CO')}</span>
+                        )}
+                      </div>
+
+                      {/* DATE */}
+                      {prod.offerEndDate && (
+                        <p className="text-[8px] font-bold text-gray-400 flex items-center gap-1 mt-0.5">
+                          <Clock size={8} />
+                          Hasta: {new Date(prod.offerEndDate).toLocaleDateString('es-CO')}
+                        </p>
+                      )}
+
+                      {/* CTA */}
+                      <a
+                        href={`https://wa.me/573114018724?text=${encodeURIComponent(
+                          `¡Hola! Vi esta OFERTA en El Rebajón:\n\n*${prod.name}*\n🔥 *Precio Oferta:* $${displayPrice.toLocaleString()}\n~~Antes: $${originalPrice.toLocaleString()}~~\n📝 ${prod.description || 'Sin descripción'}\n🖼️ ${cardImages[0] || ''}`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        className="mt-2 bg-brand-green text-white rounded-xl py-2.5 font-black uppercase text-[10px] text-center shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-1"
+                      >
+                        <MessageCircle size={12} fill="white" />
+                        ¡Lo Quiero!
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* CSS ANIMATIONS */}
+          <style dangerouslySetInnerHTML={{ __html: `
+            @keyframes offerGlow {
+              0% { box-shadow: 0 0 0 2px #fbbf24, 0 0 15px rgba(251,191,36,0.2), 0 8px 32px rgba(0,0,0,0.4); }
+              100% { box-shadow: 0 0 0 2px #fbbf24, 0 0 35px rgba(251,191,36,0.5), 0 12px 40px rgba(239,68,68,0.3); }
+            }
+            @keyframes gradientMove {
+              0% { background-position: 0% center; }
+              100% { background-position: 200% center; }
+            }
+            @keyframes shimmer {
+              0% { background-position: -200% center; }
+              100% { background-position: 200% center; }
+            }
+          ` }} />
+        </section>
+      )}
 
       {/* CATALOGO COMPLETO */}
       <section className="py-8 container mx-auto px-4" id="catalogo">
@@ -279,11 +463,11 @@ const AppContent = () => {
                     <div className="flex flex-col">
                       {prod.isOffer && (
                         <span className="text-[10px] text-gray-400 line-through font-bold">
-                          ANTES: ${(prod.price * 1.3).toLocaleString()}
+                          ANTES: ${(prod.originalPrice || (prod.price * 1.3)).toLocaleString()}
                         </span>
                       )}
                       <span className="text-brand-red font-black text-2xl italic tracking-tighter leading-none">
-                        ${prod.price.toLocaleString()}
+                        ${(prod.isOffer && prod.offerPrice ? prod.offerPrice : prod.price).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex gap-2 shrink-0">
@@ -363,22 +547,9 @@ const AppContent = () => {
         .card-inner-swiper .swiper-pagination-bullet { width: 4px; height: 4px; background: white !important; opacity: 0.7; }
         .card-inner-swiper .swiper-pagination-bullet-active { background: #fbbf24 !important; opacity: 1; transform: scale(1.5); }
         
-        /* Linear Marquee Effect */
-        .categories-marquee-main .swiper-wrapper {
+        /* Category FreeMode Swiper — linear continuous scroll */
+        .category-marquee-swiper .swiper-wrapper {
           transition-timing-function: linear !important;
-        }
-
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-33.33%); } /* Since we use 3 copies */
-        }
-        .animate-marquee {
-          display: flex;
-          width: max-content;
-          animation: marquee 30s linear infinite;
-        }
-        .animate-marquee:hover {
-          animation-play-state: paused;
         }
       `}} />
 

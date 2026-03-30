@@ -378,6 +378,46 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
+// Public: Fetch active offers only (isOffer=true and within date range)
+app.get('/api/offers', async (req, res) => {
+  try {
+    const now = new Date();
+    const offers = await Product.find({
+      isOffer: true,
+      status: 'Activo',
+      $or: [
+        { offerStartDate: null, offerEndDate: null },
+        { offerStartDate: { $lte: now }, offerEndDate: { $gte: now } },
+        { offerStartDate: null, offerEndDate: { $gte: now } },
+        { offerStartDate: { $lte: now }, offerEndDate: null },
+      ]
+    }).sort({ updatedAt: -1 });
+    res.json(offers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Admin: Configure offer fields on a product (toggle + prices + dates)
+app.put('/api/admin/products/:id/offer', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { isOffer, offerPrice, originalPrice, offerStartDate, offerEndDate } = req.body;
+    const updateData = {
+      isOffer: Boolean(isOffer),
+      offerPrice: isOffer ? Number(offerPrice) : null,
+      originalPrice: isOffer ? Number(originalPrice) : null,
+      offerStartDate: isOffer && offerStartDate ? new Date(offerStartDate) : null,
+      offerEndDate: isOffer && offerEndDate ? new Date(offerEndDate) : null,
+    };
+    const product = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    if (!product) return res.status(404).json({ message: 'Producto no encontrado' });
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 // For demonstration: Seed data endpoint (Changed to GET for easier access)
 app.get('/api/seed', async (req, res) => {
   try {
