@@ -147,30 +147,6 @@ const AppContent = () => {
           </div>
         </div>
 
-        {/* SWIPER CUSTOM STYLES */}
-        <style dangerouslySetInnerHTML={{ __html: `
-          .product-detail-swiper .swiper-pagination-bullet { background: #ff0000 !important; }
-          .product-detail-swiper .swiper-button-next, .product-detail-swiper .swiper-button-prev { color: #ff0000 !important; transform: scale(0.6); }
-          .card-inner-swiper .swiper-pagination-bullet { width: 4px; height: 4px; background: white !important; opacity: 0.7; }
-          .card-inner-swiper .swiper-pagination-bullet-active { background: #fbbf24 !important; opacity: 1; transform: scale(1.5); }
-          
-          /* Linear Marquee Effect */
-          .categories-marquee-main .swiper-wrapper {
-            transition-timing-function: linear !important;
-          }
-
-          @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-33.33%); } /* Since we use 3 copies */
-          }
-          .animate-marquee {
-            display: flex;
-            animation: marquee 30s linear infinite;
-          }
-          .animate-marquee:hover {
-            animation-play-state: paused;
-          }
-        `}} />
       </div>
     );
   };
@@ -265,7 +241,8 @@ const AppContent = () => {
                 <div className="aspect-square bg-gray-100 relative overflow-hidden">
                   <Swiper
                     modules={[Autoplay, Pagination]}
-                    autoplay={{ delay: 3000 + Math.random() * 2000, disableOnInteraction: false }}
+                    autoplay={{ delay: 2000 + Math.random() * 1000, disableOnInteraction: false }}
+                    speed={800}
                     pagination={{ clickable: true, dynamicBullets: true }}
                     loop={cardImages.length > 1}
                     className="h-full w-full card-inner-swiper"
@@ -307,9 +284,21 @@ const AppContent = () => {
                         ${prod.price.toLocaleString()}
                       </span>
                     </div>
-                    <button className="bg-brand-red text-white rounded-xl px-5 py-2.5 font-black uppercase text-[10px] shadow-lg hover:bg-brand-yellow hover:text-brand-red transition-all transform active:scale-90">
-                      DETALLES
-                    </button>
+                    <div className="flex gap-2 shrink-0">
+                      <a 
+                        href={`https://wa.me/573114018724?text=Hola!%20Me%20interesa%20este%20producto:%20${encodeURIComponent(prod.name)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-brand-green text-white rounded-xl p-2.5 flex items-center justify-center shadow-lg hover:scale-110 transition-all transform active:scale-95"
+                        title="Comprar por WhatsApp"
+                      >
+                         <MessageCircle size={16} fill="white" />
+                      </a>
+                      <button className="bg-brand-red text-white rounded-xl px-4 py-2.5 font-black uppercase text-[10px] shadow-lg hover:bg-brand-yellow hover:text-brand-red transition-all transform active:scale-90">
+                        DETALLES
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -362,6 +351,32 @@ const AppContent = () => {
         product={selectedProduct} 
         onClose={() => setSelectedProduct(null)} 
       />
+
+      {/* SWIPER CUSTOM STYLES & ANIMATIONS */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .product-detail-swiper .swiper-pagination-bullet { background: #ff0000 !important; }
+        .product-detail-swiper .swiper-button-next, .product-detail-swiper .swiper-button-prev { color: #ff0000 !important; transform: scale(0.6); }
+        .card-inner-swiper .swiper-pagination-bullet { width: 4px; height: 4px; background: white !important; opacity: 0.7; }
+        .card-inner-swiper .swiper-pagination-bullet-active { background: #fbbf24 !important; opacity: 1; transform: scale(1.5); }
+        
+        /* Linear Marquee Effect */
+        .categories-marquee-main .swiper-wrapper {
+          transition-timing-function: linear !important;
+        }
+
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-33.33%); } /* Since we use 3 copies */
+        }
+        .animate-marquee {
+          display: flex;
+          width: max-content;
+          animation: marquee 30s linear infinite;
+        }
+        .animate-marquee:hover {
+          animation-play-state: paused;
+        }
+      `}} />
 
     </div>
   );

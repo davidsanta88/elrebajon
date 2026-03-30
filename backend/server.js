@@ -170,12 +170,23 @@ app.put('/api/admin/products/:id', authMiddleware, adminMiddleware, upload.array
   try {
     let updateData = { ...req.body };
     
-    // If new images are uploaded, add them to the existing ones or replace? 
-    // For now, let's treat it as a replace or append correctly.
+    // If new images are uploaded, add them to the existing ones
+    let existingImages = [];
+    if (req.body.images) {
+      existingImages = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
+    }
+    
     if (req.files && req.files.length > 0) {
       const newImages = req.files.map(file => file.path);
-      updateData.images = newImages;
-      updateData.mainImage = newImages[0];
+      updateData.images = [...existingImages, ...newImages].slice(0, 5);
+    } else {
+      updateData.images = existingImages;
+    }
+    
+    if (updateData.images && updateData.images.length > 0) {
+      updateData.mainImage = updateData.images[0];
+    } else {
+      updateData.mainImage = null;
     }
 
     if (req.body.price && req.body.purchasePrice) {

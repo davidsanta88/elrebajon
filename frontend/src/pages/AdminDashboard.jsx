@@ -725,27 +725,49 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
               <InputGroup label="Condición"><select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})} className="w-full bg-gray-50 p-4 rounded-2xl font-bold text-brand-red"><option value="Nuevo">📦 Nuevo</option><option value="Usado">♻️ Usado</option></select></InputGroup>
             </div>
             <div className="p-6 bg-gray-50 rounded-[2rem] border border-gray-100 relative group overflow-hidden">
-               <input type="file" multiple onChange={e => setForm({...form, images: Array.from(e.target.files)})} className="absolute inset-0 opacity-0 cursor-pointer z-20" />
-               <div className="flex flex-col items-center gap-2 text-center">
+               <input type="file" multiple onChange={e => {
+                  const newFiles = Array.from(e.target.files);
+                  if (newFiles.length === 0) return;
+                  setForm(prev => {
+                     const combined = [...prev.images, ...newFiles].slice(0, 5);
+                     return {...prev, images: combined};
+                  });
+                  setTimeout(() => {
+                     if (e.target) e.target.value = null;
+                  }, 0);
+               }} className="absolute inset-0 opacity-0 cursor-pointer z-20" title="" />
+               <div className="flex flex-col items-center gap-2 text-center pointer-events-none">
                   <Plus className="text-brand-red group-hover:rotate-90 transition-transform" />
                   <p className="text-[10px] font-black uppercase text-gray-400">Clic para fotos (Máx 5)</p>
                </div>
-               {form.images.length > 0 && (
-                 <div className="flex gap-2 overflow-x-auto mt-4 pb-2 relative z-10 no-scrollbar">
+                 <div className="flex gap-2 overflow-x-auto mt-4 pb-2 relative z-30 no-scrollbar">
                     {form.images.map((img, idx) => (
-                      <div key={idx} className="relative shrink-0">
-                        <div className="w-20 h-20 rounded-xl bg-white overflow-hidden border border-gray-200 shadow-sm">
+                      <div key={idx} className="relative shrink-0 group/img pt-2 pr-2">
+                        <div className="w-20 h-20 rounded-xl bg-white overflow-hidden border border-gray-200 shadow-sm pointer-events-auto">
                            <img 
                              src={img instanceof File ? URL.createObjectURL(img) : img} 
                              className="w-full h-full object-cover" 
                            />
                         </div>
-                        {idx === 0 && <span className="absolute -top-1 -right-1 bg-brand-green text-white text-[8px] font-black uppercase px-2 py-0.5 rounded shadow-md border-2 border-white">Principal</span>}
-                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[8px] font-bold px-1.5 rounded opacity-80">{idx + 1}/5</span>
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setForm(prev => {
+                               const newImages = prev.images.filter((_, i) => i !== idx);
+                               return {...prev, images: newImages};
+                            });
+                          }}
+                          className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity z-40 shadow-md hover:scale-110 pointer-events-auto"
+                        >
+                          <X size={12} />
+                        </button>
+                        {idx === 0 && <span className="absolute -bottom-1 -right-0 bg-brand-green text-white text-[8px] font-black uppercase px-2 py-0.5 rounded shadow-md border-2 border-white z-20 pointer-events-none">Principal</span>}
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[8px] font-bold px-1.5 rounded opacity-80 z-20 pointer-events-none">{idx + 1}/5</span>
                       </div>
                     ))}
                  </div>
-               )}
             </div>
           </div>
           <button type="submit" className="md:col-span-3 bg-brand-red text-white font-black py-4 sm:py-6 rounded-[1.5rem] sm:rounded-[2rem] uppercase tracking-tighter text-xl sm:text-2xl shadow-2xl hover:scale-[1.01] active:scale-95 transition-all mt-4 border-b-4 sm:border-b-8 border-red-800">
