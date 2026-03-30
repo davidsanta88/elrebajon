@@ -270,6 +270,41 @@ const AdminDashboard = () => {
     } catch (err) { Swal.fire('Error', 'No se pudo guardar', 'error'); }
   };
 
+
+  const handleBrandSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      const token = localStorage.getItem('token');
+      if (isEditingBrand) {
+        await axios.put(`${API_URL}/api/admin/brands/${brandForm._id}`, brandForm, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } else {
+        await axios.post(`${API_URL}/api/admin/brands`, brandForm, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      setShowBrandModal(false);
+      fetchBrands();
+      Swal.fire('Éxito', 'Marca guardada', 'success');
+    } catch (err) { Swal.fire('Error', 'No se pudo guardar la marca', 'error'); }
+  };
+
+  const handleDeleteBrand = async (id) => {
+    const confirm = await Swal.fire({ title: '¿Eliminar marca?', icon: 'warning', showCancelButton: true });
+    if (confirm.isConfirmed) {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+        const token = localStorage.getItem('token');
+        await axios.delete(`${API_URL}/api/admin/brands/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        fetchBrands();
+      } catch (err) { Swal.fire('Error', 'Error al eliminar', 'error'); }
+    }
+  };
+
   const handleDeleteCategory = async (id) => {
     const confirm = await Swal.fire({ title: '¿Eliminar?', icon: 'warning', showCancelButton: true });
     if (confirm.isConfirmed) {
