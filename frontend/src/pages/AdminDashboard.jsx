@@ -728,7 +728,7 @@ const MetricCard = ({ title, value, detail, icon, trend, showTrend = true, color
   </div>
 );
 
-const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categories, providers, formatNum, cleanNum }) => {
+const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categories, brands, providers, formatNum, cleanNum }) => {
   if (!show) return null;
   const margin = Number(form.price) - Number(form.purchasePrice);
 
