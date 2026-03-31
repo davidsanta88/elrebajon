@@ -13,7 +13,8 @@ import {
   Tag,
   Percent,
   Clock,
-  DollarSign
+  DollarSign,
+  Share2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -86,6 +87,25 @@ const AppContent = () => {
       });
     } catch (err) {
       console.error('Error recording lead:', err);
+    }
+  };
+
+  const handleShareApp = () => {
+    const shareData = {
+      title: 'El Rebajón Marketplace',
+      text: '¡Mira los mejores precios en productos Nuevos y Usados en El Rebajón! 🛍️✨',
+      url: window.location.origin
+    };
+
+    if (navigator.share) {
+      navigator.share(shareData).catch(err => {
+        if (err.name !== 'AbortError') console.error('Error sharing:', err);
+      });
+    } else {
+      const waUrl = `https://wa.me/?text=${encodeURIComponent(
+        `${shareData.text} Visítanos aquí: ${shareData.url}`
+      )}`;
+      window.open(waUrl, '_blank');
     }
   };
 
@@ -213,16 +233,29 @@ const AppContent = () => {
           </div>
 
             {/* CONTACT BUTTON (WHATSAPP) */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* SHARE BUTTON */}
+            <button 
+              onClick={handleShareApp}
+              className="flex items-center gap-1 bg-white/10 border border-white/20 rounded-full px-2.5 py-1.5 hover:bg-white/20 transition-colors cursor-pointer shadow-sm"
+              title="Compartir App"
+            >
+              <Share2 size={14} className="text-brand-yellow" />
+              <span className="hidden sm:inline text-[9px] font-black uppercase">Compartir</span>
+            </button>
+
+            {/* CONTACT BUTTON (WHATSAPP) */}
             <button 
               onClick={() => {
                 recordLead(null, 'Header');
                 window.open("https://wa.me/573114018724", "_blank");
               }}
-              className="shrink-0 flex items-center gap-1 bg-brand-green border border-white/20 rounded-full px-3 py-1.5 hover:bg-green-600 transition-colors cursor-pointer shadow-lg"
+              className="flex items-center gap-1 bg-brand-green border border-white/20 rounded-full px-3 py-1.5 hover:bg-green-600 transition-colors cursor-pointer shadow-lg"
             >
               <MessageCircle size={14} className="text-white" fill="white" />
               <span className="text-[10px] font-black uppercase inline">Chat</span>
             </button>
+          </div>
         </div>
       </header>
       
@@ -622,6 +655,11 @@ const AppContent = () => {
         /* Hide scrollbar on category strip */
         .category-strip::-webkit-scrollbar { display: none; }
         .category-strip { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
 
         .animate-marquee {
           display: inline-block;
