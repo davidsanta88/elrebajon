@@ -22,6 +22,7 @@ import {
   Plus,
   CreditCard,
   User,
+  Users,
   Search,
   Trash2,
   CheckCircle,
@@ -55,6 +56,12 @@ import Swal from 'sweetalert2';
 const ReportesPage = () => {
   const [activeSubTab, setActiveSubTab] = useState('ventas'); // 'ventas', 'inventario', 'rentabilidad', 'exportar'
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState('30'); // Default to 30 days
+  const [customDates, setCustomDates] = useState({ start: '', end: '' });
+  
+  // New: Customer Search State
+  const [customerSuggestions, setCustomerSuggestions] = useState([]);
+  const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
   
   // Data States
   const [stats, setStats] = useState(null);
@@ -188,8 +195,27 @@ const ReportesPage = () => {
     });
     
     try {
-      await axios.post(`${API_URL}/api/admin/orders/${orderId}/payments`, paymentData, { headers });
-      Swal.fire('Éxito', 'Abono registrado correctamente', 'success');
+      const res = await axios.post(`${API_URL}/api/admin/orders/${orderId}/payments`, paymentData, { headers });
+      const updatedOrder = res.data;
+      
+      const balance = updatedOrder.totalRevenue - updatedOrder.payments.reduce((acc, p) => acc + p.amount, 0);
+      
+      Swal.fire({
+        title: '¡Abono Registrado!',
+        text: '¿Deseas enviar el comprobante por WhatsApp?',
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonText: '📱 Enviar WhatsApp',
+        cancelButtonText: 'Cerrar',
+        confirmButtonColor: '#25D366'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const message = `Hola *${updatedOrder.customerName}*, se ha registrado un abono de *$${formatNum(paymentData.amount)}* en El Rebajón. Tu saldo pendiente es *$${formatNum(balance)}*. ¡Gracias por tu compra! 🛍️`;
+          const whatsappUrl = `https://wa.me/${updatedOrder.customerPhone}?text=${encodeURIComponent(message)}`;
+          window.open(whatsappUrl, '_blank');
+        }
+      });
+
       setShowPaymentModal(false);
       fetchAllData();
     } catch (err) {
@@ -211,6 +237,22 @@ const ReportesPage = () => {
     if (result.isConfirmed) {
       await axios.delete(`${API_URL}/api/admin/orders/${id}`, { headers });
       fetchAllData();
+    }
+  };
+
+  const searchCustomers = async (query) => {
+    if (!query || query.length < 3) {
+      setCustomerSuggestions([]);
+      return;
+    }
+    try {
+      setIsSearchingCustomer(true);
+      const res = await axios.get(`${API_URL}/api/admin/customers/search?q=${query}`, { headers });
+      setCustomerSuggestions(res.data);
+    } catch (err) {
+      console.error("CUSTOMER SEARCH ERROR:", err);
+    } finally {
+      setIsSearchingCustomer(false);
     }
   };
 
@@ -351,7 +393,7 @@ const ReportesPage = () => {
 
       {/* CONTENIDO SEGÚN TAB */}
       <div className="min-h-[600px]">
-        {activeSubTab === 'ventas' && (stats ? <StatsView stats={stats} dateRange={dateRange} setDateRange={setDateRange} formatNum={formatNum} COLORS={COLORS} fetchAllData={fetchAllData} /> : <NoDataPlaceholder message="No se pudieron cargar las estadísticas de ventas" />)}
+        {activeSubTab === 'ventas' && (stats ? <StatsView stats={stats} currentRange={dateRange} setCurrentRange={setDateRange} formatNum={formatNum} COLORS={COLORS} fetchAllData={fetchAllData} /> : <NoDataPlaceholder message="No se pudieron cargar las estadísticas de ventas" />)}
         {activeSubTab === 'gestion-ventas' && (
           <GestionVentasView 
             orders={orders} 
@@ -403,6 +445,8 @@ const ReportesPage = () => {
           setFormData={setNewOrder}
           onSearch={searchProducts}
           searchResults={searchResults}
+          onSearchCustomer={searchCustomers}
+          customerSuggestions={customerSuggestions}
           onSave={handleCreateOrder}
           isSubmitting={isSubmitting}
         />
@@ -424,7 +468,7 @@ const ReportesPage = () => {
 
 // --- SUBVIEWS ---
 
-const StatsView = ({ stats, dateRange, setDateRange, formatNum, COLORS, fetchAllData }) => (
+const StatsView = ({ stats, currentRange, setCurrentRange, formatNum, COLORS, fetchAllData }) => (
   <div className="space-y-10 animate-in fade-in duration-500">
     {/* FILTRO PERIODOS */}
     <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
@@ -433,8 +477,8 @@ const StatsView = ({ stats, dateRange, setDateRange, formatNum, COLORS, fetchAll
       {['7', '30', '90'].map(r => (
         <button 
           key={r} 
-          onClick={() => setDateRange(r)}
-          className={`px-6 py-2 rounded-xl text-xs font-black uppercase transition-all ${dateRange === r ? 'bg-brand-red text-white shadow-lg shadow-red-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+          onClick={() => setCurrentRange(r)}
+          className={`px-6 py-2 rounded-xl text-xs font-black uppercase transition-all ${currentRange === r ? 'bg-brand-red text-white shadow-lg shadow-red-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
         >
           Últimos {r} días
         </button>
@@ -1026,30 +1070,34 @@ const CarteraView = ({ data, formatNum }) => (
             <tr className="border-b border-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-400">
               <th className="px-8 py-6">Cliente</th>
               <th className="text-right">Última Venta</th>
-              <th className="text-right">Total Comprado</th>
+              <th className="text-center">Total Compras</th>
               <th className="text-right">Total Pagado</th>
               <th className="px-8 text-right">Saldo Deudor</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {data.clients?.length === 0 ? (
+            {data.orders?.length === 0 ? (
               <tr>
                 <td colSpan="5" className="py-32 text-center text-gray-300 font-black uppercase italic">No hay cuentas pendientes</td>
               </tr>
-            ) : data.clients?.map((client, idx) => (
+            ) : data.orders?.map((order, idx) => (
               <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                 <td className="px-8 py-6">
                   <div className="flex flex-col">
-                    <span className="text-sm font-black text-gray-800 italic">{client._id}</span>
+                    <span className="text-sm font-black text-gray-800 italic">{order.customerName}</span>
                     <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Cliente de Cartera</span>
                   </div>
                 </td>
-                <td className="text-right text-xs font-bold text-gray-500 italic">{format(new Date(client.lastSale), 'dd/MM/yyyy')}</td>
-                <td className="text-right font-bold text-gray-700">${formatNum(client.totalPurchased)}</td>
-                <td className="text-right font-bold text-brand-green">${formatNum(client.totalPaid)}</td>
+                <td className="text-right text-xs font-bold text-gray-500 italic">{order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yyyy') : 'N/A'}</td>
+                <td className="text-center">
+                  <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black italic">
+                    {order.customerInfo?.ordersCount || 1} compras
+                  </span>
+                </td>
+                <td className="text-right font-bold text-brand-green">${formatNum(order.payments?.reduce((acc, p) => acc + p.amount, 0) || 0)}</td>
                 <td className="px-8 text-right">
                   <span className="inline-block px-4 py-2 bg-red-50 text-brand-red rounded-2xl font-black italic text-lg shadow-sm">
-                    ${formatNum(client.balanceDue)}
+                    ${formatNum((order.totalRevenue || 0) - (order.payments?.reduce((acc, p) => acc + p.amount, 0) || 0))}
                   </span>
                 </td>
               </tr>
@@ -1061,7 +1109,7 @@ const CarteraView = ({ data, formatNum }) => (
   </div>
 );
 
-const NewOrderModal = ({ isOpen, onClose, formData, setFormData, onSearch, searchResults, onSave, isSubmitting }) => {
+const NewOrderModal = ({ isOpen, onClose, formData, setFormData, onSearch, searchResults, onSearchCustomer, customerSuggestions, onSave, isSubmitting }) => {
   const [step, setStep] = useState(1);
   const [query, setQuery] = useState("");
 
@@ -1121,15 +1169,38 @@ const NewOrderModal = ({ isOpen, onClose, formData, setFormData, onSearch, searc
                     onChange={(e) => setFormData({...formData, customerName: e.target.value})}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                   <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Teléfono / WhatsApp</label>
                   <input 
                     type="text" 
                     placeholder="312..."
                     className="w-full bg-gray-100 border-none rounded-2xl py-4 px-6 text-sm font-bold focus:ring-2 focus:ring-brand-red/20 transition-all"
                     value={formData.customerPhone}
-                    onChange={(e) => setFormData({...formData, customerPhone: e.target.value})}
+                    onChange={(e) => {
+                      setFormData({...formData, customerPhone: e.target.value});
+                      onSearchCustomer(e.target.value);
+                    }}
                   />
+                  {customerSuggestions.length > 0 && (
+                    <div className="absolute z-[101] left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-in slide-in-from-top-2">
+                      {customerSuggestions.map(cust => (
+                        <button
+                          key={cust._id}
+                          onClick={() => {
+                            setFormData({...formData, customerPhone: cust.phone, customerName: cust.name});
+                            onSearchCustomer('');
+                          }}
+                          className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors text-left"
+                        >
+                          <div>
+                            <p className="text-sm font-black text-gray-800 italic uppercase">{cust.name}</p>
+                            <p className="text-[10px] font-bold text-gray-400">{cust.phone}</p>
+                          </div>
+                          <span className="bg-brand-red/10 text-brand-red text-[8px] font-black px-2 py-1 rounded-full">CLIENTE FRECUENTE</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

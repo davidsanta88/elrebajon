@@ -11,6 +11,7 @@ const Brand = require('./models/Brand');
 const Provider = require('./models/Provider');
 const Order = require('./models/Order');
 const Lead = require('./models/Lead');
+const Customer = require('./models/Customer');
 const { authMiddleware, adminMiddleware } = require('./middleware/authMiddleware');
 const { upload } = require('./config/cloudinary.js');
 
@@ -643,6 +644,23 @@ app.post('/api/admin/orders', authMiddleware, adminMiddleware, async (req, res) 
     });
 
     await order.save();
+
+    // Auto-create or Update Customer
+    if (customerPhone) {
+      try {
+        const customer = await Customer.findOneAndUpdate(
+          { phone: customerPhone },
+          { 
+            name: customerName, 
+            $inc: { totalSpent: totalRevenue, ordersCount: 1 } 
+          },
+          { upsert: true, new: true }
+        );
+      } catch (custErr) {
+        console.error("CUSTOMER SYNC ERROR:", custErr);
+      }
+    }
+
     res.status(201).json(order);
   } catch (err) {
     console.error("CREATE ORDER ERROR:", err);
@@ -692,6 +710,33 @@ app.post('/api/admin/orders/:id/payments', authMiddleware, adminMiddleware, asyn
   }
 });
 
+// --- CUSTOMER MANAGEMENT ---
+app.get('/api/admin/customers/search', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { q } = req.query;
+    const query = q ? {
+      $or: [
+        { name: { $regex: q, $options: 'i' } },
+        { phone: { $regex: q, $options: 'i' } }
+      ]
+    } : {};
+    const customers = await Customer.find(query).limit(10);
+    res.json(customers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.post('/api/admin/customers', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const customer = new Customer(req.body);
+    await customer.save();
+    res.status(201).json(customer);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Admin: Delete Order
 app.delete('/api/admin/orders/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
@@ -705,10 +750,33 @@ app.delete('/api/admin/orders/:id', authMiddleware, adminMiddleware, async (req,
 // Admin: Cartera Report (Debt)
 app.get('/api/admin/reports/cartera', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const orders = await Order.find({ paymentStatus: 'Pendiente' }).sort({ createdAt: -1 });
-    const totalReceivable = orders.reduce((sum, o) => sum + o.balance, 0);
+    const orders = await Order.aggregate([
+      { $match: { paymentStatus: 'Pendiente' } },
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: 'customers',
+          localField: 'customerPhone',
+          foreignField: 'phone',
+          as: 'customerDetails'
+        }
+      },
+      {
+        $addFields: {
+          customerInfo: { $arrayElemAt: ['$customerDetails', 0] }
+        }
+      },
+      {
+        $project: {
+          customerDetails: 0
+        }
+      }
+    ]);
+    
+    const totalReceivable = orders.reduce((sum, o) => sum + (o.balance || 0), 0);
     res.json({ orders, totalReceivable });
   } catch (err) {
+    console.error("CARTERA REPORT ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
