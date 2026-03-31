@@ -76,6 +76,7 @@ const AdminDashboard = () => {
   const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [isEditingBrand, setIsEditingBrand] = useState(false);
   const [selectedOfferProduct, setSelectedOfferProduct] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Form States
   const [categoryForm, setCategoryForm] = useState({ name: '', image: null, status: 'Activo' });
@@ -372,6 +373,18 @@ const AdminDashboard = () => {
   // PRODUCT CRUD
   const handleProductSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    Swal.fire({
+      title: 'Procesando...',
+      text: 'Por favor espere un momento',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
     const formData = new FormData();
     Object.keys(productForm).forEach(key => {
       if (key === 'images') {
@@ -405,8 +418,12 @@ const AdminDashboard = () => {
         stock: 0, stockMin: 0, status: 'Activo', condition: 'Nuevo', images: []
       });
       fetchProducts();
-      Swal.fire('Éxito', 'Producto guardado', 'success');
-    } catch (err) { Swal.fire('Error', 'Error al guardar', 'error'); }
+      Swal.fire('Éxito', 'Producto guardado correctamente', 'success');
+    } catch (err) { 
+      Swal.fire('Error', 'Error al guardar', 'error'); 
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDeleteProduct = async (id) => {
@@ -786,7 +803,7 @@ const AdminDashboard = () => {
         </div>
       </main>
 
-      <ProductModal show={showProductModal} onClose={() => setShowProductModal(false)} onSubmit={handleProductSubmit} form={productForm} setForm={setProductForm} isEditing={isEditingProduct} categories={categories} brands={brands} providers={providers} formatNum={formatNum} cleanNum={cleanNum} />
+      <ProductModal show={showProductModal} onClose={() => setShowProductModal(false)} onSubmit={handleProductSubmit} form={productForm} setForm={setProductForm} isEditing={isEditingProduct} categories={categories} brands={brands} providers={providers} formatNum={formatNum} cleanNum={cleanNum} isSubmitting={isSubmitting} />
       <ProviderModal show={showProviderModal} onClose={() => setShowProviderModal(false)} onSubmit={handleProviderSubmit} form={providerForm} setForm={setProviderForm} isEditing={isEditingProvider} />
       <CategoryModal show={showCategoryModal} onClose={() => setShowCategoryModal(false)} onSubmit={handleCategorySubmit} form={categoryForm} setForm={setCategoryForm} isEditing={isEditingCategory} />
       <BrandModal show={showBrandModal} onClose={() => setShowBrandModal(false)} onSubmit={handleBrandSubmit} form={brandForm} setForm={setBrandForm} isEditing={isEditingBrand} categories={categories} />
@@ -816,7 +833,7 @@ const MetricCard = ({ title, value, detail, icon, trend, showTrend = true, color
   </div>
 );
 
-const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categories, brands, providers, formatNum, cleanNum }) => {
+const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categories, brands, providers, formatNum, cleanNum, isSubmitting }) => {
   if (!show) return null;
   const margin = Number(form.price) - Number(form.purchasePrice);
 
@@ -942,8 +959,19 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
                  </div>
             </div>
           </div>
-          <button type="submit" className="md:col-span-3 bg-brand-red text-white font-black py-4 sm:py-6 rounded-[1.5rem] sm:rounded-[2rem] uppercase tracking-tighter text-xl sm:text-2xl shadow-2xl hover:scale-[1.01] active:scale-95 transition-all mt-4 border-b-4 sm:border-b-8 border-red-800">
-            {isEditing ? 'Guardar Cambios' : 'Lanzar Producto Nuevo'}
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            className={`md:col-span-3 bg-brand-red text-white font-black py-4 sm:py-6 rounded-[1.5rem] sm:rounded-[2rem] uppercase tracking-tighter text-xl sm:text-2xl shadow-2xl hover:scale-[1.01] active:scale-95 transition-all mt-4 border-b-4 sm:border-b-8 border-red-800 flex items-center justify-center gap-3 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            {isSubmitting ? (
+              <>
+                <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Procesando...
+              </>
+            ) : (
+              isEditing ? 'Guardar Cambios' : 'Lanzar Producto Nuevo'
+            )}
           </button>
         </form>
       </div>

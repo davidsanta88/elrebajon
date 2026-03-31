@@ -599,6 +599,120 @@ app.get('/api/admin/seed-orders', authMiddleware, adminMiddleware, async (req, r
   }
 });
 
+// --- REAL SALES & PLAN SEPARE MANAGEMENT ---
+
+// Admin: Product lookup for creating manual sales
+app.get('/api/admin/products/search', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { q } = req.query;
+    const query = q ? { 
+      $or: [
+        { name: { $regex: q, $options: 'i' } },
+        { category: { $regex: q, $options: 'i' } }
+      ]
+    } : {};
+    const products = await Product.find(query).limit(10).select('name price purchasePrice category mainImage stock');
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Admin: Create Manual Order (Sale)
+app.post('/api/admin/orders', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { items, customerName, customerPhone, initialPayment, isPlanSepare, note } = req.body;
+    
+    let totalRevenue = 0;
+    let totalCost = 0;
+    
+    items.forEach(item => {
+      totalRevenue += Number(item.price) * Number(item.quantity);
+      totalCost += (Number(item.purchasePrice) || 0) * Number(item.quantity);
+    });
+
+    const order = new Order({
+      items,
+      totalRevenue,
+      totalCost,
+      totalProfit: totalRevenue - totalCost,
+      customerName: customerName || 'Cliente WhatsApp',
+      customerPhone,
+      isPlanSepare: Boolean(isPlanSepare),
+      payments: initialPayment > 0 ? [{ amount: Number(initialPayment), method: 'Efectivo', note: note || 'Abono Inicial' }] : []
+    });
+
+    await order.save();
+    res.status(201).json(order);
+  } catch (err) {
+    console.error("CREATE ORDER ERROR:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Admin: List Orders with filtering
+app.get('/api/admin/orders', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { q, status } = req.query;
+    let filter = {};
+    if (status && status !== 'Todos') filter.paymentStatus = status;
+    if (q) {
+      filter.$or = [
+        { customerName: { $regex: q, $options: 'i' } },
+        { customerPhone: { $regex: q, $options: 'i' } }
+      ];
+    }
+    
+    const orders = await Order.find(filter).sort({ createdAt: -1 }).limit(100);
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Admin: Register a Payment (Abono)
+app.post('/api/admin/orders/:id/payments', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { amount, method, note } = req.body;
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Venta no encontrada' });
+    
+    order.payments.push({ 
+      amount: Number(amount), 
+      method: method || 'Efectivo', 
+      note, 
+      date: new Date() 
+    });
+    
+    await order.save();
+    res.json(order);
+  } catch (err) {
+    console.error("PAYMENT ERROR:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Admin: Delete Order
+app.delete('/api/admin/orders/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    await Order.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Venta eliminada' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Admin: Cartera Report (Debt)
+app.get('/api/admin/reports/cartera', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const orders = await Order.find({ paymentStatus: 'Pendiente' }).sort({ createdAt: -1 });
+    const totalReceivable = orders.reduce((sum, o) => sum + o.balance, 0);
+    res.json({ orders, totalReceivable });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Public: Fetch products for Home
 app.get('/api/products', async (req, res) => {
   try {

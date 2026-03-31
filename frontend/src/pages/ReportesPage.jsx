@@ -18,7 +18,19 @@ import {
   FileText,
   Clock,
   Briefcase,
-  MessageCircle
+  MessageCircle,
+  Plus,
+  CreditCard,
+  User,
+  Search,
+  Trash2,
+  CheckCircle,
+  Eye,
+  Check,
+  X,
+  Smartphone,
+  Wallet,
+  Building
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -49,10 +61,27 @@ const ReportesPage = () => {
   const [inventory, setInventory] = useState(null);
   const [profitability, setProfitability] = useState(null);
   const [leads, setLeads] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [cartera, setCartera] = useState({ orders: [], totalReceivable: 0 });
   
-  // Filters
-  const [dateRange, setDateRange] = useState('30'); // '7', '30', '90', 'custom'
-  const [customDates, setCustomDates] = useState({ start: '', end: '' });
+  // UI States
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [productQuery, setProductQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // New Order Form State
+  const [newOrder, setNewOrder] = useState({
+    customerName: '',
+    customerPhone: '',
+    items: [],
+    initialPayment: 0,
+    isPlanSepare: false,
+    note: ''
+  });
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
   const token = localStorage.getItem('token');
@@ -69,7 +98,9 @@ const ReportesPage = () => {
         fetchStats(),
         fetchInventory(),
         fetchProfitability(),
-        fetchLeads()
+        fetchLeads(),
+        fetchOrders(),
+        fetchCartera()
       ]);
     } catch (err) {
       console.error("Error fetching report data", err);
@@ -99,11 +130,87 @@ const ReportesPage = () => {
   };
 
   const fetchLeads = async () => {
+    const res = await axios.get(`${API_URL}/api/admin/reports/leads`, { headers });
+    setLeads(res.data);
+  };
+
+  const fetchOrders = async () => {
+    let url = `${API_URL}/api/admin/orders?q=${searchTerm}`;
+    const res = await axios.get(url, { headers });
+    setOrders(res.data);
+  };
+
+  const fetchCartera = async () => {
+    const res = await axios.get(`${API_URL}/api/admin/reports/cartera`, { headers });
+    setCartera(res.data);
+  };
+
+  const searchProducts = async (q) => {
+    if (!q) return setSearchResults([]);
+    const res = await axios.get(`${API_URL}/api/admin/products/search?q=${q}`, { headers });
+    setSearchResults(res.data);
+  };
+
+  const handleCreateOrder = async () => {
+    if (newOrder.items.length === 0) return Swal.fire('Error', 'Añade al menos un producto', 'error');
+    setIsSubmitting(true);
+    Swal.fire({
+      title: 'Procesando...',
+      text: 'Por favor espere un momento',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
     try {
-      const res = await axios.get(`${API_URL}/api/admin/reports/leads`, { headers });
-      setLeads(res.data);
+      await axios.post(`${API_URL}/api/admin/orders`, newOrder, { headers });
+      Swal.fire('Éxito', 'Venta registrada correctamente', 'success');
+      setShowOrderModal(false);
+      setNewOrder({ customerName: '', customerPhone: '', items: [], initialPayment: 0, isPlanSepare: false, note: '' });
+      fetchAllData();
     } catch (err) {
-      console.error("Error fetching leads", err);
+      Swal.fire('Error', 'No se pudo registrar la venta', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAddPayment = async (orderId, paymentData) => {
+    setIsSubmitting(true);
+    Swal.fire({
+      title: 'Procesando...',
+      text: 'Por favor espere un momento',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+    
+    try {
+      await axios.post(`${API_URL}/api/admin/orders/${orderId}/payments`, paymentData, { headers });
+      Swal.fire('Éxito', 'Abono registrado correctamente', 'success');
+      setShowPaymentModal(false);
+      fetchAllData();
+    } catch (err) {
+      Swal.fire('Error', 'No se pudo registrar el pago', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteOrder = async (id) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar venta?',
+      text: "Esta acción no se puede deshacer",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ff2d2d',
+      confirmButtonText: 'Sí, eliminar'
+    });
+    if (result.isConfirmed) {
+      await axios.delete(`${API_URL}/api/admin/orders/${id}`, { headers });
+      fetchAllData();
     }
   };
 
@@ -233,9 +340,11 @@ const ReportesPage = () => {
         {/* TABS NAVEGACIÓN INTERNA */}
         <div className="flex p-1.5 bg-gray-100 rounded-2xl sm:rounded-[2rem] gap-1 overflow-x-auto no-scrollbar">
           <SubTab active={activeSubTab === 'ventas'} icon={<TrendingUp size={18} />} label="Ventas" onClick={() => setActiveSubTab('ventas')} />
+          <SubTab active={activeSubTab === 'gestion-ventas'} icon={<ShoppingBag size={18} />} label="Gestión" onClick={() => setActiveSubTab('gestion-ventas')} />
+          <SubTab active={activeSubTab === 'cartera'} icon={<CreditCard size={18} />} label="Cartera" onClick={() => setActiveSubTab('cartera')} />
           <SubTab active={activeSubTab === 'inventario'} icon={<Layers size={18} />} label="Inventario" onClick={() => setActiveSubTab('inventario')} />
           <SubTab active={activeSubTab === 'rentabilidad'} icon={<Target size={18} />} label="Márgenes" onClick={() => setActiveSubTab('rentabilidad')} />
-          <SubTab active={activeSubTab === 'leads'} icon={<MessageCircle size={18} />} label="Mensajes/CRM" onClick={() => setActiveSubTab('leads')} />
+          <SubTab active={activeSubTab === 'leads'} icon={<MessageCircle size={18} />} label="Mensajes" onClick={() => setActiveSubTab('leads')} />
           <SubTab active={activeSubTab === 'exportar'} icon={<Download size={18} />} label="Exportar" onClick={() => setActiveSubTab('exportar')} />
         </div>
       </div>
@@ -243,11 +352,72 @@ const ReportesPage = () => {
       {/* CONTENIDO SEGÚN TAB */}
       <div className="min-h-[600px]">
         {activeSubTab === 'ventas' && (stats ? <StatsView stats={stats} dateRange={dateRange} setDateRange={setDateRange} formatNum={formatNum} COLORS={COLORS} fetchAllData={fetchAllData} /> : <NoDataPlaceholder message="No se pudieron cargar las estadísticas de ventas" />)}
+        {activeSubTab === 'gestion-ventas' && (
+          <GestionVentasView 
+            orders={orders} 
+            formatNum={formatNum} 
+            searchTerm={searchTerm} 
+            setSearchTerm={setSearchTerm}
+            fetchOrders={fetchOrders}
+            onNew={() => setShowOrderModal(true)}
+            onPayment={(order) => { setSelectedOrder(order); setShowPaymentModal(true); }}
+            onDelete={handleDeleteOrder}
+          />
+        )}
+        {activeSubTab === 'cartera' && <CarteraView data={cartera} formatNum={formatNum} />}
         {activeSubTab === 'inventario' && (inventory ? <InventoryView inventory={inventory} formatNum={formatNum} COLORS={COLORS} /> : <NoDataPlaceholder message="No hay datos de inventario disponibles" />)}
         {activeSubTab === 'rentabilidad' && (profitability ? <ProfitabilityView profitability={profitability} formatNum={formatNum} /> : <NoDataPlaceholder message="No hay datos de rentabilidad disponibles" />)}
-        {activeSubTab === 'leads' && <LeadsView leads={leads} formatNum={formatNum} />}
+        {activeSubTab === 'leads' && (
+          <LeadsView 
+            leads={leads} 
+            formatNum={formatNum} 
+            onConvert={(lead) => {
+              setNewOrder({
+                customerName: 'Cliente WhatsApp',
+                customerPhone: '',
+                items: [{
+                  productId: lead.productId,
+                  name: lead.productName,
+                  quantity: 1,
+                  price: lead.price,
+                  purchasePrice: 0,
+                  category: lead.category
+                }],
+                initialPayment: 0,
+                isPlanSepare: true,
+                note: `Venta desde mensaje: ${lead.productName}`
+              });
+              setShowOrderModal(true);
+            }}
+          />
+        )}
         {activeSubTab === 'exportar' && <ExportView handleExportExcel={handleExportExcel} stats={stats} inventory={inventory} />}
       </div>
+
+      {/* MODALS */}
+      {showOrderModal && (
+        <NewOrderModal 
+          isOpen={showOrderModal} 
+          onClose={() => setShowOrderModal(false)}
+          formData={newOrder}
+          setFormData={setNewOrder}
+          onSearch={searchProducts}
+          searchResults={searchResults}
+          onSave={handleCreateOrder}
+          isSubmitting={isSubmitting}
+        />
+      )}
+
+      {showPaymentModal && selectedOrder && (
+        <PaymentModal 
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          order={selectedOrder}
+          onAdd={handleAddPayment}
+          isSubmitting={isSubmitting}
+          formatNum={formatNum}
+        />
+      )}
     </div>
   );
 };
@@ -707,5 +877,476 @@ const NoDataPlaceholder = ({ message }) => (
     <p className="text-gray-400 font-black uppercase italic tracking-widest text-center px-8">{message || "No hay datos disponibles para mostrar"}</p>
   </div>
 );
+
+// --- NEW SALES MANAGEMENT VIEWS ---
+
+const GestionVentasView = ({ orders, formatNum, searchTerm, setSearchTerm, fetchOrders, onNew, onPayment, onDelete }) => (
+  <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
+      <div className="relative w-full md:w-96 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-red transition-colors" size={18} />
+          <input 
+              type="text" 
+              placeholder="Buscar por cliente o producto..."
+              className="w-full bg-gray-50 border-none rounded-2xl py-3.5 pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-brand-red/20 transition-all shadow-inner"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyUp={(e) => e.key === 'Enter' && fetchOrders()}
+          />
+      </div>
+      <button 
+        onClick={onNew}
+        className="w-full md:w-auto bg-brand-red text-white px-8 py-3.5 rounded-2xl font-black uppercase italic tracking-tighter shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
+      >
+        <Plus size={20} /> Nueva Venta Directa
+      </button>
+    </div>
+
+    <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="border-b border-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-400">
+              <th className="px-8 py-6">Fecha / Cliente</th>
+              <th>Productos</th>
+              <th className="text-right">Total</th>
+              <th className="text-right">Saldo</th>
+              <th className="px-8 text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {orders.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="py-32 text-center">
+                  <div className="flex flex-col items-center gap-3 opacity-20">
+                    <ShoppingBag size={48} />
+                    <p className="font-black uppercase italic">Sin ventas registradas</p>
+                  </div>
+                </td>
+              </tr>
+            ) : orders.map(order => (
+              <tr key={order._id} className="hover:bg-gray-50/50 transition-colors">
+                <td className="px-8 py-6">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-black text-gray-800 italic">{format(new Date(order.createdAt), 'dd MMMM, yyyy')}</span>
+                    <span className="text-sm font-bold text-gray-500 uppercase flex items-center gap-1">
+                      <User size={12} /> {order.customerName}
+                    </span>
+                    {order.customerPhone && <span className="text-[10px] font-medium text-gray-400 flex items-center gap-1"><Smartphone size={10} /> {order.customerPhone}</span>}
+                  </div>
+                </td>
+                <td>
+                  <div className="flex flex-col gap-1 py-2">
+                    {order.items.map((item, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="w-5 h-5 bg-gray-100 rounded-md flex items-center justify-center text-[10px] font-bold text-gray-500">{item.quantity}</span>
+                        <span className="text-[11px] font-bold text-gray-700 truncate max-w-[200px]">{item.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </td>
+                <td className="text-right font-black italic text-gray-800">
+                  <div className="flex flex-col">
+                    <span>${formatNum(order.totalAmount)}</span>
+                    {order.isPlanSepare && <span className="text-[9px] bg-brand-yellow/20 text-brand-red px-2 py-0.5 rounded-full inline-block w-fit ml-auto">Plan Separe</span>}
+                  </div>
+                </td>
+                <td className="text-right font-black italic">
+                   <div className="flex flex-col">
+                    <span className={order.balance > 0 ? "text-brand-red" : "text-brand-green"}>
+                      ${formatNum(order.balance)}
+                    </span>
+                    <span className="text-[9px] text-gray-400 font-bold uppercase">{order.paymentStatus === 'PAID' ? 'Saldado' : 'Pendiente'}</span>
+                  </div>
+                </td>
+                <td className="px-8 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    {order.balance > 0 && (
+                      <button 
+                        onClick={() => onPayment(order)}
+                        className="p-2.5 bg-brand-green/10 text-brand-green rounded-xl hover:bg-brand-green hover:text-white transition-all shadow-sm"
+                        title="Registrar Abono"
+                      >
+                        <Wallet size={18} />
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => onDelete(order._id)}
+                      className="p-2.5 bg-brand-red/10 text-brand-red rounded-xl hover:bg-brand-red hover:text-white transition-all shadow-sm"
+                      title="Eliminar"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+);
+
+const CarteraView = ({ data, formatNum }) => (
+  <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <KPIBox 
+        title="Total Cartera" 
+        value={`$${formatNum(data.summary?.totalAccountReceivable || 0)}`} 
+        detail={`${data.summary?.totalClientsDebting || 0} Clientes con Deuda`}
+        icon={<CreditCard className="text-brand-red" />}
+        color="bg-red-50"
+      />
+      <KPIBox 
+        title="Cobro Pendiente Hoy" 
+        value={`$${formatNum(data.summary?.dueSoonAmount || 0)}`} 
+        detail="Próximos 7 días"
+        icon={<Clock className="text-orange-500" />}
+        color="bg-orange-50"
+      />
+      <KPIBox 
+        title="Clientes Activos" 
+        value={data.summary?.totalClientsDebting || 0} 
+        detail="Con saldos pendientes"
+        icon={<Users className="text-blue-500" />}
+        color="bg-blue-50"
+      />
+    </div>
+
+    <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden">
+      <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
+        <h3 className="text-xl font-black uppercase italic tracking-tighter text-gray-800 flex items-center gap-3">
+          <Building className="text-brand-red" size={24} /> Desglose de Cuentas por Cobrar
+        </h3>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="border-b border-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-400">
+              <th className="px-8 py-6">Cliente</th>
+              <th className="text-right">Última Venta</th>
+              <th className="text-right">Total Comprado</th>
+              <th className="text-right">Total Pagado</th>
+              <th className="px-8 text-right">Saldo Deudor</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {data.clients?.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="py-32 text-center text-gray-300 font-black uppercase italic">No hay cuentas pendientes</td>
+              </tr>
+            ) : data.clients?.map((client, idx) => (
+              <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                <td className="px-8 py-6">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-black text-gray-800 italic">{client._id}</span>
+                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Cliente de Cartera</span>
+                  </div>
+                </td>
+                <td className="text-right text-xs font-bold text-gray-500 italic">{format(new Date(client.lastSale), 'dd/MM/yyyy')}</td>
+                <td className="text-right font-bold text-gray-700">${formatNum(client.totalPurchased)}</td>
+                <td className="text-right font-bold text-brand-green">${formatNum(client.totalPaid)}</td>
+                <td className="px-8 text-right">
+                  <span className="inline-block px-4 py-2 bg-red-50 text-brand-red rounded-2xl font-black italic text-lg shadow-sm">
+                    ${formatNum(client.balanceDue)}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+);
+
+const NewOrderModal = ({ isOpen, onClose, formData, setFormData, onSearch, searchResults, onSave, isSubmitting }) => {
+  const [step, setStep] = useState(1);
+  const [query, setQuery] = useState("");
+
+  const addItem = (product) => {
+    const exists = formData.items.find(i => i.productId === product._id);
+    if (exists) {
+        setFormData({
+            ...formData,
+            items: formData.items.map(i => i.productId === product._id ? {...i, quantity: i.quantity + 1} : i)
+        });
+    } else {
+        setFormData({
+            ...formData,
+            items: [...formData.items, {
+                productId: product._id,
+                name: product.name,
+                price: product.price,
+                purchasePrice: product.purchasePrice || 0,
+                quantity: 1,
+                category: product.category
+            }]
+        });
+    }
+  };
+
+  const removeItem = (id) => {
+    setFormData({
+        ...formData,
+        items: formData.items.filter(i => i.productId !== id)
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+        <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+          <div>
+            <h3 className="text-3xl font-black uppercase italic tracking-tighter text-gray-800 leading-none">Registrar Venta</h3>
+            <p className="text-[10px] font-black text-brand-red uppercase tracking-[0.2em] mt-2">Paso {step} de 2</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors text-gray-400">
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-8 thin-scrollbar">
+          {step === 1 ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Nombre Cliente</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: Juan Pérez"
+                    className="w-full bg-gray-100 border-none rounded-2xl py-4 px-6 text-sm font-bold focus:ring-2 focus:ring-brand-red/20 transition-all"
+                    value={formData.customerName}
+                    onChange={(e) => setFormData({...formData, customerName: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Teléfono / WhatsApp</label>
+                  <input 
+                    type="text" 
+                    placeholder="312..."
+                    className="w-full bg-gray-100 border-none rounded-2xl py-4 px-6 text-sm font-bold focus:ring-2 focus:ring-brand-red/20 transition-all"
+                    value={formData.customerPhone}
+                    onChange={(e) => setFormData({...formData, customerPhone: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Buscar Productos</label>
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <input 
+                    type="text" 
+                    placeholder="Escribe el nombre del producto..."
+                    className="w-full bg-gray-100 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-brand-red/20 transition-all"
+                    value={query}
+                    onChange={(e) => { setQuery(e.target.value); onSearch(e.target.value); }}
+                  />
+                </div>
+                {searchResults.length > 0 && (
+                  <div className="mt-2 bg-gray-50 rounded-2xl border border-gray-100 max-h-48 overflow-y-auto divide-y divide-gray-100">
+                    {searchResults.map(p => (
+                      <button 
+                        key={p._id} 
+                        onClick={() => addItem(p)}
+                        className="w-full p-4 flex items-center justify-between hover:bg-white transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <img src={p.images[0]} className="w-8 h-8 rounded shadow-sm object-cover" alt="" />
+                          <div className="text-left">
+                            <p className="text-xs font-black text-gray-800 uppercase italic">{p.name}</p>
+                            <p className="text-[9px] font-bold text-gray-400 uppercase">{p.category}</p>
+                          </div>
+                        </div>
+                        <span className="text-xs font-black text-brand-red italic">${p.price.toLocaleString()}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Productos Seleccionados</label>
+                <div className="space-y-2">
+                  {formData.items.map(item => (
+                    <div key={item.productId} className="bg-gray-50 p-4 rounded-2xl flex items-center justify-between border border-gray-100 animate-in slide-in-from-left-4 duration-300">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white w-8 h-8 rounded-lg flex items-center justify-center font-black text-brand-red shadow-sm">{item.quantity}</div>
+                        <span className="text-xs font-black uppercase text-gray-700 italic">{item.name}</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs font-black text-gray-800 italic">${(item.price * item.quantity).toLocaleString()}</span>
+                        <button onClick={() => removeItem(item.productId)} className="text-gray-300 hover:text-brand-red transition-colors">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {formData.items.length === 0 && <p className="text-center py-6 text-[10px] font-black uppercase text-gray-300 italic">No has añadido productos</p>}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-8">
+               <div className="bg-brand-red/5 p-6 rounded-[2rem] border border-brand-red/10 border-dashed">
+                <p className="text-center text-[10px] font-black uppercase text-brand-red tracking-[0.2em] mb-4">Resumen de Totales</p>
+                <div className="flex justify-between items-center mb-2 px-4">
+                  <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Total Bruto</span>
+                  <span className="text-xl font-black text-gray-800 italic">${formData.items.reduce((acc, i) => acc + (i.price * i.quantity), 0).toLocaleString()}</span>
+                </div>
+                <div className="h-px bg-brand-red/10 my-4"></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase text-gray-400 tracking-widest px-2">Abono Inicial</label>
+                    <input 
+                      type="number" 
+                      className="w-full bg-white border-none rounded-2xl py-4 px-6 text-lg font-black italic text-brand-green focus:ring-2 focus:ring-brand-green/20 transition-all shadow-md"
+                      value={formData.initialPayment || ""}
+                      onChange={(e) => setFormData({...formData, initialPayment: Number(e.target.value)})}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-end">
+                      <span className="text-[9px] font-black uppercase text-gray-400 tracking-widest mb-1">Saldo Restante</span>
+                      <span className="text-xl font-black text-brand-red italic">
+                        ${(formData.items.reduce((acc, i) => acc + (i.price * i.quantity), 0) - (formData.initialPayment || 0)).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 bg-gray-50 p-6 rounded-[2rem] border border-gray-100">
+                <input 
+                  type="checkbox" 
+                  id="sep" 
+                  className="w-6 h-6 rounded-lg border-2 border-gray-200 text-brand-red focus:ring-brand-red"
+                  checked={formData.isPlanSepare}
+                  onChange={(e) => setFormData({...formData, isPlanSepare: e.target.checked})}
+                />
+                <label htmlFor="sep" className="flex-1 flex flex-col cursor-pointer">
+                  <span className="text-xs font-black uppercase text-gray-800 italic">Habilitar Plan Separe</span>
+                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest italic">Permitir abonos parciales y seguimiento de deuda</span>
+                </label>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Notas / Comentarios</label>
+                <textarea 
+                  className="w-full bg-gray-100 border-none rounded-3xl py-4 px-6 text-sm font-bold focus:ring-2 focus:ring-brand-red/20 transition-all min-h-[100px]"
+                  placeholder="Detalles adicionales sobre la entrega o el pago..."
+                  value={formData.note}
+                  onChange={(e) => setFormData({...formData, note: e.target.value})}
+                ></textarea>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-8 border-t border-gray-50 flex gap-4 bg-gray-50/20">
+          {step === 2 && (
+            <button 
+              onClick={() => setStep(1)}
+              className="px-8 py-4 rounded-2xl font-black uppercase italic tracking-tighter text-gray-400 hover:bg-gray-100 transition-colors"
+            >
+              Volver
+            </button>
+          )}
+          <button 
+            disabled={isSubmitting || formData.items.length === 0}
+            onClick={() => {
+              if (step === 1) setStep(2);
+              else onSave();
+            }}
+            className="flex-1 bg-brand-red text-white py-5 rounded-[1.5rem] font-black uppercase italic tracking-tighter text-lg shadow-xl shadow-red-200 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-3"
+          >
+            {isSubmitting ? <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div> : (step === 1 ? 'Continuar a Totales' : 'Confirmar Venta')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PaymentModal = ({ isOpen, onClose, order, onAdd, isSubmitting, formatNum }) => {
+  const [data, setData] = useState({ amount: "", method: "Efectivo", note: "" });
+
+  return (
+    <div className="fixed inset-0 z-[110] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+          <div>
+            <h3 className="text-2xl font-black uppercase italic tracking-tighter text-gray-800">Registrar Abono</h3>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Cliente: {order.customerName}</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors text-gray-400">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="p-8 space-y-6">
+          <div className="bg-brand-red/5 p-4 rounded-2xl flex justify-between items-center border border-brand-red/10">
+            <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Saldo Pendiente</span>
+            <span className="text-xl font-black text-brand-red italic">${formatNum(order.balance)}</span>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Valor del Abono</label>
+              <div className="relative">
+                <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-brand-green text-xl">$</span>
+                <input 
+                  type="number" 
+                  className="w-full bg-gray-100 border-none rounded-3xl py-5 pl-12 pr-6 text-xl font-black italic text-brand-green focus:ring-2 focus:ring-brand-green/20 transition-all shadow-inner"
+                  placeholder="0.00"
+                  value={data.amount}
+                  onChange={(e) => setData({...data, amount: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Método de Pago</label>
+              <select 
+                className="w-full bg-gray-100 border-none rounded-2xl py-4 px-6 text-xs font-black uppercase italic focus:ring-2 focus:ring-brand-red/20 transition-all appearance-none cursor-pointer"
+                value={data.method}
+                onChange={(e) => setData({...data, method: e.target.value})}
+              >
+                <option value="Efectivo">💵 Efectivo</option>
+                <option value="Transferencia">📱 Transferencia</option>
+                <option value="Depósito">🏦 Depósito</option>
+                <option value="Otro">💳 Otro</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Nota (opcional)</label>
+              <input 
+                type="text" 
+                placeholder="Ej: Pago quincena"
+                className="w-full bg-gray-100 border-none rounded-2xl py-4 px-6 text-sm font-bold focus:ring-2 focus:ring-brand-red/20 transition-all"
+                value={data.note}
+                onChange={(e) => setData({...data, note: e.target.value})}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="p-8 bg-gray-50/50">
+          <button 
+            disabled={isSubmitting || !data.amount || Number(data.amount) <= 0}
+            onClick={() => onAdd(order._id, data)}
+            className="w-full bg-brand-green text-white py-5 rounded-[1.5rem] font-black uppercase italic tracking-tighter text-lg shadow-xl shadow-green-100 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-3"
+          >
+            {isSubmitting ? <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div> : 'Confirmar Abono'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default ReportesPage;

@@ -121,12 +121,13 @@ const AppContent = () => {
       <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4 overflow-hidden animate-in fade-in duration-300">
         <div className="bg-white w-full h-full sm:h-auto sm:max-w-4xl sm:rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row relative flex-1 sm:max-h-[90vh]">
           
-          {/* CLOSE BUTTON */}
+          {/* CLOSE BUTTON (ENHANCED VISIBILITY) */}
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 z-[110] bg-white/20 hover:bg-white text-white hover:text-brand-red p-2 rounded-full backdrop-blur-md transition-all sm:text-gray-400 sm:hover:bg-gray-100"
+            className="group absolute top-4 right-4 z-[110] bg-white text-brand-red p-2.5 rounded-full shadow-2xl transition-all hover:scale-110 active:scale-95 border-2 border-brand-red/10"
+            title="Cerrar"
           >
-            <X size={24} />
+            <X size={28} strokeWidth={3} />
           </button>
 
           {/* GALLERY AREA */}
