@@ -234,14 +234,13 @@ const AppContent = () => {
 
             {/* CONTACT BUTTON (WHATSAPP) */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* SHARE BUTTON (ENHANCED) */}
+            {/* SHARE BUTTON (ICON ONLY FOR CLEANER LOOK) */}
             <button 
               onClick={handleShareApp}
-              className="flex items-center gap-1.5 bg-brand-yellow border-2 border-white/40 rounded-full px-3.5 py-2 hover:bg-yellow-400 transition-all cursor-pointer shadow-lg active:scale-95"
+              className="group flex items-center justify-center bg-brand-yellow border border-white/40 rounded-full w-9 h-9 hover:bg-yellow-400 transition-all cursor-pointer shadow-lg active:scale-95"
               title="Compartir App"
             >
-              <Share2 size={16} className="text-brand-red animate-pulse" />
-              <span className="text-[10px] sm:text-xs font-black uppercase text-brand-red">Compartir</span>
+              <Share2 size={16} className="text-brand-red animate-pulse group-hover:scale-110 transition-transform" />
             </button>
 
             {/* CONTACT BUTTON (WHATSAPP) */}
@@ -313,25 +312,7 @@ const AppContent = () => {
 
       {/* SEARCH BAR SECTION REMOVED (NOW IN HEADER) */}
       
-      {/* SLIM 3-STEP GUIDE (COMPACT RURAL UX) */}
-      <section className="bg-white border-b border-gray-100 px-4 py-2 sticky z-30 top-[4.5rem]">
-        <div className="container mx-auto flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center text-[10px] font-black text-gray-400">1</span>
-            <span className="text-[10px] font-black uppercase italic tracking-tighter text-gray-800">🔎 Busca</span>
-          </div>
-          <div className="h-4 w-[1px] bg-gray-200"></div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="w-5 h-5 bg-brand-yellow/30 rounded-full flex items-center justify-center text-[10px] font-black text-brand-red">2</span>
-            <span className="text-[10px] font-black uppercase italic tracking-tighter text-gray-800">📱 Toca Verde</span>
-          </div>
-          <div className="h-4 w-[1px] bg-gray-200"></div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="w-5 h-5 bg-brand-green/20 rounded-full flex items-center justify-center text-[10px] font-black text-brand-green">3</span>
-            <span className="text-[10px] font-black uppercase italic tracking-tighter text-gray-800">✅ ¡Hablamos!</span>
-          </div>
-        </div>
-      </section>
+      {/* SEARCH BAR SECTION REMOVED (NOW IN HEADER) */}
       
 
 
@@ -643,27 +624,7 @@ const AppContent = () => {
         </a>
       </section>
 
-       {/* FLOATING HELP BUTTON (RURAL UX) */}
-       <div className="fixed bottom-6 right-6 z-[100]">
-        <button 
-          onClick={() => {
-            recordLead(null, 'FloatingHelp');
-            window.open("https://wa.me/573114018724?text=¡Hola!%20No%20entiendo%20bien%20cómo%20usar%20la%20página,%20¿me%20ayudan?", "_blank");
-          }}
-          className="bg-brand-green text-white rounded-full p-4 shadow-2xl flex items-center gap-3 hover:scale-110 transition-all group overflow-hidden border-4 border-white/50"
-        >
-          <div className="relative">
-            <MessageCircle size={28} fill="white" className="animate-bounce" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-brand-yellow rounded-full animate-ping"></span>
-          </div>
-          <div className="flex flex-col items-start pr-2">
-            <span className="text-[10px] font-black uppercase leading-none italic opacity-80">¿Te Ayudamos?</span>
-            <span className="text-sm font-black uppercase leading-none mt-1">Chat de Soporte</span>
-          </div>
-        </button>
-       </div>
-
-      {/* FOOTER */}
+       {/* FOOTER */}
       <footer className="mt-auto bg-white border-t border-gray-100 py-8 px-4">
         <p className="text-gray-400 text-xs font-bold italic tracking-wider mb-6 text-center uppercase">Compra fácil y seguro en tu pueblo</p>
         <div className="flex justify-center gap-12 mb-8">
