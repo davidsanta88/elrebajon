@@ -313,41 +313,22 @@ const AppContent = () => {
 
       {/* SEARCH BAR SECTION REMOVED (NOW IN HEADER) */}
       
-      {/* 3-STEP RURAL GUIDE */}
-      <section className="px-4 pt-8 pb-4 bg-gray-50">
-        <div className="container mx-auto">
-          <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-gray-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-red/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-            
-            <h3 className="text-center font-black text-brand-red uppercase italic tracking-tighter text-lg mb-6 flex items-center justify-center gap-2">
-              <Flame size={20} className="text-brand-red" />
-              ¡Sigue estos 3 pasos fáciles!
-              <Flame size={20} className="text-brand-red" />
-            </h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 relative z-10">
-              <div className="flex flex-col items-center text-center gap-3">
-                <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center font-black text-2xl text-gray-800 shadow-inner">1</div>
-                <div>
-                  <p className="font-black text-sm uppercase italic tracking-tight">🔎 Busca lo que te guste</p>
-                  <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase">Mira nuestras ofertas de hoy</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center text-center gap-3">
-                <div className="w-12 h-12 bg-brand-yellow/30 rounded-2xl flex items-center justify-center font-black text-2xl text-brand-red shadow-inner">2</div>
-                <div>
-                  <p className="font-black text-sm uppercase italic tracking-tight">📱 Toca el botón verde</p>
-                  <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase">Sin complicarte con registros</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center text-center gap-3">
-                <div className="w-12 h-12 bg-brand-green/20 rounded-2xl flex items-center justify-center font-black text-2xl text-brand-green shadow-inner">3</div>
-                <div>
-                  <p className="font-black text-sm uppercase italic tracking-tight">✅ ¡Hablemos por WhatsApp!</p>
-                  <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase">Te atendemos personalmente</p>
-                </div>
-              </div>
-            </div>
+      {/* SLIM 3-STEP GUIDE (COMPACT RURAL UX) */}
+      <section className="bg-white border-b border-gray-100 px-4 py-2 sticky z-30 top-[4.5rem]">
+        <div className="container mx-auto flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center text-[10px] font-black text-gray-400">1</span>
+            <span className="text-[10px] font-black uppercase italic tracking-tighter text-gray-800">🔎 Busca</span>
+          </div>
+          <div className="h-4 w-[1px] bg-gray-200"></div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="w-5 h-5 bg-brand-yellow/30 rounded-full flex items-center justify-center text-[10px] font-black text-brand-red">2</span>
+            <span className="text-[10px] font-black uppercase italic tracking-tighter text-gray-800">📱 Toca Verde</span>
+          </div>
+          <div className="h-4 w-[1px] bg-gray-200"></div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="w-5 h-5 bg-brand-green/20 rounded-full flex items-center justify-center text-[10px] font-black text-brand-green">3</span>
+            <span className="text-[10px] font-black uppercase italic tracking-tighter text-gray-800">✅ ¡Hablamos!</span>
           </div>
         </div>
       </section>
