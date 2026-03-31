@@ -237,38 +237,43 @@ const AppContent = () => {
         </div>
       </div>
 
-      {/* CATEGORY STRIP — horizontal scroll with filter */}
-      <section className="bg-brand-red border-t border-white/10 shadow-lg">
-        <div className="flex gap-3 px-4 py-2.5 overflow-x-auto category-strip">
-          {/* TODOS button */}
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all active:scale-95 shrink-0 font-black text-[11px] uppercase tracking-widest ${
-              selectedCategory === null
-                ? 'bg-brand-yellow text-gray-900 border-brand-yellow shadow-lg scale-105'
-                : 'bg-white/10 hover:bg-white/20 text-white border-white/10'
-            }`}
-          >
-            ★ Todos
-          </button>
+      {/* CATEGORY STRIP — infinite slow marquee with hover pause */}
+      <section className="bg-brand-red border-t border-white/10 shadow-lg overflow-hidden relative">
+        <div className="flex px-4 py-2.5 category-strip animate-marquee-slow hover:pause-marquee whitespace-nowrap">
+          {/* Loop many times to ensure a seamless infinite effect */}
+          {[...Array(6)].map((_, loopIndex) => (
+            <div key={loopIndex} className="flex gap-3 px-3">
+              {/* TODOS button */}
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all active:scale-95 shrink-0 font-black text-[11px] uppercase tracking-widest ${
+                  selectedCategory === null
+                    ? 'bg-brand-yellow text-gray-900 border-brand-yellow shadow-lg scale-105'
+                    : 'bg-white/10 hover:bg-white/20 text-white border-white/10'
+                }`}
+              >
+                ★ Todos
+              </button>
 
-          {categories.map((cat) => (
-            <button
-              key={cat._id}
-              onClick={() => setSelectedCategory(cat.name === selectedCategory ? null : cat.name)}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all active:scale-95 shrink-0 ${
-                selectedCategory === cat.name
-                  ? 'bg-brand-yellow text-gray-900 border-brand-yellow shadow-lg scale-105'
-                  : 'bg-white/10 hover:bg-white/20 text-white border-white/10'
-              }`}
-            >
-              <div className="w-6 h-6 rounded-full overflow-hidden border border-brand-yellow/50 bg-gray-800">
-                <img src={cat.image || `https://placehold.co/100x100?text=${cat.name[0]}`} alt={cat.name} className="w-full h-full object-cover" />
-              </div>
-              <span className="text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
-                {cat.name}
-              </span>
-            </button>
+              {categories.map((cat) => (
+                <button
+                  key={`${loopIndex}-${cat._id}`}
+                  onClick={() => setSelectedCategory(cat.name === selectedCategory ? null : cat.name)}
+                  className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all active:scale-95 shrink-0 ${
+                    selectedCategory === cat.name
+                      ? 'bg-brand-yellow text-gray-900 border-brand-yellow shadow-lg scale-105'
+                      : 'bg-white/10 hover:bg-white/20 text-white border-white/10'
+                  }`}
+                >
+                  <div className="w-6 h-6 rounded-full overflow-hidden border border-brand-yellow/50 bg-gray-800 shrink-0">
+                    <img src={cat.image || `https://placehold.co/100x100?text=${cat.name[0]}`} alt={cat.name} className="w-full h-full object-cover" />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
+                    {cat.name}
+                  </span>
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       </section>
@@ -618,14 +623,19 @@ const AppContent = () => {
         .category-strip::-webkit-scrollbar { display: none; }
         .category-strip { -ms-overflow-style: none; scrollbar-width: none; }
 
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
         .animate-marquee {
           display: inline-block;
-          animation: marquee 30s linear infinite;
+          animation: marquee 80s linear infinite;
           white-space: nowrap;
+        }
+        .animate-marquee-slow {
+          display: flex;
+          animation: marquee 120s linear infinite;
+          white-space: nowrap;
+          width: max-content;
+        }
+        .pause-marquee:hover {
+          animation-play-state: paused;
         }
       `}} />
 
