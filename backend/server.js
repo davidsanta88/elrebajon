@@ -10,6 +10,7 @@ const Category = require('./models/Category');
 const Brand = require('./models/Brand');
 const Provider = require('./models/Provider');
 const Order = require('./models/Order');
+const Lead = require('./models/Lead');
 const { authMiddleware, adminMiddleware } = require('./middleware/authMiddleware');
 const { upload } = require('./config/cloudinary.js');
 
@@ -38,6 +39,7 @@ app.post('/api/auth/login', async (req, res) => {
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.json({ token, user: { email: user.email, role: user.role } });
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -48,6 +50,7 @@ app.get('/api/categories', async (req, res) => {
     const categories = await Category.find({ status: { $ne: 'Inactivo' } }).sort({ name: 1 });
     res.json(categories);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -58,6 +61,7 @@ app.get('/api/admin/categories', authMiddleware, adminMiddleware, async (req, re
     const categories = await Category.find().sort({ name: 1 });
     res.json(categories);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -75,6 +79,7 @@ app.post('/api/admin/categories', authMiddleware, adminMiddleware, upload.single
     await category.save();
     res.json(category);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -86,9 +91,10 @@ app.put('/api/admin/categories/:id', authMiddleware, adminMiddleware, upload.sin
     if (req.file) {
       updateData.image = req.file.path;
     }
-    const category = await Category.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    const category = await Category.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
     res.json(category);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -98,6 +104,7 @@ app.delete('/api/admin/categories/:id', authMiddleware, adminMiddleware, async (
     await Category.findByIdAndDelete(req.params.id);
     res.json({ message: 'Category deleted' });
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -108,6 +115,7 @@ app.get('/api/brands', async (req, res) => {
     const brands = await Brand.find({ status: { $ne: 'Inactivo' } }).sort({ name: 1 });
     res.json(brands);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -117,6 +125,7 @@ app.get('/api/admin/brands', authMiddleware, adminMiddleware, async (req, res) =
     const brands = await Brand.find().sort({ category: 1, name: 1 });
     res.json(brands);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -127,6 +136,7 @@ app.post('/api/admin/brands', authMiddleware, adminMiddleware, async (req, res) 
     await brand.save();
     res.json(brand);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -136,6 +146,7 @@ app.put('/api/admin/brands/:id', authMiddleware, adminMiddleware, async (req, re
     const brand = await Brand.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(brand);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -145,6 +156,7 @@ app.delete('/api/admin/brands/:id', authMiddleware, adminMiddleware, async (req,
     await Brand.findByIdAndDelete(req.params.id);
     res.json({ message: 'Brand deleted' });
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -155,6 +167,7 @@ app.get('/api/providers', async (req, res) => {
     const providers = await Provider.find().sort({ name: 1 });
     res.json(providers);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -165,6 +178,7 @@ app.post('/api/admin/providers', authMiddleware, adminMiddleware, async (req, re
     await provider.save();
     res.json(provider);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -174,6 +188,7 @@ app.put('/api/admin/providers/:id', authMiddleware, adminMiddleware, async (req,
     const provider = await Provider.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(provider);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -183,6 +198,7 @@ app.delete('/api/admin/providers/:id', authMiddleware, adminMiddleware, async (r
     await Provider.findByIdAndDelete(req.params.id);
     res.json({ message: 'Provider deleted' });
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -193,6 +209,7 @@ app.get('/api/admin/products', authMiddleware, adminMiddleware, async (req, res)
     const products = await Product.find().sort({ createdAt: -1 });
     res.json(products);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -210,6 +227,7 @@ app.post('/api/admin/products', authMiddleware, adminMiddleware, upload.array('i
     await product.save();
     res.json(product);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -241,9 +259,10 @@ app.put('/api/admin/products/:id', authMiddleware, adminMiddleware, upload.array
       updateData.profitMargin = Number(req.body.price) - Number(req.body.purchasePrice);
     }
 
-    const product = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    const product = await Product.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
     res.json(product);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -253,6 +272,7 @@ app.delete('/api/admin/products/:id', authMiddleware, adminMiddleware, async (re
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: 'Product deleted' });
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -260,10 +280,17 @@ app.delete('/api/admin/products/:id', authMiddleware, adminMiddleware, async (re
 // STATS & REPORTS
 app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { start, end } = req.query;
+    const { start, end, range } = req.query;
     const dateQuery = {};
+
     if (start && end) {
       dateQuery.createdAt = { $gte: new Date(start), $lte: new Date(end) };
+    } else if (range) {
+      const now = new Date();
+      const days = parseInt(range) || 30;
+      const from = new Date();
+      from.setDate(now.getDate() - days);
+      dateQuery.createdAt = { $gte: from, $lte: now };
     }
 
     // 1. Basic Metrics
@@ -271,8 +298,9 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
       { $match: dateQuery },
       { $group: {
         _id: null,
-        totalRevenue: { $sum: "$totalRevenue" },
-        totalProfit: { $sum: "$totalProfit" },
+        totalRevenue: { $sum: { $ifNull: ["$totalRevenue", 0] } },
+        totalProfit: { $sum: { $ifNull: ["$totalProfit", 0] } },
+        totalCost: { $sum: { $ifNull: ["$totalCost", 0] } },
         count: { $sum: 1 }
       }}
     ]);
@@ -281,9 +309,10 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
     const dailyTrend = await Order.aggregate([
       { $match: dateQuery },
       { $group: {
-        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-        revenue: { $sum: "$totalRevenue" },
-        profit: { $sum: "$totalProfit" }
+        _id: { $dateToString: { format: "%Y-%m-%d", date: { $ifNull: ["$createdAt", new Date()] } } },
+        revenue: { $sum: { $ifNull: ["$totalRevenue", 0] } },
+        profit: { $sum: { $ifNull: ["$totalProfit", 0] } },
+        orders: { $sum: 1 }
       }},
       { $sort: { "_id": 1 } }
     ]);
@@ -293,9 +322,11 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
       { $match: dateQuery },
       { $unwind: "$items" },
       { $group: {
-        _id: "$items.category",
-        value: { $sum: "$items.price" }
-      }}
+        _id: { $ifNull: ["$items.category", "Sin Categoría"] },
+        value: { $sum: { $multiply: [{ $ifNull: ["$items.price", 0] }, { $ifNull: ["$items.quantity", 0] }] } },
+        units: { $sum: { $ifNull: ["$items.quantity", 0] } }
+      }},
+      { $sort: { value: -1 } }
     ]);
 
     // 4. Top Products
@@ -303,21 +334,220 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
       { $match: dateQuery },
       { $unwind: "$items" },
       { $group: {
-        _id: "$items.name",
-        sales: { $sum: "$items.quantity" },
-        revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } }
+        _id: { $ifNull: ["$items.name", "Producto Desconocido"] },
+        sales: { $sum: { $ifNull: ["$items.quantity", 0] } },
+        revenue: { $sum: { $multiply: [{ $ifNull: ["$items.price", 0] }, { $ifNull: ["$items.quantity", 0] }] } },
+        profit: { $sum: { $multiply: [
+          { $subtract: [{ $ifNull: ["$items.price", 0] }, { $ifNull: ["$items.purchasePrice", 0] }] }, 
+          { $ifNull: ["$items.quantity", 0] }
+        ]} }
       }},
       { $sort: { revenue: -1 } },
+      { $limit: 10 }
+    ]);
+
+    // 5. Provider Stats (NEW)
+    const providerStats = await Order.aggregate([
+      { $match: dateQuery },
+      { $unwind: "$items" },
+      { $lookup: {
+        from: "products",
+        localField: "items.productId",
+        foreignField: "_id",
+        as: "productInfo"
+      }},
+      { $unwind: { path: "$productInfo", preserveNullAndEmptyArrays: true } },
+      { $group: {
+        _id: { $ifNull: ["$productInfo.provider", "Varios"] },
+        revenue: { $sum: { $multiply: [{ $ifNull: ["$items.price", 0] }, { $ifNull: ["$items.quantity", 0] }] } },
+        units: { $sum: { $ifNull: ["$items.quantity", 0] } }
+      }},
+      { $sort: { revenue: -1 } },
+      { $limit: 8 }
+    ]);
+
+    // 6. Lead Stats (NEW)
+    const totalLeads = await Lead.countDocuments(dateQuery);
+    const leadsByProduct = await Lead.aggregate([
+      { $match: dateQuery },
+      { $group: {
+        _id: "$productName",
+        count: { $sum: 1 },
+        mainImage: { $first: "$mainImage" }
+      }},
+      { $sort: { count: -1 } },
       { $limit: 5 }
     ]);
 
     res.json({
-      metrics: basicMetrics[0] || { totalRevenue: 0, totalProfit: 0, count: 0 },
+      metrics: {
+        ...(basicMetrics[0] || { totalRevenue: 0, totalProfit: 0, totalCost: 0, count: 0 }),
+        totalLeads
+      },
       dailyTrend,
       categoryStats,
-      topProducts
+      topProducts,
+      providerStats,
+      leadsByProduct
     });
   } catch (err) {
+    console.error("CRITICAL STATS ERROR:", err);
+    res.status(500).json({ message: "Error interno procesando estadísticas: " + err.message });
+  }
+});
+
+// INVENTORY REPORT
+app.get('/api/admin/reports/inventory', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const products = await Product.find().sort({ stock: 1 });
+
+    // KPI Summary
+    let capitalInvertido = 0;
+    let valorPotencial = 0;
+    let gananciaPotencial = 0;
+    let lowStockCount = 0;
+    let outOfStockCount = 0;
+
+    const categoryMap = {};
+    const providerMap = {};
+
+    products.forEach(p => {
+      capitalInvertido += (p.purchasePrice || 0) * (p.stock || 0);
+      valorPotencial += (p.price || 0) * (p.stock || 0);
+      gananciaPotencial += ((p.price || 0) - (p.purchasePrice || 0)) * (p.stock || 0);
+      if (p.stock === 0) outOfStockCount++;
+      else if (p.stock <= p.stockMin) lowStockCount++;
+
+      // Category distribution
+      if (!categoryMap[p.category]) categoryMap[p.category] = { name: p.category, stock: 0, value: 0, products: 0 };
+      categoryMap[p.category].stock += p.stock;
+      categoryMap[p.category].value += (p.price || 0) * (p.stock || 0);
+      categoryMap[p.category].products += 1;
+
+      // Provider distribution
+      const provKey = p.provider || 'Sin Proveedor';
+      if (!providerMap[provKey]) providerMap[provKey] = { name: provKey, stock: 0, value: 0, products: 0 };
+      providerMap[provKey].stock += p.stock;
+      providerMap[provKey].value += (p.price || 0) * (p.stock || 0);
+      providerMap[provKey].products += 1;
+    });
+
+    // Top by margin %
+    const topMargin = products
+      .filter(p => p.purchasePrice > 0)
+      .map(p => ({
+        name: p.name,
+        category: p.category,
+        margin: p.price - p.purchasePrice,
+        marginPct: Number((((p.price - p.purchasePrice) / p.purchasePrice) * 100).toFixed(1)),
+        stock: p.stock,
+        price: p.price,
+        purchasePrice: p.purchasePrice
+      }))
+      .sort((a, b) => b.marginPct - a.marginPct)
+      .slice(0, 10);
+
+    res.json({
+      summary: {
+        totalProducts: products.length,
+        capitalInvertido,
+        valorPotencial,
+        gananciaPotencial,
+        lowStockCount,
+        outOfStockCount
+      },
+      products: products.map(p => ({
+        _id: p._id,
+        name: p.name,
+        category: p.category,
+        provider: p.provider,
+        brand: p.brand,
+        stock: p.stock,
+        stockMin: p.stockMin,
+        purchasePrice: p.purchasePrice,
+        price: p.price,
+        margin: p.price - p.purchasePrice,
+        marginPct: p.purchasePrice > 0 ? Number((((p.price - p.purchasePrice) / p.purchasePrice) * 100).toFixed(1)) : 0,
+        capitalItem: (p.purchasePrice || 0) * (p.stock || 0),
+        status: p.status,
+        mainImage: p.mainImage
+      })),
+      categoryDistribution: Object.values(categoryMap).sort((a, b) => b.value - a.value),
+      providerDistribution: Object.values(providerMap).sort((a, b) => b.value - a.value),
+      topMargin
+    });
+  } catch (err) {
+    console.error("STATS ERROR:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// PROFITABILITY REPORT
+app.get('/api/admin/reports/profitability', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const products = await Product.find({ purchasePrice: { $gt: 0 } });
+
+    const profitability = products.map(p => {
+      const margin = p.price - p.purchasePrice;
+      const marginPct = ((margin / p.purchasePrice) * 100);
+      let tier = 'low';
+      if (marginPct >= 30) tier = 'high';
+      else if (marginPct >= 10) tier = 'mid';
+
+      return {
+        _id: p._id,
+        name: p.name,
+        category: p.category,
+        provider: p.provider,
+        purchasePrice: p.purchasePrice,
+        price: p.price,
+        margin: Number(margin.toFixed(0)),
+        marginPct: Number(marginPct.toFixed(1)),
+        stock: p.stock,
+        capitalItem: p.purchasePrice * p.stock,
+        potentialProfit: margin * p.stock,
+        tier,
+        mainImage: p.mainImage
+      };
+    }).sort((a, b) => b.marginPct - a.marginPct);
+
+    const avgMarginPct = profitability.length > 0
+      ? Number((profitability.reduce((s, p) => s + p.marginPct, 0) / profitability.length).toFixed(1))
+      : 0;
+
+    const tierCounts = {
+      high: profitability.filter(p => p.tier === 'high').length,
+      mid: profitability.filter(p => p.tier === 'mid').length,
+      low: profitability.filter(p => p.tier === 'low').length,
+    };
+
+    res.json({ profitability, avgMarginPct, tierCounts, total: profitability.length });
+  } catch (err) {
+    console.error("STATS ERROR:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// LEADS INTERACTION (PUBLIC)
+app.post('/api/leads', async (req, res) => {
+  try {
+    const { productId, productName, price, category, mainImage, referrer } = req.body;
+    const lead = new Lead({ productId, productName, price, category, mainImage, referrer });
+    await lead.save();
+    res.status(201).json(lead);
+  } catch (err) {
+    console.error("LEAD ERROR:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// LEADS REPORT (ADMIN)
+app.get('/api/admin/reports/leads', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const leads = await Lead.find().sort({ createdAt: -1 }).limit(100);
+    res.json(leads);
+  } catch (err) {
+    console.error("PROFITABILITY ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -364,6 +594,7 @@ app.get('/api/admin/seed-orders', authMiddleware, adminMiddleware, async (req, r
     await Order.insertMany(mockOrders);
     res.json({ message: `${mockOrders.length} ventas simuladas creadas` });
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -374,6 +605,7 @@ app.get('/api/products', async (req, res) => {
     const products = await Product.find().sort({ createdAt: -1 });
     res.json(products);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -394,6 +626,7 @@ app.get('/api/offers', async (req, res) => {
     }).sort({ updatedAt: -1 });
     res.json(offers);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -409,10 +642,11 @@ app.put('/api/admin/products/:id/offer', authMiddleware, adminMiddleware, async 
       offerStartDate: isOffer && offerStartDate ? new Date(offerStartDate) : null,
       offerEndDate: isOffer && offerEndDate ? new Date(offerEndDate) : null,
     };
-    const product = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    const product = await Product.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
     if (!product) return res.status(404).json({ message: 'Producto no encontrado' });
     res.json(product);
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -459,6 +693,7 @@ app.get('/api/seed', async (req, res) => {
     const created = await Product.insertMany(sampleProducts);
     res.json({ message: 'Data seeded successfully', categories, products: created });
   } catch (err) {
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });

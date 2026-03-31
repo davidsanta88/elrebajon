@@ -12,7 +12,8 @@ import {
   ShieldCheck,
   Tag,
   Percent,
-  Clock
+  Clock,
+  DollarSign
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -29,6 +30,7 @@ const AppContent = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null); // null = todas
   const navigate = useNavigate();
 
   // Carousel slides removed for space optimization
@@ -70,8 +72,26 @@ const AppContent = () => {
       console.error('Error fetching offers:', err);
     }
   };
+  
+  const recordLead = async (product, referrer = 'Catalog') => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      await axios.post(`${API_URL}/api/leads`, {
+        productId: product?._id,
+        productName: product?.name || 'Consulta General',
+        price: product?.price || 0,
+        category: product?.category || 'General',
+        mainImage: product?.mainImage || '',
+        referrer
+      });
+    } catch (err) {
+      console.error('Error recording lead:', err);
+    }
+  };
 
-  const allProducts = products;
+  const filteredProducts = selectedCategory
+    ? products.filter(p => p.category === selectedCategory)
+    : products;
 
   const ProductDetailModal = ({ product, onClose }) => {
     if (!product) return null;
@@ -139,27 +159,28 @@ const AppContent = () => {
                     <p className="text-[10px] font-black text-gray-800 uppercase italic">Calidad 100%</p>
                   </div>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-2xl flex items-center gap-3 border border-gray-100">
-                  <Tag className="text-brand-red" size={20}/>
+                <div className="bg-brand-yellow/10 p-3 rounded-2xl flex items-center gap-3 border border-brand-yellow/30">
+                  <Percent className="text-brand-yellow" size={20}/>
                   <div>
-                    <p className="text-[8px] font-black text-gray-400 uppercase">Estado</p>
-                    <p className="text-[10px] font-black text-gray-800 uppercase italic">{product.condition}</p>
+                    <p className="text-[8px] font-black text-gray-400 uppercase">Financiación</p>
+                    <p className="text-[10px] font-black text-gray-800 uppercase italic">Plan Separe</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <a 
-              href={`https://wa.me/573114018724?text=${encodeURIComponent(
-                `¡Hola! Me interesa este producto:\n\n*${product.name}*\n💰 *Precio:* $${product.price.toLocaleString()}\n📝 *Descripción:* ${product.description || 'Sin descripción'}\n🖼️ *Referencia:* ${images[0]}`
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-brand-green text-white font-black text-xl py-4 sm:py-5 rounded-2xl sm:rounded-3xl shadow-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 shadow-green-200 mt-auto"
+            <button 
+              onClick={() => {
+                recordLead(product, 'Modal');
+                window.open(`https://wa.me/573114018724?text=${encodeURIComponent(
+                  `¡Hola! Me interesa este producto y preguntar por el *PLAN SEPARE*:\n\n*${product.name}*\n💰 *Precio:* $${product.price.toLocaleString()}\n📝 *Descripción:* ${product.description || 'Sin descripción'}\n\n*Foto del Producto:* ${images[0]}`
+                )}`, '_blank');
+              }}
+              className="bg-brand-green text-white font-black text-xl py-4 sm:py-5 rounded-2xl sm:rounded-3xl shadow-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 shadow-green-200 mt-auto w-full"
             >
               <MessageCircle size={28} fill="white" />
               COMPRAR POR WHATSAPP
-            </a>
+            </button>
           </div>
         </div>
 
@@ -192,41 +213,64 @@ const AppContent = () => {
           </div>
 
             {/* CONTACT BUTTON (WHATSAPP) */}
-            <a 
-              href="https://wa.me/573114018724" 
-              target="_blank" 
-              rel="noopener noreferrer"
+            <button 
+              onClick={() => {
+                recordLead(null, 'Header');
+                window.open("https://wa.me/573114018724", "_blank");
+              }}
               className="shrink-0 flex items-center gap-1 bg-brand-green border border-white/20 rounded-full px-3 py-1.5 hover:bg-green-600 transition-colors cursor-pointer shadow-lg"
             >
               <MessageCircle size={14} className="text-white" fill="white" />
               <span className="text-[10px] font-black uppercase inline">Chat</span>
-            </a>
+            </button>
         </div>
       </header>
-      {/* FULL WIDTH CATEGORY CAROUSEL — Swiper FreeMode infinite */}
-      <section className="bg-brand-red border-t border-white/10 shadow-lg overflow-hidden">
-        <Swiper
-          modules={[Autoplay, FreeMode]}
-          slidesPerView="auto"
-          loop={true}
-          speed={3000}
-          autoplay={{ delay: 0, disableOnInteraction: false, pauseOnMouseEnter: true }}
-          freeMode={{ enabled: true, momentum: false }}
-          className="category-marquee-swiper py-2.5"
-        >
-          {[...categories, ...categories].map((cat, idx) => (
-            <SwiperSlide key={`${cat._id}-${idx}`} style={{ width: 'auto' }} className="px-2">
-              <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-1.5 rounded-full border border-white/10 transition-all active:scale-95 group shrink-0">
-                <div className="w-6 h-6 rounded-full overflow-hidden border border-brand-yellow/50 bg-gray-800">
-                  <img src={cat.image || `https://placehold.co/100x100?text=${cat.name[0]}`} alt={cat.name} className="w-full h-full object-cover" />
-                </div>
-                <span className="text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
-                  {cat.name}
-                </span>
-              </button>
-            </SwiperSlide>
+      
+      {/* MARQUEE / MULTI-MESSAGE BANNER */}
+      <div className="bg-brand-yellow py-1.5 overflow-hidden whitespace-nowrap relative border-y border-black/5 shadow-inner">
+        <div className="inline-block animate-marquee whitespace-nowrap">
+          {[...Array(10)].map((_, i) => (
+            <span key={i} className="mx-4 text-[10px] font-black uppercase italic tracking-widest text-brand-red">
+              💥 ¡PREGUNTA POR EL <span className="underline decoration-brand-red/30">PLAN SEPARE</span>! 💳 | 🔍 ¿BUSCAS ALGO? ¡NOSOTROS LO CONSEGUIMOS! | 💰 ¡COMPRAMOS LO QUE YA NO USES! 🔥 |
+            </span>
           ))}
-        </Swiper>
+        </div>
+      </div>
+
+      {/* CATEGORY STRIP — horizontal scroll with filter */}
+      <section className="bg-brand-red border-t border-white/10 shadow-lg">
+        <div className="flex gap-3 px-4 py-2.5 overflow-x-auto category-strip">
+          {/* TODOS button */}
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all active:scale-95 shrink-0 font-black text-[11px] uppercase tracking-widest ${
+              selectedCategory === null
+                ? 'bg-brand-yellow text-gray-900 border-brand-yellow shadow-lg scale-105'
+                : 'bg-white/10 hover:bg-white/20 text-white border-white/10'
+            }`}
+          >
+            ★ Todos
+          </button>
+
+          {categories.map((cat) => (
+            <button
+              key={cat._id}
+              onClick={() => setSelectedCategory(cat.name === selectedCategory ? null : cat.name)}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all active:scale-95 shrink-0 ${
+                selectedCategory === cat.name
+                  ? 'bg-brand-yellow text-gray-900 border-brand-yellow shadow-lg scale-105'
+                  : 'bg-white/10 hover:bg-white/20 text-white border-white/10'
+              }`}
+            >
+              <div className="w-6 h-6 rounded-full overflow-hidden border border-brand-yellow/50 bg-gray-800">
+                <img src={cat.image || `https://placehold.co/100x100?text=${cat.name[0]}`} alt={cat.name} className="w-full h-full object-cover" />
+              </div>
+              <span className="text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
+                {cat.name}
+              </span>
+            </button>
+          ))}
+        </div>
       </section>
 
       {/* SEARCH BAR SECTION REMOVED (NOW IN HEADER) */}
@@ -363,18 +407,19 @@ const AppContent = () => {
                       )}
 
                       {/* CTA */}
-                      <a
-                        href={`https://wa.me/573114018724?text=${encodeURIComponent(
-                          `¡Hola! Vi esta OFERTA en El Rebajón:\n\n*${prod.name}*\n🔥 *Precio Oferta:* $${displayPrice.toLocaleString()}\n~~Antes: $${originalPrice.toLocaleString()}~~\n📝 ${prod.description || 'Sin descripción'}\n🖼️ ${cardImages[0] || ''}`
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()}
-                        className="mt-2 bg-brand-green text-white rounded-xl py-2.5 font-black uppercase text-[10px] text-center shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-1"
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          recordLead(prod, 'Offer');
+                          window.open(`https://wa.me/573114018724?text=${encodeURIComponent(
+                            `¡Hola! Vi esta *OFERTA* y me interesa el *PLAN SEPARE* en El Rebajón:\n\n*${prod.name}*\n🔥 *Precio Oferta:* $${displayPrice.toLocaleString()}\n~~Antes: $${originalPrice.toLocaleString()}~~\n📝 ${prod.description || 'Sin descripción'}\n\n*Foto de la Oferta:* ${cardImages[0] || ''}`
+                          )}`, '_blank');
+                        }}
+                        className="mt-2 bg-brand-green text-white rounded-xl py-2.5 font-black uppercase text-[10px] text-center shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-1 w-full"
                       >
                         <MessageCircle size={12} fill="white" />
                         ¡Lo Quiero!
-                      </a>
+                      </button>
                     </div>
                   </div>
                 );
@@ -402,14 +447,32 @@ const AppContent = () => {
 
       {/* CATALOGO COMPLETO */}
       <section className="py-8 container mx-auto px-4" id="catalogo">
-        <div className="flex items-center justify-center gap-2 mb-8">
+        <div className="flex items-center justify-center gap-2 mb-4">
           <div className="h-[3px] w-16 bg-brand-red rounded-full"></div>
-          <h3 className="text-2xl sm:text-3xl font-black uppercase text-gray-800 tracking-tight italic">Nuestros Productos</h3>
+          <h3 className="text-2xl sm:text-3xl font-black uppercase text-gray-800 tracking-tight italic">
+            {selectedCategory ? selectedCategory : 'Nuestros Productos'}
+          </h3>
           <div className="h-[3px] w-16 bg-brand-red rounded-full"></div>
         </div>
 
+        {/* ACTIVE FILTER CHIP */}
+        {selectedCategory && (
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className="flex items-center gap-2 bg-brand-red text-white px-4 py-1.5 rounded-full text-[11px] font-black uppercase shadow-md hover:bg-red-700 transition-all"
+            >
+              <span>×</span> Quitar filtro: {selectedCategory}
+            </button>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {allProducts.map((prod) => {
+          {filteredProducts.length === 0 ? (
+            <div className="col-span-full text-center py-20 text-gray-400 font-black uppercase italic">
+              No hay productos en "{selectedCategory}"
+            </div>
+          ) : filteredProducts.map((prod) => {
             const cardImages = prod.images && prod.images.length > 0 ? prod.images : [prod.mainImage];
             return (
               <div 
@@ -448,9 +511,12 @@ const AppContent = () => {
                   )}
 
                   {/* CATEGORY TAG */}
-                  <div className="absolute top-4 right-4 z-20">
+                  <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-2">
                     <div className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-black text-brand-red uppercase shadow-md border border-white/50">
                       {prod.category}
+                    </div>
+                    <div className="bg-brand-yellow text-brand-red px-2 py-0.5 rounded-lg text-[7px] font-black uppercase italic shadow-sm flex items-center gap-1 border border-brand-red/10">
+                      <Percent size={8}/> Plan Separe
                     </div>
                   </div>
                 </div>
@@ -471,18 +537,19 @@ const AppContent = () => {
                       </span>
                     </div>
                     <div className="flex gap-2 shrink-0">
-                      <a 
-                        href={`https://wa.me/573114018724?text=${encodeURIComponent(
-                          `¡Hola! Me interesa este producto:\n\n*${prod.name}*\n💰 *Precio:* $${prod.price.toLocaleString()}\n📝 *Descripción:* ${prod.description || 'Sin descripción'}\n🖼️ *Referencia:* ${cardImages[0]}`
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          recordLead(prod, 'Catalog');
+                          window.open(`https://wa.me/573114018724?text=${encodeURIComponent(
+                            `¡Hola! Me interesa este producto y el *PLAN SEPARE*:\n\n*${prod.name}*\n💰 *Precio:* $${prod.price.toLocaleString()}\n📝 *Descripción:* ${prod.description || 'Sin descripción'}\n\n*Foto del Producto:* ${cardImages[0]}`
+                          )}`, '_blank');
+                        }}
                         className="bg-brand-green text-white rounded-xl p-2.5 flex items-center justify-center shadow-lg hover:scale-110 transition-all transform active:scale-95"
                         title="Comprar por WhatsApp"
                       >
                          <MessageCircle size={16} fill="white" />
-                      </a>
+                      </button>
                       <button className="bg-brand-red text-white rounded-xl px-4 py-2.5 font-black uppercase text-[10px] shadow-lg hover:bg-brand-yellow hover:text-brand-red transition-all transform active:scale-90">
                         DETALLES
                       </button>
@@ -546,10 +613,19 @@ const AppContent = () => {
         .product-detail-swiper .swiper-button-next, .product-detail-swiper .swiper-button-prev { color: #ff0000 !important; transform: scale(0.6); }
         .card-inner-swiper .swiper-pagination-bullet { width: 4px; height: 4px; background: white !important; opacity: 0.7; }
         .card-inner-swiper .swiper-pagination-bullet-active { background: #fbbf24 !important; opacity: 1; transform: scale(1.5); }
-        
-        /* Category FreeMode Swiper — linear continuous scroll */
-        .category-marquee-swiper .swiper-wrapper {
-          transition-timing-function: linear !important;
+
+        /* Hide scrollbar on category strip */
+        .category-strip::-webkit-scrollbar { display: none; }
+        .category-strip { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+          display: inline-block;
+          animation: marquee 30s linear infinite;
+          white-space: nowrap;
         }
       `}} />
 

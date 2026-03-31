@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import ReportesPage from './ReportesPage';
 import { 
   Plus, 
   Trash2, 
@@ -517,7 +518,7 @@ const AdminDashboard = () => {
           <span className="bg-white text-brand-red px-2 py-0.5 rounded text-[10px] font-black italic">PANEL ADMINISTRATIVO</span>
         </div>
         <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
-          <SidebarLink icon={<BarChart3 size={20} />} label="Centro BI" active={activeTab === 'stats'} onClick={() => { setActiveTab('stats'); setSidebarOpen(false); }} />
+          <SidebarLink icon={<BarChart3 size={20} />} label="Reportes & BI" active={activeTab === 'stats'} onClick={() => { setActiveTab('stats'); setSidebarOpen(false); }} />
           <SidebarLink icon={<LayoutDashboard size={20} />} label="Inventario" active={activeTab === 'products'} onClick={() => { setActiveTab('products'); setSidebarOpen(false); }} />
           <SidebarLink icon={<Flame size={20} />} label="Ofertas" active={activeTab === 'offers'} onClick={() => { setActiveTab('offers'); setSidebarOpen(false); }} />
           <SidebarLink icon={<Tag size={20} />} label="Categorías" active={activeTab === 'categories'} onClick={() => { setActiveTab('categories'); setSidebarOpen(false); }} />
@@ -559,16 +560,7 @@ const AdminDashboard = () => {
             </div>
             
             <div className="flex gap-3">
-              {activeTab === 'stats' ? (
-                <div className="flex gap-3">
-                  <button onClick={handleExportExcel} className="bg-white border-2 border-brand-green text-brand-green font-black px-6 py-3 rounded-xl shadow-sm hover:bg-brand-green hover:text-white transition-all flex items-center gap-2 uppercase text-sm">
-                    <FileText size={20} /> Descargar Reporte
-                  </button>
-                  <button onClick={handleSeedOrders} className="bg-brand-red text-white font-black px-6 py-3 rounded-xl shadow-lg hover:scale-105 transition-transform flex items-center gap-2 uppercase text-sm">
-                    <TrendingUp size={20} /> Simular Ventas (Demo)
-                  </button>
-                </div>
-              ) : activeTab === 'products' ? (
+              {activeTab === 'stats' ? null : activeTab === 'products' ? (
                 <>
                   <button onClick={handleSeed} className="bg-white border-2 border-brand-red text-brand-red font-black p-3 rounded-xl hover:bg-brand-red hover:text-white transition-all">
                     <RefreshCw size={20} />
@@ -593,97 +585,13 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {loading || (activeTab === 'stats' && statsLoading) ? (
+          {loading ? (
             <div className="flex flex-col items-center justify-center py-40 gap-4">
               <RefreshCw className="animate-spin text-brand-red" size={64} />
-              <p className="text-gray-400 font-black uppercase italic animate-pulse">Sincronizando Inteligencia...</p>
+              <p className="text-gray-400 font-black uppercase italic animate-pulse">Cargando...</p>
             </div>
           ) : activeTab === 'stats' ? (
-            <div className="space-y-10">
-              {/* STATS CARDS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <MetricCard title="Ventas Totales" value={`$${formatNum(stats?.metrics?.totalRevenue)}`} detail={`${stats?.metrics?.count} transacciones`} icon={<ShoppingBag className="text-brand-red"/>} trend="+12%" />
-                <MetricCard title="Ganancia Neta" value={`$${formatNum(stats?.metrics?.totalProfit)}`} detail="Margen real" icon={<DollarSign className="text-brand-green"/>} trend="+8%" color="bg-brand-green/10 text-brand-green" />
-                <MetricCard title="Ticket Promedio" value={`$${formatNum(Math.round(stats?.metrics?.totalRevenue / stats?.metrics?.count || 0))}`} detail="Por cliente" icon={<TrendingUp className="text-blue-500"/>} trend="+5%" color="bg-blue-50 text-blue-500" />
-                <MetricCard title="Productos Activos" value={products.length} detail="En el catálogo" icon={<Package className="text-purple-500"/>} showTrend={false} color="bg-purple-50 text-purple-500" />
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* SALES TREND CHART */}
-                <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
-                  <div className="flex justify-between items-center mb-8">
-                    <h3 className="text-xl font-black text-gray-800 uppercase italic tracking-tighter">Tendencia de Ingresos</h3>
-                    <div className="flex items-center gap-2 text-xs font-black uppercase text-gray-400"><Calendar size={14}/> Últimos 30 días</div>
-                  </div>
-                  <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={stats?.dailyTrend}>
-                        <defs>
-                          <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                        <XAxis dataKey="_id" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
-                        <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
-                        <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
-                        <Area type="monotone" dataKey="revenue" stroke="#ef4444" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* CATEGORY DIST */}
-                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col">
-                  <h3 className="text-xl font-black text-gray-800 uppercase italic tracking-tighter mb-8">Ventas por Categoría</h3>
-                  <div className="h-[250px] w-full flex-1">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={stats?.categoryStats} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                          {stats?.categoryStats?.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend iconType="circle" />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-
-              {/* TOP PRODUCTS */}
-              <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
-                <h3 className="text-xl font-black text-gray-800 uppercase italic tracking-tighter mb-8">Productos Top de Línea</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="text-[10px] font-black uppercase text-gray-400 border-b border-gray-50 pb-4">
-                        <th className="pb-4 whitespace-nowrap">Producto</th>
-                        <th className="pb-4 whitespace-nowrap">Unidades</th>
-                        <th className="pb-4 whitespace-nowrap">Ingresos</th>
-                        <th className="pb-4 text-right whitespace-nowrap">Rendimiento</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {stats?.topProducts?.map((item, idx) => (
-                        <tr key={idx} className="group hover:bg-gray-50/50 transition-colors">
-                          <td className="py-4 font-black text-gray-800 uppercase italic text-sm">{item._id}</td>
-                          <td className="py-4 font-bold text-gray-500">{item.sales} ud</td>
-                          <td className="py-4 font-black text-gray-800">${formatNum(item.revenue)}</td>
-                          <td className="py-4 text-right">
-                             <span className="bg-brand-green/10 text-brand-green px-3 py-1 rounded-full text-[10px] font-black uppercase inline-flex items-center gap-1">
-                                <ArrowUpRight size={12}/> High
-                             </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            <ReportesPage />
           ) : activeTab === 'offers' ? (
             <div className="space-y-4">
               {/* OFFERS SUMMARY BANNER */}
