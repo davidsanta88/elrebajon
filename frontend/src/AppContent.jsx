@@ -233,15 +233,15 @@ const AppContent = () => {
           </div>
 
             {/* CONTACT BUTTON (WHATSAPP) */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            {/* SHARE BUTTON */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* SHARE BUTTON (ENHANCED) */}
             <button 
               onClick={handleShareApp}
-              className="flex items-center gap-1 bg-white/10 border border-white/20 rounded-full px-2.5 py-1.5 hover:bg-white/20 transition-colors cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 bg-brand-yellow border-2 border-white/40 rounded-full px-3.5 py-2 hover:bg-yellow-400 transition-all cursor-pointer shadow-lg active:scale-95"
               title="Compartir App"
             >
-              <Share2 size={14} className="text-brand-yellow" />
-              <span className="hidden sm:inline text-[9px] font-black uppercase">Compartir</span>
+              <Share2 size={16} className="text-brand-red animate-pulse" />
+              <span className="text-[10px] sm:text-xs font-black uppercase text-brand-red">Compartir</span>
             </button>
 
             {/* CONTACT BUTTON (WHATSAPP) */}
@@ -250,10 +250,10 @@ const AppContent = () => {
                 recordLead(null, 'Header');
                 window.open("https://wa.me/573114018724", "_blank");
               }}
-              className="flex items-center gap-1 bg-brand-green border border-white/20 rounded-full px-3 py-1.5 hover:bg-green-600 transition-colors cursor-pointer shadow-lg"
+              className="flex items-center gap-1.5 bg-brand-green border-2 border-white/40 rounded-full px-3.5 py-2 hover:bg-green-600 transition-all cursor-pointer shadow-lg active:scale-95"
             >
-              <MessageCircle size={14} className="text-white" fill="white" />
-              <span className="text-[10px] font-black uppercase inline">Chat</span>
+              <MessageCircle size={16} className="text-white" fill="white" />
+              <span className="text-[10px] sm:text-xs font-black uppercase text-white">Chat</span>
             </button>
           </div>
         </div>
@@ -312,6 +312,45 @@ const AppContent = () => {
       </section>
 
       {/* SEARCH BAR SECTION REMOVED (NOW IN HEADER) */}
+      
+      {/* 3-STEP RURAL GUIDE */}
+      <section className="px-4 pt-8 pb-4 bg-gray-50">
+        <div className="container mx-auto">
+          <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-gray-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-red/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+            
+            <h3 className="text-center font-black text-brand-red uppercase italic tracking-tighter text-lg mb-6 flex items-center justify-center gap-2">
+              <Flame size={20} className="text-brand-red" />
+              ¡Sigue estos 3 pasos fáciles!
+              <Flame size={20} className="text-brand-red" />
+            </h3>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 relative z-10">
+              <div className="flex flex-col items-center text-center gap-3">
+                <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center font-black text-2xl text-gray-800 shadow-inner">1</div>
+                <div>
+                  <p className="font-black text-sm uppercase italic tracking-tight">🔎 Busca lo que te guste</p>
+                  <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase">Mira nuestras ofertas de hoy</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-center text-center gap-3">
+                <div className="w-12 h-12 bg-brand-yellow/30 rounded-2xl flex items-center justify-center font-black text-2xl text-brand-red shadow-inner">2</div>
+                <div>
+                  <p className="font-black text-sm uppercase italic tracking-tight">📱 Toca el botón verde</p>
+                  <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase">Sin complicarte con registros</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-center text-center gap-3">
+                <div className="w-12 h-12 bg-brand-green/20 rounded-2xl flex items-center justify-center font-black text-2xl text-brand-green shadow-inner">3</div>
+                <div>
+                  <p className="font-black text-sm uppercase italic tracking-tight">✅ ¡Hablemos por WhatsApp!</p>
+                  <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase">Te atendemos personalmente</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       
 
 
@@ -444,7 +483,7 @@ const AppContent = () => {
                         </p>
                       )}
 
-                      {/* CTA */}
+                      {/* CTA (ENHANCED FOR RURAL USERS) */}
                       <button
                         onClick={e => {
                           e.stopPropagation();
@@ -453,10 +492,10 @@ const AppContent = () => {
                             `¡Hola! Vi esta *OFERTA* y me interesa el *PLAN SEPARE* en El Rebajón:\n\n*${prod.name}*\n🔥 *Precio Oferta:* $${displayPrice.toLocaleString()}\n~~Antes: $${originalPrice.toLocaleString()}~~\n📝 ${prod.description || 'Sin descripción'}\n\n*Foto de la Oferta:* ${cardImages[0] || ''}`
                           )}`, '_blank');
                         }}
-                        className="mt-2 bg-brand-green text-white rounded-xl py-2.5 font-black uppercase text-[10px] text-center shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-1 w-full"
+                        className="mt-2 bg-brand-green text-white rounded-xl py-3.5 font-black uppercase text-[11px] text-center shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-2 w-full border-b-4 border-green-700 active:border-b-0 active:translate-y-1"
                       >
-                        <MessageCircle size={12} fill="white" />
-                        ¡Lo Quiero!
+                        <MessageCircle size={16} fill="white" />
+                        COMPRAR POR WHATSAPP
                       </button>
                     </div>
                   </div>
@@ -574,22 +613,26 @@ const AppContent = () => {
                         ${(prod.isOffer && prod.offerPrice ? prod.offerPrice : prod.price).toLocaleString()}
                       </span>
                     </div>
-                    <div className="flex gap-2 shrink-0">
-                      <button 
-                        onClick={(e) => {
+                    <div className="flex flex-col w-full gap-2 mt-4">
+                      <button
+                        onClick={e => {
                           e.stopPropagation();
                           recordLead(prod, 'Catalog');
                           window.open(`https://wa.me/573114018724?text=${encodeURIComponent(
                             `¡Hola! Me interesa este producto y el *PLAN SEPARE*:\n\n*${prod.name}*\n💰 *Precio:* $${prod.price.toLocaleString()}\n📝 *Descripción:* ${prod.description || 'Sin descripción'}\n\n*Foto del Producto:* ${cardImages[0]}`
                           )}`, '_blank');
                         }}
-                        className="bg-brand-green text-white rounded-xl p-2.5 flex items-center justify-center shadow-lg hover:scale-110 transition-all transform active:scale-95"
-                        title="Comprar por WhatsApp"
+                        className="bg-brand-green text-white rounded-2xl py-4 font-black uppercase text-[10px] flex items-center justify-center gap-2 shadow-xl hover:bg-green-600 transition-all border-b-4 border-green-700 active:border-b-0 active:translate-y-1 w-full"
                       >
-                         <MessageCircle size={16} fill="white" />
+                        <MessageCircle size={18} fill="white" />
+                        COMPRAR POR WHATSAPP
                       </button>
-                      <button className="bg-brand-red text-white rounded-xl px-4 py-2.5 font-black uppercase text-[10px] shadow-lg hover:bg-brand-yellow hover:text-brand-red transition-all transform active:scale-90">
-                        DETALLES
+                      
+                      <button 
+                        onClick={() => setSelectedProduct(prod)}
+                        className="bg-gray-100 text-gray-500 rounded-2xl py-3 font-black uppercase text-[9px] hover:bg-gray-200 transition-all border-b-2 border-gray-300 active:border-b-0 active:translate-y-0.5"
+                      >
+                        Más información y fotos
                       </button>
                     </div>
                   </div>
@@ -618,6 +661,26 @@ const AppContent = () => {
           Hablar por WhatsApp
         </a>
       </section>
+
+       {/* FLOATING HELP BUTTON (RURAL UX) */}
+       <div className="fixed bottom-6 right-6 z-[100]">
+        <button 
+          onClick={() => {
+            recordLead(null, 'FloatingHelp');
+            window.open("https://wa.me/573114018724?text=¡Hola!%20No%20entiendo%20bien%20cómo%20usar%20la%20página,%20¿me%20ayudan?", "_blank");
+          }}
+          className="bg-brand-green text-white rounded-full p-4 shadow-2xl flex items-center gap-3 hover:scale-110 transition-all group overflow-hidden border-4 border-white/50"
+        >
+          <div className="relative">
+            <MessageCircle size={28} fill="white" className="animate-bounce" />
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-brand-yellow rounded-full animate-ping"></span>
+          </div>
+          <div className="flex flex-col items-start pr-2">
+            <span className="text-[10px] font-black uppercase leading-none italic opacity-80">¿Te Ayudamos?</span>
+            <span className="text-sm font-black uppercase leading-none mt-1">Chat de Soporte</span>
+          </div>
+        </button>
+       </div>
 
       {/* FOOTER */}
       <footer className="mt-auto bg-white border-t border-gray-100 py-8 px-4">
