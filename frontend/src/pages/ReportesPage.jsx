@@ -1225,13 +1225,13 @@ const NewOrderModal = ({ isOpen, onClose, formData, setFormData, onSearch, searc
                         className="w-full p-4 flex items-center justify-between hover:bg-white transition-colors"
                       >
                         <div className="flex items-center gap-3">
-                          <img src={p.images[0]} className="w-8 h-8 rounded shadow-sm object-cover" alt="" />
+                          <img src={p.mainImage || p.images?.[0] || 'https://placehold.co/100'} className="w-8 h-8 rounded shadow-sm object-cover" alt="" />
                           <div className="text-left">
                             <p className="text-xs font-black text-gray-800 uppercase italic">{p.name}</p>
                             <p className="text-[9px] font-bold text-gray-400 uppercase">{p.category}</p>
                           </div>
                         </div>
-                        <span className="text-xs font-black text-brand-red italic">${p.price.toLocaleString()}</span>
+                        <span className="text-xs font-black text-brand-red italic">${formatNum(p.price)}</span>
                       </button>
                     ))}
                   </div>
