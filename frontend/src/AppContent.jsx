@@ -627,28 +627,34 @@ const AppContent = () => {
           href="https://wa.me/573114018724"
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full max-w-sm mx-auto bg-brand-green text-white font-black text-xl py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3 hover:scale-105 transition-transform active:scale-95 shadow-green-200 inline-flex"
+          className="w-full max-w-sm mx-auto bg-brand-green text-white font-black py-4 rounded-2xl shadow-xl flex flex-col items-center justify-center gap-1 hover:scale-105 transition-transform active:scale-95 shadow-green-200 inline-flex"
         >
-          <MessageCircle size={32} fill="white" />
-          Hablar por WhatsApp
+          <div className="flex items-center gap-3">
+            <MessageCircle size={32} fill="white" />
+            <span className="text-xl">Hablar por WhatsApp</span>
+          </div>
+          <span className="text-xs bg-black/10 px-3 py-0.5 rounded-full mt-1">311 401 8724</span>
         </a>
       </section>
 
        {/* FOOTER */}
       <footer className="mt-auto bg-white border-t border-gray-100 py-8 px-4">
         <p className="text-gray-400 text-xs font-bold italic tracking-wider mb-6 text-center uppercase">Compra fácil y seguro en tu pueblo</p>
-        <div className="flex justify-center gap-12 mb-8">
+        <div className="flex justify-center gap-8 sm:gap-12 mb-8">
           <a href="tel:+573114018724" className="flex flex-col items-center gap-1 text-brand-red transition-opacity hover:opacity-70">
             <PhoneCall size={24} />
-            <span className="font-black uppercase text-[10px]">Llámanos</span>
+            <span className="font-black uppercase text-[10px]">Llamar</span>
+            <span className="text-[9px] font-bold">311 401 8724</span>
           </a>
           <a href="https://wa.me/573114018724" className="flex flex-col items-center gap-1 text-brand-green transition-opacity hover:opacity-70">
             <MessageCircle size={24} />
-            <span className="font-black uppercase text-[10px]">Escríbenos</span>
+            <span className="font-black uppercase text-[10px]">WhatsApp</span>
+            <span className="text-[9px] font-bold">311 401 8724</span>
           </a>
           <button onClick={() => navigate('/login')} className="flex flex-col items-center gap-1 text-gray-400 transition-opacity hover:opacity-70">
             <Settings size={24} />
             <span className="font-black uppercase text-[10px]">Panel</span>
+            <span className="text-[9px] font-bold">Admin</span>
           </button>
         </div>
         <p className="text-[10px] text-gray-300 font-bold uppercase text-center tracking-widest">© 2026 EL REBAJÓN COLOMBIA</p>
