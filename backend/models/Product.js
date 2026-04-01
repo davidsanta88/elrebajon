@@ -15,6 +15,7 @@ const productSchema = new mongoose.Schema({
   images: [{ type: String }], // Array of Cloudinary URLs
   mainImage: { type: String }, // Primary Cloudinary URL for cards
   condition: { type: String, enum: ['Nuevo', 'Usado'], default: 'Nuevo' },
+  location: { type: String, default: 'Bodega' }, // Ubicación física (Estante, Bodega, etc.)
   isOffer: { type: Boolean, default: false },
   offerPrice: { type: Number, default: null },       // Precio durante la oferta
   originalPrice: { type: Number, default: null },    // Precio antes de la oferta

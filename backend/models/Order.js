@@ -38,7 +38,7 @@ const orderSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Middleware to calculate balance before saving
-orderSchema.pre('save', function(next) {
+orderSchema.pre('save', async function() {
   this.totalPaid = this.payments.reduce((sum, p) => sum + p.amount, 0);
   this.balance = this.totalRevenue - this.totalPaid;
   
@@ -48,7 +48,6 @@ orderSchema.pre('save', function(next) {
   } else {
     this.paymentStatus = 'Pendiente';
   }
-  next();
 });
 
 module.exports = mongoose.model('Order', orderSchema);

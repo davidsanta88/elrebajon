@@ -14,7 +14,8 @@ import {
   Percent,
   Clock,
   DollarSign,
-  Share2
+  Share2,
+  MapPin
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -180,11 +181,11 @@ const AppContent = () => {
                     <p className="text-[10px] font-black text-gray-800 uppercase italic">Calidad 100%</p>
                   </div>
                 </div>
-                <div className="bg-brand-yellow/10 p-3 rounded-2xl flex items-center gap-3 border border-brand-yellow/30">
-                  <Percent className="text-brand-yellow" size={20}/>
+                <div className="bg-brand-red/5 p-3 rounded-2xl flex items-center gap-3 border border-brand-red/10">
+                  <MapPin className="text-brand-red" size={20}/>
                   <div>
-                    <p className="text-[8px] font-black text-gray-400 uppercase">Financiación</p>
-                    <p className="text-[10px] font-black text-gray-800 uppercase italic">Plan Separe</p>
+                    <p className="text-[8px] font-black text-gray-400 uppercase">Ubicación</p>
+                    <p className="text-[10px] font-black text-gray-800 uppercase italic">{product.location || 'Bodega'}</p>
                   </div>
                 </div>
               </div>
@@ -197,9 +198,9 @@ const AppContent = () => {
                   `¡Hola! Me interesa este producto y preguntar por el *PLAN SEPARE*:\n\n*${product.name}*\n💰 *Precio:* $${product.price.toLocaleString()}\n📝 *Descripción:* ${product.description || 'Sin descripción'}\n\n*Foto del Producto:* ${images[0]}`
                 )}`, '_blank');
               }}
-              className="bg-brand-green text-white font-black text-xl py-4 sm:py-5 rounded-2xl sm:rounded-3xl shadow-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 shadow-green-200 mt-auto w-full"
+              className="bg-brand-green text-white font-black text-base sm:text-lg py-3 sm:py-4 rounded-xl shadow-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 border-b-4 border-green-700 mt-auto w-full"
             >
-              <MessageCircle size={28} fill="white" />
+              <MessageCircle size={22} fill="white" />
               COMPRAR POR WHATSAPP
             </button>
           </div>
@@ -212,6 +213,14 @@ const AppContent = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       
+      {/* LOCATION TOP BAR */}
+      <div className="bg-brand-yellow text-brand-red text-center py-2 border-b border-black/10 shadow-sm relative z-[60]">
+        <p className="text-xs sm:text-sm font-black uppercase tracking-widest flex items-center justify-center gap-2 px-4 italic">
+          <MapPin size={16} className="animate-bounce" />
+          ¡Estamos ubicados en Fredonia y sus municipios cercanos! 📍
+        </p>
+      </div>
+
       {/* HEADER */}
       <header className="bg-brand-red text-white p-2 px-3 sticky top-0 z-50 shadow-md">
         <div className="container mx-auto flex items-center justify-between gap-2 sm:gap-4">
@@ -455,7 +464,7 @@ const AppContent = () => {
                             `¡Hola! Vi esta *OFERTA* y me interesa el *PLAN SEPARE* en El Rebajón:\n\n*${prod.name}*\n🔥 *Precio Oferta:* $${displayPrice.toLocaleString()}\n~~Antes: $${originalPrice.toLocaleString()}~~\n📝 ${prod.description || 'Sin descripción'}\n\n*Foto de la Oferta:* ${cardImages[0] || ''}`
                           )}`, '_blank');
                         }}
-                        className="mt-2 bg-brand-green text-white rounded-xl py-3.5 font-black uppercase text-[11px] text-center shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-2 w-full border-b-4 border-green-700 active:border-b-0 active:translate-y-1"
+                        className="mt-2 bg-brand-green text-white rounded-xl py-2.5 font-black uppercase text-[11px] text-center shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-1.5 w-full border-b-[3px] border-green-700 active:border-b-0 active:translate-y-1"
                       >
                         <MessageCircle size={16} fill="white" />
                         COMPRAR POR WHATSAPP
@@ -555,8 +564,8 @@ const AppContent = () => {
                     <div className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-black text-brand-red uppercase shadow-md border border-white/50">
                       {prod.category}
                     </div>
-                    <div className="bg-brand-yellow text-brand-red px-2 py-0.5 rounded-lg text-[7px] font-black uppercase italic shadow-sm flex items-center gap-1 border border-brand-red/10">
-                      <Percent size={8}/> Plan Separe
+                    <div className="bg-brand-red text-white px-2 py-0.5 rounded-lg text-[7px] font-black uppercase italic shadow-sm flex items-center gap-1 border border-white/20">
+                      <MapPin size={8}/> {prod.location || 'Bodega'}
                     </div>
                   </div>
                 </div>
@@ -585,9 +594,9 @@ const AppContent = () => {
                             `¡Hola! Me interesa este producto y el *PLAN SEPARE*:\n\n*${prod.name}*\n💰 *Precio:* $${prod.price.toLocaleString()}\n📝 *Descripción:* ${prod.description || 'Sin descripción'}\n\n*Foto del Producto:* ${cardImages[0]}`
                           )}`, '_blank');
                         }}
-                        className="bg-brand-green text-white rounded-2xl py-4 font-black uppercase text-[10px] flex items-center justify-center gap-2 shadow-xl hover:bg-green-600 transition-all border-b-4 border-green-700 active:border-b-0 active:translate-y-1 w-full"
+                        className="bg-brand-green text-white rounded-xl py-2 sm:py-3 font-black uppercase text-[9px] sm:text-[11px] flex items-center justify-center gap-1.5 shadow-xl hover:bg-green-600 transition-all border-b-[3px] border-green-700 active:border-b-0 active:translate-y-1 w-full"
                       >
-                        <MessageCircle size={18} fill="white" />
+                        <MessageCircle size={16} fill="white" />
                         COMPRAR POR WHATSAPP
                       </button>
                       

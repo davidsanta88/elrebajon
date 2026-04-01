@@ -12,6 +12,7 @@ const Provider = require('./models/Provider');
 const Order = require('./models/Order');
 const Lead = require('./models/Lead');
 const Customer = require('./models/Customer');
+const Location = require('./models/Location');
 const { authMiddleware, adminMiddleware } = require('./middleware/authMiddleware');
 const { upload } = require('./config/cloudinary.js');
 
@@ -91,6 +92,10 @@ app.put('/api/admin/categories/:id', authMiddleware, adminMiddleware, upload.sin
     let updateData = { name, status };
     if (req.file) {
       updateData.image = req.file.path;
+    }
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      console.error(`ID INVÁLIDO RECIBIDO CATEGORÍA: ${req.params.id}`);
+      return res.status(400).json({ message: "ID de categoría no válido" });
     }
     const category = await Category.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
     res.json(category);
@@ -204,6 +209,44 @@ app.delete('/api/admin/providers/:id', authMiddleware, adminMiddleware, async (r
   }
 });
 
+// Location Routes
+app.get('/api/admin/locations', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const locations = await Location.find().sort({ name: 1 });
+    res.json(locations);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.post('/api/admin/locations', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const location = new Location(req.body);
+    await location.save();
+    res.json(location);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.put('/api/admin/locations/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const location = await Location.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(location);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.delete('/api/admin/locations/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    await Location.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Location deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Admin-only: Fetch products with details (like purchase price)
 app.get('/api/admin/products', authMiddleware, adminMiddleware, async (req, res) => {
   try {
@@ -260,7 +303,20 @@ app.put('/api/admin/products/:id', authMiddleware, adminMiddleware, upload.array
       updateData.profitMargin = Number(req.body.price) - Number(req.body.purchasePrice);
     }
 
+    // Limpieza de valores nulos enviados como string
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === 'null' || updateData[key] === 'undefined') {
+        updateData[key] = null;
+      }
+    });
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      console.error(`ID INVÁLIDO RECIBIDO: ${req.params.id}`);
+      return res.status(400).json({ message: "ID de producto no válido: " + req.params.id });
+    }
+
     const product = await Product.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
+    if (!product) return res.status(404).json({ message: 'Producto no encontrado' });
     res.json(product);
   } catch (err) {
     console.error("STATS ERROR:", err);
@@ -612,7 +668,7 @@ app.get('/api/admin/products/search', authMiddleware, adminMiddleware, async (re
         { category: { $regex: q, $options: 'i' } }
       ]
     } : {};
-    const products = await Product.find(query).limit(10).select('name price purchasePrice category mainImage stock');
+    const products = await Product.find(query).limit(50).select('name price purchasePrice category mainImage stock');
     res.json(products);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -624,23 +680,30 @@ app.post('/api/admin/orders', authMiddleware, adminMiddleware, async (req, res) 
   try {
     const { items, customerName, customerPhone, initialPayment, isPlanSepare, note } = req.body;
     
-    let totalRevenue = 0;
+    let calculatedRevenue = 0;
     let totalCost = 0;
     
     items.forEach(item => {
-      totalRevenue += Number(item.price) * Number(item.quantity);
+      calculatedRevenue += Number(item.price) * Number(item.quantity);
       totalCost += (Number(item.purchasePrice) || 0) * Number(item.quantity);
     });
 
+    // Use provided totalRevenue (manual price) or fall back to calculated
+    const finalRevenue = req.body.totalRevenue !== undefined ? Number(req.body.totalRevenue) : calculatedRevenue;
+
     const order = new Order({
       items,
-      totalRevenue,
+      totalRevenue: finalRevenue,
       totalCost,
-      totalProfit: totalRevenue - totalCost,
+      totalProfit: finalRevenue - totalCost,
       customerName: customerName || 'Cliente WhatsApp',
       customerPhone,
       isPlanSepare: Boolean(isPlanSepare),
-      payments: initialPayment > 0 ? [{ amount: Number(initialPayment), method: 'Efectivo', note: note || 'Abono Inicial' }] : []
+      payments: initialPayment > 0 ? [{ 
+        amount: Number(initialPayment), 
+        method: req.body.paymentMethod || 'Efectivo', 
+        note: note || 'Abono Inicial' 
+      }] : []
     });
 
     await order.save();
@@ -652,7 +715,7 @@ app.post('/api/admin/orders', authMiddleware, adminMiddleware, async (req, res) 
           { phone: customerPhone },
           { 
             name: customerName, 
-            $inc: { totalSpent: totalRevenue, ordersCount: 1 } 
+            $inc: { totalSpent: finalRevenue, ordersCount: 1 } 
           },
           { upsert: true, new: true }
         );
@@ -834,6 +897,56 @@ app.put('/api/admin/products/:id/offer', authMiddleware, adminMiddleware, async 
 });
 
 
+// CUSTOMER MANAGEMENT (ADMIN)
+app.get('/api/admin/customers', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { q } = req.query;
+    const query = q ? {
+      $or: [
+        { name: { $regex: q, $options: 'i' } },
+        { phone: { $regex: q, $options: 'i' } }
+      ]
+    } : {};
+    const customers = await Customer.find(query).sort({ updatedAt: -1 });
+    res.json(customers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.post('/api/admin/customers', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { phone } = req.body;
+    const existing = await Customer.findOne({ phone });
+    if (existing) return res.status(400).json({ message: 'Ya existe un cliente con este teléfono' });
+    
+    const customer = new Customer(req.body);
+    await customer.save();
+    res.status(201).json(customer);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.put('/api/admin/customers/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const customer = await Customer.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(customer);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.delete('/api/admin/customers/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    await Customer.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Cliente eliminado' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 // For demonstration: Seed data endpoint (Changed to GET for easier access)
 app.get('/api/seed', async (req, res) => {
   try {
@@ -848,10 +961,11 @@ app.get('/api/seed', async (req, res) => {
 
     // 2. Seed Categories
     const sampleCategories = [
-      { name: 'Hogar', image: 'https://placehold.co/200x200?text=Hogar' },
-      { name: 'Ropa', image: 'https://placehold.co/200x200?text=Ropa' },
-      { name: 'Animales', image: 'https://placehold.co/200x200?text=Animales' },
-      { name: 'Electrodomésticos', image: 'https://placehold.co/200x200?text=Electrodomésticos' }
+      { name: 'Hogar', image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&q=80&w=800' },
+      { name: 'Ropa', image: 'https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?auto=format&fit=crop&q=80&w=800' },
+      { name: 'Animales', image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&q=80&w=800' },
+      { name: 'Electrodomésticos', image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800' },
+      { name: 'Zapatos', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800' }
     ];
     await Category.deleteMany({});
     const categories = await Category.insertMany(sampleCategories);
@@ -867,9 +981,9 @@ app.get('/api/seed', async (req, res) => {
 
     // 4. Seed Sample Products
     const sampleProducts = [
-      { name: 'Colchón Doble', price: 250000, purchasePrice: 180000, category: 'Hogar', isOffer: true, provider: 'Colchones ABC' },
-      { name: 'Estufa a Gas', price: 300000, purchasePrice: 220000, category: 'Electrodomésticos', provider: 'HACEB' },
-      { name: 'Chanchito', price: 450000, purchasePrice: 350000, category: 'Animales', provider: 'Finca Local' }
+      { name: 'Colchón Doble', price: 250000, purchasePrice: 180000, category: 'Hogar', isOffer: true, provider: 'Colchones ABC', stock: 10 },
+      { name: 'Estufa a Gas', price: 300000, purchasePrice: 220000, category: 'Electrodomésticos', provider: 'HACEB', stock: 15 },
+      { name: 'Chanchito', price: 450000, purchasePrice: 350000, category: 'Animales', provider: 'Finca Local', stock: 5 }
     ];
     await Product.deleteMany({});
     const created = await Product.insertMany(sampleProducts);
