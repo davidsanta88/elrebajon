@@ -213,14 +213,6 @@ const AppContent = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       
-      {/* LOCATION TOP BAR */}
-      <div className="bg-brand-yellow text-brand-red text-center py-2 border-b border-black/10 shadow-sm relative z-[60]">
-        <p className="text-xs sm:text-sm font-black uppercase tracking-widest flex items-center justify-center gap-2 px-4 italic">
-          <MapPin size={16} className="animate-bounce" />
-          ¡Estamos ubicados en Fredonia y sus municipios cercanos! 📍
-        </p>
-      </div>
-
       {/* HEADER */}
       <header className="bg-brand-red text-white p-2 px-3 sticky top-0 z-50 shadow-md">
         <div className="container mx-auto flex items-center justify-between gap-2 sm:gap-4">
@@ -273,7 +265,7 @@ const AppContent = () => {
         <div className="inline-block animate-marquee whitespace-nowrap">
           {[...Array(10)].map((_, i) => (
             <span key={i} className="mx-4 text-[10px] font-black uppercase italic tracking-widest text-brand-red">
-              💥 ¡PREGUNTA POR EL <span className="underline decoration-brand-red/30">PLAN SEPARE</span>! 💳 | 🔍 ¿BUSCAS ALGO? ¡NOSOTROS LO CONSEGUIMOS! | 💰 ¡COMPRAMOS LO QUE YA NO USES! 🔥 |
+              📍 ESTAMOS UBICADOS EN FREDONIA Y SUS MUNICIPIOS CERCANOS | 💥 ¡PREGUNTA POR EL <span className="underline decoration-brand-red/30">PLAN SEPARE</span>! 💳 | 🔍 ¿BUSCAS ALGO? ¡NOSOTROS LO CONSEGUIMOS! | 💰 ¡COMPRAMOS LO QUE YA NO USES! 🔥 |
             </span>
           ))}
         </div>
