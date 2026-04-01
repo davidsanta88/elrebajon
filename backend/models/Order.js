@@ -39,8 +39,11 @@ const orderSchema = new mongoose.Schema({
 
 // Middleware to calculate balance before saving
 orderSchema.pre('save', async function() {
-  this.totalPaid = this.payments.reduce((sum, p) => sum + p.amount, 0);
-  this.balance = this.totalRevenue - this.totalPaid;
+  const payments = this.payments || [];
+  this.totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  
+  const revenue = this.totalRevenue || 0;
+  this.balance = Math.max(0, revenue - this.totalPaid);
   
   if (this.balance <= 0) {
     this.paymentStatus = 'Pagado';

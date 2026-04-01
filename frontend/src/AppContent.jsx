@@ -625,7 +625,7 @@ const AppContent = () => {
             <MessageCircle size={32} fill="white" />
             <span className="text-xl">Hablar por WhatsApp</span>
           </div>
-          <span className="text-xs bg-black/10 px-3 py-0.5 rounded-full mt-1">311 401 8724</span>
+
         </a>
       </section>
 
@@ -636,12 +636,12 @@ const AppContent = () => {
           <a href="tel:+573114018724" className="flex flex-col items-center gap-1 text-brand-red transition-opacity hover:opacity-70">
             <PhoneCall size={24} />
             <span className="font-black uppercase text-[10px]">Llamar</span>
-            <span className="text-[9px] font-bold">311 401 8724</span>
+
           </a>
           <a href="https://wa.me/573114018724" className="flex flex-col items-center gap-1 text-brand-green transition-opacity hover:opacity-70">
             <MessageCircle size={24} />
             <span className="font-black uppercase text-[10px]">WhatsApp</span>
-            <span className="text-[9px] font-bold">311 401 8724</span>
+
           </a>
           <button onClick={() => navigate('/login')} className="flex flex-col items-center gap-1 text-gray-400 transition-opacity hover:opacity-70">
             <Settings size={24} />
@@ -676,12 +676,12 @@ const AppContent = () => {
 
         .animate-marquee {
           display: inline-block;
-          animation: marquee 80s linear infinite;
+          animation: marquee 160s linear infinite;
           white-space: nowrap;
         }
         .animate-marquee-slow {
           display: flex;
-          animation: marquee 120s linear infinite;
+          animation: marquee 240s linear infinite;
           white-space: nowrap;
           width: max-content;
         }

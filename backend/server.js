@@ -678,43 +678,58 @@ app.get('/api/admin/products/search', authMiddleware, adminMiddleware, async (re
 // Admin: Create Manual Order (Sale)
 app.post('/api/admin/orders', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { items, customerName, customerPhone, initialPayment, isPlanSepare, note } = req.body;
+    const { items, customerName, customerPhone, initialPayment, isPlanSepare, note, totalRevenue } = req.body;
     
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: 'El pedido debe tener al menos un producto' });
+    }
+
     let calculatedRevenue = 0;
     let totalCost = 0;
     
-    items.forEach(item => {
-      calculatedRevenue += Number(item.price) * Number(item.quantity);
-      totalCost += (Number(item.purchasePrice) || 0) * Number(item.quantity);
-    });
+    // Process items and check stock
+    for (const item of items) {
+      calculatedRevenue += (Number(item.price) || 0) * (Number(item.quantity) || 0);
+      totalCost += (Number(item.purchasePrice) || 0) * (Number(item.quantity) || 0);
+
+      // Decrement stock in database
+      if (item.productId) {
+        await Product.findByIdAndUpdate(item.productId, {
+          $inc: { stock: -(Number(item.quantity) || 0) }
+        });
+      }
+    }
 
     // Use provided totalRevenue (manual price) or fall back to calculated
-    const finalRevenue = req.body.totalRevenue !== undefined ? Number(req.body.totalRevenue) : calculatedRevenue;
+    const finalRevenue = totalRevenue !== undefined && totalRevenue !== null 
+      ? Number(totalRevenue) 
+      : calculatedRevenue;
 
     const order = new Order({
       items,
       totalRevenue: finalRevenue,
-      totalCost,
-      totalProfit: finalRevenue - totalCost,
-      customerName: customerName || 'Cliente WhatsApp',
-      customerPhone,
+      totalCost: Number(totalCost) || 0,
+      totalProfit: Number(finalRevenue - totalCost) || 0,
+      customerName: customerName || 'Cliente Final',
+      customerPhone: customerPhone || '',
       isPlanSepare: Boolean(isPlanSepare),
-      payments: initialPayment > 0 ? [{ 
+      payments: Number(initialPayment) > 0 ? [{ 
         amount: Number(initialPayment), 
         method: req.body.paymentMethod || 'Efectivo', 
-        note: note || 'Abono Inicial' 
+        note: note || 'Abono Inicial',
+        date: new Date()
       }] : []
     });
 
     await order.save();
 
     // Auto-create or Update Customer
-    if (customerPhone) {
+    if (customerPhone && customerPhone.trim() !== "") {
       try {
-        const customer = await Customer.findOneAndUpdate(
+        await Customer.findOneAndUpdate(
           { phone: customerPhone },
           { 
-            name: customerName, 
+            name: customerName || 'Cliente Final', 
             $inc: { totalSpent: finalRevenue, ordersCount: 1 } 
           },
           { upsert: true, new: true }
@@ -727,7 +742,11 @@ app.post('/api/admin/orders', authMiddleware, adminMiddleware, async (req, res) 
     res.status(201).json(order);
   } catch (err) {
     console.error("CREATE ORDER ERROR:", err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ 
+      message: "Error al registrar la venta", 
+      error: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 });
 
