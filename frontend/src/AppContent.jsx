@@ -141,20 +141,12 @@ const AppContent = () => {
     return (
       <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4 overflow-hidden animate-in fade-in duration-300">
         <div className="bg-white w-full h-full sm:h-auto sm:max-w-4xl sm:rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row relative flex-1 sm:max-h-[90vh]">
-          
-          {/* CLOSE BUTTON (ENHANCED VISIBILITY) */}
-          <button 
-            onClick={onClose}
-            className="group absolute top-4 right-4 z-[110] bg-white text-brand-red p-2.5 rounded-full shadow-2xl transition-all hover:scale-110 active:scale-95 border-2 border-brand-red/10"
-            title="Cerrar"
-          >
-            <X size={28} strokeWidth={3} />
-          </button>
-
           {/* GALLERY AREA */}
-          <div className="w-full md:w-1/2 h-[50vh] md:h-full bg-gray-50 relative group">
+          <div className="w-full md:w-1/2 h-[50vh] md:h-full bg-gray-50 relative group border-r border-gray-100/50">
             <Swiper
-              modules={[Pagination, Navigation]}
+              modules={[Pagination, Navigation, Autoplay]}
+              autoplay={{ delay: 3000, disableOnInteraction: false }}
+              speed={1200}
               pagination={{ clickable: true }}
               navigation={true}
               loop={images.length > 1}
@@ -166,18 +158,28 @@ const AppContent = () => {
                 </SwiperSlide>
               ))}
             </Swiper>
-            
-            {/* BADGES ON IMAGE */}
-            <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-               {product.isOffer && (
-                 <span className="bg-brand-red text-white text-[10px] font-black px-3 py-1 rounded-full uppercase italic tracking-widest shadow-lg animate-pulse">🔥 Oferta</span>
-               )}
-               <span className="bg-white/90 text-brand-red text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-sm border border-gray-100">{product.category}</span>
-            </div>
           </div>
 
           {/* INFO AREA */}
-          <div className="w-full md:w-1/2 p-6 sm:p-10 flex flex-col overflow-y-auto">
+          <div className="w-full md:w-1/2 p-6 sm:p-10 flex flex-col overflow-y-auto relative">
+            {/* NEW HEADER AREA FOR BADGES & CLOSE BUTTON outside the image */}
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex flex-col gap-1.5">
+                <div className="flex gap-2">
+                  {product.isOffer && (
+                    <span className="bg-brand-red text-white text-[9px] font-black px-3 py-1 rounded-full uppercase italic tracking-widest shadow-sm animate-pulse">🔥 Oferta</span>
+                  )}
+                  <span className="bg-gray-100 text-brand-red text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-sm border border-brand-red/5">{product.category}</span>
+                </div>
+              </div>
+              <button 
+                onClick={onClose}
+                className="group p-2 bg-gray-100 text-brand-red rounded-full hover:bg-brand-red hover:text-white transition-all shadow-sm flex items-center justify-center shrink-0"
+                title="Cerrar"
+              >
+                <X size={24} strokeWidth={3} />
+              </button>
+            </div>
             <div className="mb-6">
               <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.3em] mb-1">{product.condition === 'Usado' ? '♻️ Usado Seleccionado' : '🔥 Nuevo de Paquete'}</p>
               <h2 className="text-2xl sm:text-4xl font-black text-gray-800 uppercase italic tracking-tighter leading-none mb-2">{product.name}</h2>
