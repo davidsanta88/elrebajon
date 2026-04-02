@@ -151,42 +151,35 @@ const AppContent = () => {
             <X size={20} strokeWidth={3} />
           </button>
 
-          {product.isOffer && (
-            <div className="absolute top-4 left-4 z-[120] bg-brand-red text-white text-[10px] sm:text-[12px] font-black px-4 py-1.5 rounded-full uppercase italic tracking-widest shadow-lg animate-pulse border border-brand-yellow/30">
-              🔥 SÚPER OFERTA
+          {/* FLOATING TOP TAGS */}
+          <div className="absolute top-4 left-4 z-[120] flex flex-wrap gap-2 pr-16 pointer-events-none">
+            {product.isOffer && (
+              <div className="bg-brand-red text-white text-[10px] sm:text-[12px] font-black px-3 sm:px-4 py-1.5 rounded-full uppercase italic tracking-widest shadow-lg animate-pulse border border-brand-yellow/30 whitespace-nowrap pointer-events-auto">
+                🔥 SÚPER OFERTA
+              </div>
+            )}
+            <div className="bg-white/90 backdrop-blur-sm text-brand-red text-[8px] sm:text-[9px] font-black px-3 py-1.5 rounded-full uppercase shadow-md border border-brand-red/10 flex items-center gap-1 whitespace-nowrap pointer-events-auto">
+              <MapPin size={10} /> {product.location || 'Bodega'}
             </div>
-          )}
+          </div>
 
           {/* GALLERY AREA */}
-          <div className="w-full md:w-1/2 flex flex-col bg-gray-50 border-r border-gray-100/50">
-            <div className="flex-1 min-h-[30vh] md:min-h-0 relative group">
-              <Swiper
-                modules={[Pagination, Navigation, Autoplay]}
-                autoplay={{ delay: 3000, disableOnInteraction: false }}
-                speed={1200}
-                pagination={{ clickable: true }}
-                navigation={true}
-                loop={images.length > 1}
-                className="h-full w-full product-detail-swiper"
-              >
-                {images.map((img, idx) => (
-                  <SwiperSlide key={idx}>
-                    <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-contain" />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
-            
-            {/* LOCATION BADGE UNDER IMAGE */}
-            <div className="p-3 bg-white/50 border-t border-gray-100 mt-auto">
-                <div className="bg-white p-2.5 rounded-xl flex items-center justify-center gap-2 border border-gray-100 shadow-sm mx-auto max-w-[160px]">
-                  <MapPin className="text-brand-red" size={16}/>
-                  <div>
-                    <p className="text-[7px] font-black text-gray-400 uppercase leading-none mb-0.5">Ubicación</p>
-                    <p className="text-[9px] font-black text-gray-800 uppercase italic leading-none truncate">{product.location || 'Bodega'}</p>
-                  </div>
-                </div>
-            </div>
+          <div className="w-full md:w-1/2 min-h-[35vh] md:min-h-0 bg-gray-50 border-r border-gray-100/50 relative group">
+            <Swiper
+              modules={[Pagination, Navigation, Autoplay]}
+              autoplay={{ delay: 3000, disableOnInteraction: false }}
+              speed={1200}
+              pagination={{ clickable: true }}
+              navigation={true}
+              loop={images.length > 1}
+              className="h-full w-full product-detail-swiper"
+            >
+              {images.map((img, idx) => (
+                <SwiperSlide key={idx}>
+                  <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-contain" />
+                </SwiperSlide>
+              ))}
+            </Swiper>
           </div>
 
           {/* INFO AREA */}
