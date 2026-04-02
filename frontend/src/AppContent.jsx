@@ -110,8 +110,8 @@ const AppContent = () => {
   const handleShareApp = () => {
     const shareData = {
       title: 'El Rebajón Marketplace',
-      text: '¡Mira los mejores precios en productos Nuevos y Usados en El Rebajón! 🛍️✨',
-      url: window.location.origin
+      text: '¡Mira los mejores precios en productos Nuevos y Usados en El Rebajón! 🛍️✨ Estamos para Fredonia y municipios cercanos.',
+      url: 'https://elrebajon.com.co/'
     };
 
     if (navigator.share) {
