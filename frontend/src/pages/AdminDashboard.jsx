@@ -42,7 +42,8 @@ import {
   Smartphone,
   CreditCard,
   Wallet,
-  Building
+  Building,
+  Percent
 } from 'lucide-react';
 import { 
   AreaChart, 

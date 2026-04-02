@@ -427,10 +427,13 @@ const AppContent = () => {
                         </div>
                       )}
 
-                      {/* CATEGORY TAG */}
-                      <div className="absolute top-9 right-2 z-20">
-                        <div className="bg-white/95 backdrop-blur-md px-2 py-0.5 rounded-full text-[8px] font-black text-brand-red uppercase shadow-sm">
+                      {/* CATEGORY TAG & LOCATION */}
+                      <div className="absolute top-9 right-2 z-20 flex flex-col items-end gap-1.5">
+                        <div className="bg-white/95 backdrop-blur-md px-2 py-0.5 rounded-full text-[8px] font-black text-brand-red uppercase shadow-sm border border-white/20">
                           {prod.category}
+                        </div>
+                        <div className="bg-brand-red text-white px-2 py-0.5 rounded-lg text-[7px] font-black uppercase italic shadow-sm flex items-center gap-1 border border-white/20">
+                          <MapPin size={8}/> {prod.location || 'Bodega'}
                         </div>
                       </div>
                     </div>
@@ -476,6 +479,13 @@ const AppContent = () => {
                       >
                         <MessageCircle size={16} fill="white" />
                         COMPRAR POR WHATSAPP
+                      </button>
+
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setSelectedProduct(prod); }}
+                        className="bg-gray-100 text-gray-500 rounded-2xl py-3 font-black uppercase text-[9px] hover:bg-gray-200 transition-all border-b-2 border-gray-300 active:border-b-0 active:translate-y-0.5 mt-1"
+                      >
+                        Más información y fotos
                       </button>
                     </div>
                   </div>
