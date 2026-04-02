@@ -187,9 +187,9 @@ const AppContent = () => {
               <div className="flex flex-col gap-1.5">
                 <div className="flex gap-2">
                   {product.isOffer && (
-                    <span className="bg-brand-red text-white text-[9px] font-black px-3 py-1 rounded-full uppercase italic tracking-widest shadow-sm animate-pulse">🔥 Oferta</span>
+                    <span className="bg-brand-red text-white text-[12px] font-black px-4 py-1.5 rounded-full uppercase italic tracking-widest shadow-md animate-pulse border border-brand-yellow/30">🔥 SÚPER OFERTA</span>
                   )}
-                  <span className="bg-gray-100 text-brand-red text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-sm border border-brand-red/5">{product.category}</span>
+                  <span className="bg-gray-100 text-brand-red text-[9px] font-black px-3 py-1 rounded-full uppercase shadow-sm border border-brand-red/5">{product.category}</span>
                 </div>
               </div>
               <button 
