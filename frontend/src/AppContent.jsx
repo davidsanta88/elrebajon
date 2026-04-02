@@ -126,9 +126,10 @@ const AppContent = () => {
     }
   };
 
-  const filteredProducts = selectedCategory
-    ? products.filter(p => p.category === selectedCategory)
-    : products;
+  const filteredProducts = products.filter(p => {
+    const matchesCategory = !selectedCategory || p.category === selectedCategory;
+    return matchesCategory && !p.isOffer;
+  });
 
   const filteredOffers = selectedCategory
     ? offers.filter(p => p.category === selectedCategory)
