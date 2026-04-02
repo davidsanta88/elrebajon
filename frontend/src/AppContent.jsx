@@ -130,6 +130,10 @@ const AppContent = () => {
     ? products.filter(p => p.category === selectedCategory)
     : products;
 
+  const filteredOffers = selectedCategory
+    ? offers.filter(p => p.category === selectedCategory)
+    : offers;
+
   const ProductDetailModal = ({ product, onClose }) => {
     if (!product) return null;
     const images = product.images && product.images.length > 0 ? product.images : [product.mainImage];
@@ -308,7 +312,13 @@ const AppContent = () => {
               {categories.map((cat) => (
                 <button
                   key={`${loopIndex}-${cat._id}`}
-                  onClick={() => setSelectedCategory(cat.name === selectedCategory ? null : cat.name)}
+                  onClick={() => {
+                    const newCat = cat.name === selectedCategory ? null : cat.name;
+                    setSelectedCategory(newCat);
+                    if (newCat) {
+                      document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
                   className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all active:scale-95 shrink-0 ${
                     selectedCategory === cat.name
                       ? 'bg-brand-yellow text-gray-900 border-brand-yellow shadow-lg scale-105'
@@ -337,7 +347,7 @@ const AppContent = () => {
       {/* HERO BANNERS ARE REMOVED ACCORDING TO USER REQUEST */}
 
       {/* 🔥 SUPER OFERTAS SECTION */}
-      {offers.length > 0 && (
+      {filteredOffers.length > 0 && (
         <section className="py-10 px-4 relative overflow-hidden" id="ofertas"
           style={{ background: 'linear-gradient(135deg, #1a0000 0%, #3d0000 40%, #1a0000 100%)' }}
         >
@@ -370,7 +380,7 @@ const AppContent = () => {
 
             {/* OFFERS GRID */}
             <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-              {offers.map((prod, index) => {
+              {filteredOffers.map((prod, index) => {
                 const displayPrice = prod.offerPrice || prod.price;
                 const originalPrice = prod.originalPrice || prod.price;
                 const discount = originalPrice > 0
