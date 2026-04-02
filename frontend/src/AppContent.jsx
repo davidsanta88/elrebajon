@@ -464,7 +464,7 @@ const AppContent = () => {
                           >${displayPrice.toLocaleString('es-CO')}</span>
                         </div>
                         {discount > 0 && (
-                          <span className="text-brand-green font-black text-[8px] bg-green-50 border border-green-100 px-2 py-0.5 rounded-full mb-0.5">Ahorras ${(originalPrice - displayPrice).toLocaleString('es-CO')}</span>
+                          <span className="text-brand-green font-black text-[11px] bg-green-50 border border-green-100 px-3 py-1 rounded-full mb-0.5">Ahorras ${(originalPrice - displayPrice).toLocaleString('es-CO')}</span>
                         )}
                       </div>
 
