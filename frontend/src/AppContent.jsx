@@ -142,22 +142,42 @@ const AppContent = () => {
       <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4 overflow-hidden animate-in fade-in duration-300">
         <div className="bg-white w-full h-full sm:h-auto sm:max-w-4xl sm:rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row relative flex-1 sm:max-h-[90vh]">
           {/* GALLERY AREA */}
-          <div className="w-full md:w-1/2 h-[50vh] md:h-full bg-gray-50 relative group border-r border-gray-100/50">
-            <Swiper
-              modules={[Pagination, Navigation, Autoplay]}
-              autoplay={{ delay: 3000, disableOnInteraction: false }}
-              speed={1200}
-              pagination={{ clickable: true }}
-              navigation={true}
-              loop={images.length > 1}
-              className="h-full w-full product-detail-swiper"
-            >
-              {images.map((img, idx) => (
-                <SwiperSlide key={idx}>
-                  <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-contain" />
-                </SwiperSlide>
-              ))}
-            </Swiper>
+          <div className="w-full md:w-1/2 flex flex-col bg-gray-50 border-r border-gray-100/50">
+            <div className="flex-1 min-h-[40vh] md:min-h-0 relative group">
+              <Swiper
+                modules={[Pagination, Navigation, Autoplay]}
+                autoplay={{ delay: 3000, disableOnInteraction: false }}
+                speed={1200}
+                pagination={{ clickable: true }}
+                navigation={true}
+                loop={images.length > 1}
+                className="h-full w-full product-detail-swiper"
+              >
+                {images.map((img, idx) => (
+                  <SwiperSlide key={idx}>
+                    <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-contain" />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+            
+            {/* BADGES UNDER IMAGE (NEW SPACE SAVING LOCATION) */}
+            <div className="p-4 grid grid-cols-2 gap-3 bg-white/50 border-t border-gray-100 mt-auto">
+                <div className="bg-white p-2.5 rounded-xl flex items-center gap-2 border border-gray-100 shadow-sm">
+                  <ShieldCheck className="text-brand-green" size={18}/>
+                  <div>
+                    <p className="text-[7px] font-black text-gray-400 uppercase leading-none mb-0.5">Garantía</p>
+                    <p className="text-[9px] font-black text-gray-800 uppercase italic leading-none truncate">Calidad 100%</p>
+                  </div>
+                </div>
+                <div className="bg-white p-2.5 rounded-xl flex items-center gap-2 border border-gray-100 shadow-sm">
+                  <MapPin className="text-brand-red" size={18}/>
+                  <div>
+                    <p className="text-[7px] font-black text-gray-400 uppercase leading-none mb-0.5">Ubicación</p>
+                    <p className="text-[9px] font-black text-gray-800 uppercase italic leading-none truncate">{product.location || 'Bodega'}</p>
+                  </div>
+                </div>
+            </div>
           </div>
 
           {/* INFO AREA */}
@@ -193,23 +213,6 @@ const AppContent = () => {
               <div>
                 <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 flex items-center gap-1"><Package size={12}/> Descripción Técnica</h4>
                 <p className="text-sm font-bold text-gray-600 leading-relaxed uppercase italic">{product.description || 'Sin descripción disponible para este artículo.'}</p>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-3 rounded-2xl flex items-center gap-3 border border-gray-100">
-                  <ShieldCheck className="text-brand-green" size={20}/>
-                  <div>
-                    <p className="text-[8px] font-black text-gray-400 uppercase">Garantía</p>
-                    <p className="text-[10px] font-black text-gray-800 uppercase italic">Calidad 100%</p>
-                  </div>
-                </div>
-                <div className="bg-brand-red/5 p-3 rounded-2xl flex items-center gap-3 border border-brand-red/10">
-                  <MapPin className="text-brand-red" size={20}/>
-                  <div>
-                    <p className="text-[8px] font-black text-gray-400 uppercase">Ubicación</p>
-                    <p className="text-[10px] font-black text-gray-800 uppercase italic">{product.location || 'Bodega'}</p>
-                  </div>
-                </div>
               </div>
             </div>
 
