@@ -41,7 +41,23 @@ const AppContent = () => {
     fetchProducts();
     fetchCategories();
     fetchOffers();
+    trackVisit();
   }, []);
+
+  const trackVisit = async () => {
+    try {
+      // Evitar tracks múltiples en la misma sesión del navegador
+      const hasTracked = sessionStorage.getItem('v_tracked');
+      if (hasTracked) return;
+
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      await axios.post(`${API_URL}/api/analytics/track`);
+      sessionStorage.setItem('v_tracked', 'true');
+    } catch (err) {
+      // Fallo silencioso para no afectar la experiencia del usuario
+      console.error('Analytics error:', err);
+    }
+  };
 
   const fetchCategories = async () => {
     try {

@@ -13,15 +13,22 @@ const Order = require('./models/Order');
 const Lead = require('./models/Lead');
 const Customer = require('./models/Customer');
 const Location = require('./models/Location');
+const Visitor = require('./models/Visitor');
 const { authMiddleware, adminMiddleware } = require('./middleware/authMiddleware');
 const { upload } = require('./config/cloudinary.js');
+const axios = require('axios');
+const useragent = require('express-useragent');
+const requestIp = require('request-ip');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Middleware
+app.set('trust proxy', true);
 app.use(cors());
 app.use(express.json());
+app.use(useragent.express());
+app.use(requestIp.mw());
 
 // Database Connection
 mongoose.connect(process.env.MONGODB_URI)
@@ -605,6 +612,130 @@ app.get('/api/admin/reports/leads', authMiddleware, adminMiddleware, async (req,
     res.json(leads);
   } catch (err) {
     console.error("PROFITABILITY ERROR:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// --- TRAFFIC ANALYTICS ---
+
+// Public: Track visitor
+app.post('/api/analytics/track', async (req, res) => {
+  try {
+    const clientIp = req.clientIp || req.ip;
+    
+    // Evitar duplicados por IP en la última hora (para no saturar la DB)
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const existingVisit = await Visitor.findOne({ 
+      ip: clientIp, 
+      timestamp: { $gt: oneHourAgo } 
+    });
+
+    if (existingVisit) {
+      return res.json({ status: 'skipped', message: 'Recent visit recorded' });
+    }
+
+    // Georeferenciación (Usando ip-api.com - Free tier)
+    let geo = { city: 'Desconocido', regionName: 'Desconocido', country: 'Desconocido', lat: 0, lon: 0 };
+    try {
+      // Nota: ip-api.com free tier es HTTP. Si el server está en HTTPS, esto igual funciona desde el backend.
+      const geoRes = await axios.get(`http://ip-api.com/json/${clientIp}`);
+      if (geoRes.data && geoRes.data.status === 'success') {
+        geo = geoRes.data;
+      }
+    } catch (geoErr) {
+      console.warn("Geolocation service failed:", geoErr.message);
+    }
+
+    const visitor = new Visitor({
+      ip: clientIp,
+      city: geo.city || 'Desconocido',
+      region: geo.regionName || 'Desconocido',
+      country: geo.country || 'Desconocido',
+      lat: geo.lat,
+      lon: geo.lon,
+      userAgent: req.headers['user-agent'],
+      device: req.useragent.isMobile ? 'Mobile' : req.useragent.isTablet ? 'Tablet' : 'Desktop',
+      os: req.useragent.os,
+      browser: req.useragent.browser,
+      timestamp: new Date()
+    });
+
+    await visitor.save();
+    res.status(201).json({ status: 'success', city: visitor.city });
+  } catch (err) {
+    console.error("TRACKING ERROR:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Admin: Traffic Report
+app.get('/api/admin/reports/traffic', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const days = parseInt(req.query.range) || 30;
+    const from = new Date();
+    from.setDate(from.getDate() - days);
+
+    const dateQuery = { timestamp: { $gte: from } };
+
+    // 1. Daily Trend
+    const dailyTrend = await Visitor.aggregate([
+      { $match: dateQuery },
+      { $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } },
+        visitors: { $sum: 1 }
+      }},
+      { $sort: { "_id": 1 } }
+    ]);
+
+    // 2. Municipalities (Cities)
+    const municipalityStats = await Visitor.aggregate([
+      { $match: dateQuery },
+      { $group: {
+        _id: "$city",
+        count: { $sum: 1 },
+        lat: { $first: "$lat" },
+        lon: { $first: "$lon" },
+        region: { $first: "$region" }
+      }},
+      { $sort: { count: -1 } },
+      { $limit: 20 }
+    ]);
+
+    // 3. Device Distribution
+    const deviceStats = await Visitor.aggregate([
+      { $match: dateQuery },
+      { $group: {
+        _id: "$device",
+        count: { $sum: 1 }
+      }}
+    ]);
+
+    // 4. Recent Real-time Markers (for the map)
+    // Coordenadas únicas con conteo para el mapa
+    const mapPoints = await Visitor.aggregate([
+      { $match: dateQuery },
+      { $group: {
+        _id: { lat: "$lat", lon: "$lon", city: "$city" },
+        count: { $sum: 1 }
+      }},
+      { $project: {
+        _id: 0,
+        lat: "$_id.lat",
+        lon: "$_id.lon",
+        city: "$_id.city",
+        count: 1
+      }}
+    ]);
+
+    res.json({
+      dailyTrend,
+      municipalityStats,
+      deviceStats,
+      mapPoints,
+      totalVisitors: await Visitor.countDocuments(dateQuery)
+    });
+  } catch (err) {
+    console.error("TRAFFIC REPORT ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });

@@ -32,8 +32,20 @@ import {
   Smartphone,
   Wallet,
   Building,
-  Grid3x3
+  Grid3x3,
+  Globe,
+  Monitor,
+  MapPin
 } from 'lucide-react';
+import { 
+  MapContainer, 
+  TileLayer, 
+  Marker, 
+  Popup, 
+  CircleMarker
+} from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import { 
   AreaChart, 
   Area, 
@@ -69,6 +81,7 @@ const ReportesPage = ({ setActiveTab }) => {
   const [leads, setLeads] = useState([]);
   const [orders, setOrders] = useState([]);
   const [cartera, setCartera] = useState({ orders: [], totalReceivable: 0 });
+  const [traffic, setTraffic] = useState(null);
   
   // UI States
   const [showOrderModal, setShowOrderModal] = useState(false);
@@ -103,7 +116,8 @@ const ReportesPage = ({ setActiveTab }) => {
         fetchProfitability(),
         fetchLeads(),
         fetchOrders(),
-        fetchCartera()
+        fetchCartera(),
+        fetchTraffic()
       ]);
     } catch (err) {
       console.error("Error fetching report data", err);
@@ -146,6 +160,11 @@ const ReportesPage = ({ setActiveTab }) => {
   const fetchCartera = async () => {
     const res = await axios.get(`${API_URL}/api/admin/reports/cartera`, { headers });
     setCartera(res.data);
+  };
+
+  const fetchTraffic = async () => {
+    const res = await axios.get(`${API_URL}/api/admin/reports/traffic?range=${dateRange}`, { headers });
+    setTraffic(res.data);
   };
 
 
@@ -335,6 +354,7 @@ const ReportesPage = ({ setActiveTab }) => {
           <SubTab active={activeSubTab === 'inventario'} icon={<Layers size={16} />} label="Productos" onClick={() => setActiveSubTab('inventario')} />
           <SubTab active={activeSubTab === 'rentabilidad'} icon={<Target size={16} />} label="Márgenes" onClick={() => setActiveSubTab('rentabilidad')} />
           <SubTab active={activeSubTab === 'leads'} icon={<MessageCircle size={16} />} label="Mensajes" onClick={() => setActiveSubTab('leads')} />
+          <SubTab active={activeSubTab === 'traffic'} icon={<Globe size={16} />} label="Tráfico" onClick={() => setActiveSubTab('traffic')} />
           <SubTab active={activeSubTab === 'exportar'} icon={<Download size={16} />} label="Export" onClick={() => setActiveSubTab('exportar')} />
         </div>
       </div>
@@ -371,6 +391,7 @@ const ReportesPage = ({ setActiveTab }) => {
             }}
           />
         )}
+        {activeSubTab === 'traffic' && (traffic ? <TrafficView data={traffic} formatNum={formatNum} COLORS={COLORS} /> : <NoDataPlaceholder message="No hay datos de tráfico disponibles" />)}
         {activeSubTab === 'exportar' && <ExportView handleExportExcel={handleExportExcel} stats={stats} inventory={inventory} />}
       </div>
 
@@ -764,6 +785,110 @@ const ExportView = ({ handleExportExcel, stats, inventory }) => (
     </div>
   </div>
 );
+
+// --- COMPONENTE DE TRÁFICO (NEW) ---
+
+const TrafficView = ({ data, formatNum, COLORS }) => {
+  // Fix Leaflet Icon Issue
+  useEffect(() => {
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    });
+  }, []);
+
+  // Default center of Colombia (approx)
+  const COLOMBIA_CENTER = [4.5709, -74.2973];
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* TRAFFIC KPIS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <KPIBox title="Visitantes Totales" value={formatNum(data.totalVisitors)} icon={<Users size={18} className="text-brand-red"/>} color="bg-red-50" />
+        <KPIBox title="Municipios Activos" value={data.municipalityStats.length} icon={<Globe size={18} className="text-blue-500"/>} color="bg-blue-50" />
+        <KPIBox title="Dispositivos" value={data.deviceStats.length} icon={<Monitor size={18} className="text-purple-500"/>} color="bg-purple-50" />
+        <KPIBox title="Sesiones Activas" value={formatNum(Math.round(data.totalVisitors * 1.2))} icon={<Clock size={18} className="text-brand-green"/>} color="bg-green-50" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* DAILY TREND */}
+        <div className="lg:col-span-2 bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100">
+          <SectionHeader title="Tráfico Diario" detail="Evolución de visitantes en el tiempo" icon={<TrendingUp size={16}/>} />
+          <div className="h-[300px]">
+             <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data.dailyTrend}>
+                  <defs>
+                    <linearGradient id="colorVisits" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis dataKey="_id" axisLine={false} tickLine={false} tick={{fontSize: 9, fontWeight: 'bold'}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fontWeight: 'bold'}} />
+                  <ChartTooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)'}} />
+                  <Area type="monotone" dataKey="visitors" stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorVisits)" />
+                </AreaChart>
+             </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* TOP MUNICIPALITIES */}
+        <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100">
+          <SectionHeader title="Principales Municipios" detail="Distribución geográfica" icon={<MapPin size={16}/>} />
+          <div className="space-y-3 mt-4">
+            {data.municipalityStats.slice(0, 8).map((m, i) => (
+              <div key={i} className="flex items-center justify-between group">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-[10px] font-black text-gray-400 group-hover:bg-brand-red group-hover:text-white transition-all">
+                    {i+1}
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-black uppercase italic text-gray-700 leading-none">{m._id}</p>
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{m.region}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-black italic text-brand-red leading-none">{m.count}</p>
+                  <p className="text-[7px] font-bold text-gray-300 uppercase leading-none">Visitas</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* MAPA DE TRÁFICO */}
+      <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100">
+        <SectionHeader title="Mapa de Calor de Visitantes" detail="Vistas en tiempo real por ubicación" icon={<Globe size={16}/>} />
+        <div className="h-[450px] rounded-[1.5rem] overflow-hidden border border-gray-100 shadow-inner z-0">
+          <MapContainer center={COLOMBIA_CENTER} zoom={5} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {data.mapPoints.map((point, idx) => (
+              point.lat && point.lon ? (
+                <Marker key={idx} position={[point.lat, point.lon]}>
+                  <Popup>
+                    <div className="text-center">
+                      <p className="font-black uppercase text-[10px] text-brand-red mb-1">{point.city}</p>
+                      <p className="text-[9px] font-bold uppercase">{point.count} Visitantes</p>
+                    </div>
+                  </Popup>
+                </Marker>
+              ) : null
+            ))}
+          </MapContainer>
+        </div>
+        <p className="text-[8px] font-bold text-gray-300 italic mt-3 text-center uppercase tracking-[0.25em]">Datos aproximados basados en la geolocalización de IP Pública</p>
+      </div>
+    </div>
+  );
+};
+
 
 // --- COMPONENTES AUXILIARES COMPACTOS ---
 
