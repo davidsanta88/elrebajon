@@ -142,9 +142,18 @@ const AppContent = () => {
     return (
       <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4 overflow-hidden animate-in fade-in duration-300">
         <div className="bg-white w-full h-full sm:h-auto sm:max-w-4xl sm:rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row relative flex-1 sm:max-h-[90vh]">
+          {/* FLOATING CLOSE BUTTON (ALWAYS AT TOP RIGHT) */}
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 z-[120] bg-white/90 backdrop-blur-sm text-brand-red p-2 rounded-full shadow-lg hover:bg-brand-red hover:text-white transition-all active:scale-95 border border-brand-red/10"
+            title="Cerrar"
+          >
+            <X size={20} strokeWidth={3} />
+          </button>
+
           {/* GALLERY AREA */}
           <div className="w-full md:w-1/2 flex flex-col bg-gray-50 border-r border-gray-100/50">
-            <div className="flex-1 min-h-[40vh] md:min-h-0 relative group">
+            <div className="flex-1 min-h-[30vh] md:min-h-0 relative group">
               <Swiper
                 modules={[Pagination, Navigation, Autoplay]}
                 autoplay={{ delay: 3000, disableOnInteraction: false }}
@@ -182,31 +191,24 @@ const AppContent = () => {
           </div>
 
           {/* INFO AREA */}
-          <div className="w-full md:w-1/2 p-6 sm:p-10 flex flex-col overflow-y-auto relative">
-            {/* NEW HEADER AREA FOR BADGES & CLOSE BUTTON outside the image */}
-            <div className="flex justify-between items-start mb-4">
+          <div className="w-full md:w-1/2 p-5 sm:p-10 flex flex-col overflow-y-auto relative">
+            {/* NEW HEADER AREA FOR BADGES (Close button moved to top-right absolute) */}
+            <div className="flex justify-between items-start mb-3">
               <div className="flex flex-col gap-1.5">
                 <div className="flex gap-2">
                   {product.isOffer && (
-                    <span className="bg-brand-red text-white text-[12px] font-black px-4 py-1.5 rounded-full uppercase italic tracking-widest shadow-md animate-pulse border border-brand-yellow/30">🔥 SÚPER OFERTA</span>
+                    <span className="bg-brand-red text-white text-[10px] sm:text-[12px] font-black px-3 py-1 rounded-full uppercase italic tracking-widest shadow-md animate-pulse border border-brand-yellow/30">🔥 SÚPER OFERTA</span>
                   )}
-                  <span className="bg-gray-100 text-brand-red text-[9px] font-black px-3 py-1 rounded-full uppercase shadow-sm border border-brand-red/5">{product.category}</span>
+                  <span className="bg-gray-100 text-brand-red text-[8px] sm:text-[9px] font-black px-3 py-1 rounded-full uppercase shadow-sm border border-brand-red/5">{product.category}</span>
                 </div>
               </div>
-              <button 
-                onClick={onClose}
-                className="group p-2 bg-gray-100 text-brand-red rounded-full hover:bg-brand-red hover:text-white transition-all shadow-sm flex items-center justify-center shrink-0"
-                title="Cerrar"
-              >
-                <X size={24} strokeWidth={3} />
-              </button>
             </div>
-            <div className="mb-6">
-              <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.3em] mb-1">{product.condition === 'Usado' ? '♻️ Usado Seleccionado' : '🔥 Nuevo de Paquete'}</p>
-              <h2 className="text-2xl sm:text-4xl font-black text-gray-800 uppercase italic tracking-tighter leading-none mb-2">{product.name}</h2>
+            <div className="mb-4">
+              <p className="text-[9px] sm:text-[10px] font-black uppercase text-gray-400 tracking-[0.3em] mb-1">{product.condition === 'Usado' ? '♻️ Usado Seleccionado' : '🔥 Nuevo de Paquete'}</p>
+              <h2 className="text-xl sm:text-4xl font-black text-gray-800 uppercase italic tracking-tighter leading-none mb-2">{product.name}</h2>
               <div className="flex items-center gap-2">
-                <span className="text-3xl sm:text-4xl font-black text-brand-red italic">${(product.isOffer && product.offerPrice ? product.offerPrice : product.price).toLocaleString()}</span>
-                {product.isOffer && product.originalPrice && <span className="text-gray-300 line-through font-bold text-sm sm:text-lg">${product.originalPrice.toLocaleString()}</span>}
+                <span className="text-2xl sm:text-4xl font-black text-brand-red italic">${(product.isOffer && product.offerPrice ? product.offerPrice : product.price).toLocaleString()}</span>
+                {product.isOffer && product.originalPrice && <span className="text-gray-300 line-through font-bold text-xs sm:text-lg">${product.originalPrice.toLocaleString()}</span>}
               </div>
             </div>
 
