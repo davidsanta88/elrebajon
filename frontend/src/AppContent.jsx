@@ -142,7 +142,7 @@ const AppContent = () => {
     return (
       <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4 overflow-hidden animate-in fade-in duration-300">
         <div className="bg-white w-full h-full sm:h-auto sm:max-w-4xl sm:rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row relative flex-1 sm:max-h-[90vh]">
-          {/* FLOATING CLOSE BUTTON (ALWAYS AT TOP RIGHT) */}
+          {/* FLOATING TOP BUTTONS & TAGS */}
           <button 
             onClick={onClose}
             className="absolute top-4 right-4 z-[120] bg-white/90 backdrop-blur-sm text-brand-red p-2 rounded-full shadow-lg hover:bg-brand-red hover:text-white transition-all active:scale-95 border border-brand-red/10"
@@ -150,6 +150,12 @@ const AppContent = () => {
           >
             <X size={20} strokeWidth={3} />
           </button>
+
+          {product.isOffer && (
+            <div className="absolute top-4 left-4 z-[120] bg-brand-red text-white text-[10px] sm:text-[12px] font-black px-4 py-1.5 rounded-full uppercase italic tracking-widest shadow-lg animate-pulse border border-brand-yellow/30">
+              🔥 SÚPER OFERTA
+            </div>
+          )}
 
           {/* GALLERY AREA */}
           <div className="w-full md:w-1/2 flex flex-col bg-gray-50 border-r border-gray-100/50">
@@ -171,17 +177,10 @@ const AppContent = () => {
               </Swiper>
             </div>
             
-            {/* BADGES UNDER IMAGE (NEW SPACE SAVING LOCATION) */}
-            <div className="p-4 grid grid-cols-2 gap-3 bg-white/50 border-t border-gray-100 mt-auto">
-                <div className="bg-white p-2.5 rounded-xl flex items-center gap-2 border border-gray-100 shadow-sm">
-                  <ShieldCheck className="text-brand-green" size={18}/>
-                  <div>
-                    <p className="text-[7px] font-black text-gray-400 uppercase leading-none mb-0.5">Garantía</p>
-                    <p className="text-[9px] font-black text-gray-800 uppercase italic leading-none truncate">Calidad 100%</p>
-                  </div>
-                </div>
-                <div className="bg-white p-2.5 rounded-xl flex items-center gap-2 border border-gray-100 shadow-sm">
-                  <MapPin className="text-brand-red" size={18}/>
+            {/* LOCATION BADGE UNDER IMAGE */}
+            <div className="p-3 bg-white/50 border-t border-gray-100 mt-auto">
+                <div className="bg-white p-2.5 rounded-xl flex items-center justify-center gap-2 border border-gray-100 shadow-sm mx-auto max-w-[160px]">
+                  <MapPin className="text-brand-red" size={16}/>
                   <div>
                     <p className="text-[7px] font-black text-gray-400 uppercase leading-none mb-0.5">Ubicación</p>
                     <p className="text-[9px] font-black text-gray-800 uppercase italic leading-none truncate">{product.location || 'Bodega'}</p>
@@ -192,16 +191,9 @@ const AppContent = () => {
 
           {/* INFO AREA */}
           <div className="w-full md:w-1/2 p-5 sm:p-10 flex flex-col overflow-y-auto relative">
-            {/* NEW HEADER AREA FOR BADGES (Close button moved to top-right absolute) */}
-            <div className="flex justify-between items-start mb-3">
-              <div className="flex flex-col gap-1.5">
-                <div className="flex gap-2">
-                  {product.isOffer && (
-                    <span className="bg-brand-red text-white text-[10px] sm:text-[12px] font-black px-3 py-1 rounded-full uppercase italic tracking-widest shadow-md animate-pulse border border-brand-yellow/30">🔥 SÚPER OFERTA</span>
-                  )}
-                  <span className="bg-gray-100 text-brand-red text-[8px] sm:text-[9px] font-black px-3 py-1 rounded-full uppercase shadow-sm border border-brand-red/5">{product.category}</span>
-                </div>
-              </div>
+            {/* CATEGORY TAG (Offer badge moved to absolute top-left) */}
+            <div className="mb-3">
+              <span className="bg-gray-100 text-brand-red text-[8px] sm:text-[9px] font-black px-3 py-1 rounded-full uppercase shadow-sm border border-brand-red/5">{product.category}</span>
             </div>
             <div className="mb-4">
               <p className="text-[9px] sm:text-[10px] font-black uppercase text-gray-400 tracking-[0.3em] mb-1">{product.condition === 'Usado' ? '♻️ Usado Seleccionado' : '🔥 Nuevo de Paquete'}</p>
