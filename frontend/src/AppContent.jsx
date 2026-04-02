@@ -412,7 +412,20 @@ const AppContent = () => {
                     {/* IMAGE */}
                     <div className="aspect-square bg-gray-100 relative overflow-hidden">
                       {hasImage ? (
-                        <img src={cardImages[0]} alt={prod.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                        <Swiper
+                          modules={[Autoplay, Pagination]}
+                          autoplay={{ delay: 2500 + Math.random() * 1000, disableOnInteraction: false }}
+                          speed={1200}
+                          pagination={{ clickable: true, dynamicBullets: true }}
+                          loop={cardImages.length > 1}
+                          className="h-full w-full card-inner-swiper"
+                        >
+                          {cardImages.map((img, idx) => (
+                            <SwiperSlide key={idx}>
+                              <img src={img} alt={prod.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                            </SwiperSlide>
+                          ))}
+                        </Swiper>
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-amber-50"><Package size={48} className="text-gray-200" /></div>
                       )}
@@ -567,8 +580,8 @@ const AppContent = () => {
                 <div className="aspect-square bg-gray-100 relative overflow-hidden">
                   <Swiper
                     modules={[Autoplay, Pagination]}
-                    autoplay={{ delay: 2000 + Math.random() * 1000, disableOnInteraction: false }}
-                    speed={800}
+                    autoplay={{ delay: 2500 + Math.random() * 1000, disableOnInteraction: false }}
+                    speed={1200}
                     pagination={{ clickable: true, dynamicBullets: true }}
                     loop={cardImages.length > 1}
                     className="h-full w-full card-inner-swiper"
