@@ -257,7 +257,7 @@ app.delete('/api/admin/locations/:id', authMiddleware, adminMiddleware, async (r
 // Admin-only: Fetch products with details (like purchase price)
 app.get('/api/admin/products', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
+    const products = await Product.find().sort({ priority: 1, createdAt: -1 });
     res.json(products);
   } catch (err) {
     console.error("STATS ERROR:", err);
@@ -288,22 +288,23 @@ app.put('/api/admin/products/:id', authMiddleware, adminMiddleware, upload.array
     let updateData = { ...req.body };
     
     // If new images are uploaded, add them to the existing ones
-    let existingImages = [];
+    // CRITICAL: Only update images if they are provided in the body or files
+    let existingImages = null;
     if (req.body.images) {
       existingImages = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
     }
     
     if (req.files && req.files.length > 0) {
       const newImages = req.files.map(file => file.path);
-      updateData.images = [...existingImages, ...newImages].slice(0, 5);
-    } else {
-      updateData.images = existingImages;
-    }
-    
-    if (updateData.images && updateData.images.length > 0) {
+      updateData.images = [...(existingImages || []), ...newImages].slice(0, 5);
       updateData.mainImage = updateData.images[0];
+    } else if (existingImages !== null) {
+      updateData.images = existingImages;
+      updateData.mainImage = existingImages.length > 0 ? existingImages[0] : null;
     } else {
-      updateData.mainImage = null;
+      // If no images are provided at all, don't touch them!
+      delete updateData.images;
+      delete updateData.mainImage;
     }
 
     if (req.body.price && req.body.purchasePrice) {
@@ -331,12 +332,24 @@ app.put('/api/admin/products/:id', authMiddleware, adminMiddleware, upload.array
   }
 });
 
+
 app.delete('/api/admin/products/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: 'Product deleted' });
   } catch (err) {
     console.error("STATS ERROR:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.patch('/api/admin/products/:id/priority', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { priority } = req.body;
+    const product = await Product.findByIdAndUpdate(req.params.id, { priority: Number(priority) }, { new: true });
+    if (!product) return res.status(404).json({ message: 'Producto no encontrado' });
+    res.json(product);
+  } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
@@ -997,7 +1010,7 @@ app.get('/api/admin/reports/cartera', authMiddleware, adminMiddleware, async (re
 // Public: Fetch products for Home
 app.get('/api/products', async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
+    const products = await Product.find().sort({ priority: 1, createdAt: -1 });
     res.json(products);
   } catch (err) {
     console.error("STATS ERROR:", err);
@@ -1018,7 +1031,7 @@ app.get('/api/offers', async (req, res) => {
         { offerStartDate: null, offerEndDate: { $gte: now } },
         { offerStartDate: { $lte: now }, offerEndDate: null },
       ]
-    }).sort({ updatedAt: -1 });
+    }).sort({ priority: 1, updatedAt: -1 });
     res.json(offers);
   } catch (err) {
     console.error("STATS ERROR:", err);

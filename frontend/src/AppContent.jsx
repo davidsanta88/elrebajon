@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Tag,
   Percent,
+  ArrowDown,
   Clock,
   DollarSign,
   Share2,
@@ -110,7 +111,7 @@ const AppContent = () => {
   const handleShareApp = () => {
     const shareData = {
       title: 'El Rebajón Marketplace',
-      text: '¡Mira los mejores precios en productos Nuevos y Usados en El Rebajón! 🛍️✨ Estamos para Fredonia y municipios cercanos.',
+      text: '¡Mira los mejores precios en productos Nuevos y Usados en El Rebajón! 🛍️✨ Estamos en Fredonia y municipios cercanos, pero también despachamos ciertos productos a toda Colombia. ¡Compártenos para que la comunidad de EL REBAJÓN cada vez sea más grande!',
       url: 'https://elrebajon.com.co/'
     };
 
@@ -137,7 +138,7 @@ const AppContent = () => {
 
   const ProductDetailModal = ({ product, onClose }) => {
     if (!product) return null;
-    const images = product.images && product.images.length > 0 ? product.images : [product.mainImage];
+    const images = (product.images && product.images.length > 0 ? product.images : [product.mainImage]).filter(Boolean);
     
     return (
       <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4 overflow-hidden animate-in fade-in duration-300">
@@ -174,11 +175,14 @@ const AppContent = () => {
               loop={images.length > 1}
               className="h-full w-full product-detail-swiper"
             >
-              {images.map((img, idx) => (
-                <SwiperSlide key={idx}>
-                  <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-contain" />
-                </SwiperSlide>
-              ))}
+              {images.map((img, idx) => {
+                const finalSrc = img?.startsWith('http') ? img : `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/${img}`;
+                return (
+                  <SwiperSlide key={idx}>
+                    <img src={finalSrc} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-contain" />
+                  </SwiperSlide>
+                );
+              })}
             </Swiper>
           </div>
 
@@ -230,13 +234,9 @@ const AppContent = () => {
       <header className="bg-brand-red text-white p-2 px-3 sticky top-0 z-50 shadow-md">
         <div className="container mx-auto flex items-center justify-between gap-2 sm:gap-4">
           
-          {/* LOGO & MENU */}
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            <button className="p-1">
-              <Menu size={20} />
-            </button>
-            <h1 className="text-base sm:text-xl font-black uppercase italic tracking-tighter leading-none whitespace-nowrap">
-              El Rebajón
+          <div className="flex items-center gap-2 shrink-0">
+            <h1 className="text-xl sm:text-3xl font-black uppercase italic tracking-tighter leading-none whitespace-nowrap text-brand-yellow drop-shadow-lg select-none">
+              EL REBAJÓN
             </h1>
           </div>
           
@@ -319,7 +319,11 @@ const AppContent = () => {
                   }`}
                 >
                   <div className="w-6 h-6 rounded-full overflow-hidden border border-brand-yellow/50 bg-gray-800 shrink-0">
-                    <img src={cat.image || `https://placehold.co/100x100?text=${cat.name[0]}`} alt={cat.name} className="w-full h-full object-cover" />
+                    <img 
+                      src={cat.image?.startsWith('http') ? cat.image : `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/${cat.image}`} 
+                      alt={cat.name} 
+                      className="w-full h-full object-cover" 
+                    />
                   </div>
                   <span className="text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
                     {cat.name}
@@ -379,7 +383,7 @@ const AppContent = () => {
                 const discount = originalPrice > 0
                   ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
                   : 0;
-                const cardImages = prod.images && prod.images.length > 0 ? prod.images : [prod.mainImage].filter(Boolean);
+                const cardImages = (prod.images && prod.images.length > 0 ? prod.images : [prod.mainImage]).filter(Boolean);
                 const hasImage = cardImages.length > 0 && cardImages[0];
 
                 return (
@@ -413,11 +417,14 @@ const AppContent = () => {
                           loop={cardImages.length > 1}
                           className="h-full w-full card-inner-swiper"
                         >
-                          {cardImages.map((img, idx) => (
-                            <SwiperSlide key={idx}>
-                              <img src={img} alt={prod.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                            </SwiperSlide>
-                          ))}
+                          {cardImages.map((img, idx) => {
+                            const finalSrc = img?.startsWith('http') ? img : `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/${img}`;
+                            return (
+                              <SwiperSlide key={idx}>
+                                <img src={finalSrc} alt={prod.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                              </SwiperSlide>
+                            );
+                          })}
                         </Swiper>
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-amber-50"><Package size={48} className="text-gray-200" /></div>
@@ -556,7 +563,7 @@ const AppContent = () => {
               No hay productos en "{selectedCategory}"
             </div>
           ) : filteredProducts.map((prod) => {
-            const cardImages = prod.images && prod.images.length > 0 ? prod.images : [prod.mainImage];
+            const cardImages = (prod.images && prod.images.length > 0 ? prod.images : [prod.mainImage]).filter(Boolean);
             return (
               <div 
                 key={prod._id} 
@@ -579,11 +586,14 @@ const AppContent = () => {
                     loop={cardImages.length > 1}
                     className="h-full w-full card-inner-swiper"
                   >
-                    {cardImages.map((img, idx) => (
-                      <SwiperSlide key={idx}>
-                        <img src={img} alt={prod.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                      </SwiperSlide>
-                    ))}
+                    {cardImages.map((img, idx) => {
+                      const finalSrc = img?.startsWith('http') ? img : `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/${img}`;
+                      return (
+                        <SwiperSlide key={idx}>
+                          <img src={finalSrc} alt={prod.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                        </SwiperSlide>
+                      );
+                    })}
                   </Swiper>
 
                   {/* OFFER BADGE/RIBON */}

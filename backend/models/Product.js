@@ -11,6 +11,7 @@ const productSchema = new mongoose.Schema({
   provider: { type: String },
   stock: { type: Number, default: 0 },
   stockMin: { type: Number, default: 0 },
+  priority: { type: Number, default: 0 },
   status: { type: String, enum: ['Activo', 'Inactivo'], default: 'Activo' },
   images: [{ type: String }], // Array of Cloudinary URLs
   mainImage: { type: String }, // Primary Cloudinary URL for cards

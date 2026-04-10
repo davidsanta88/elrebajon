@@ -61,12 +61,10 @@ const LoginPage = () => {
     return (
         <div className="min-h-screen bg-brand-red flex items-center justify-center px-4">
             <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md">
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-black text-brand-red uppercase italic tracking-tighter mb-2">
-                        El Rebajón
-                    </h1>
-                    <p className="text-gray-500 font-bold uppercase text-sm italic">Panel de Control</p>
-                </div>
+                    <div className="flex justify-center mb-4">
+                        <img src="/logo-rebajon.png" alt="El Rebajón Logo" className="w-56 h-auto drop-shadow-md brightness-110" />
+                    </div>
+                    <p className="text-gray-400 font-bold uppercase text-[10px] italic tracking-widest leading-none">Panel de Control</p>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>

@@ -181,7 +181,7 @@ const AdminDashboard = () => {
   });
   const [productForm, setProductForm] = useState({
     name: '', description: '', purchasePrice: 0, price: 0, category: '', brand: '', provider: '', 
-    stock: 0, status: 'Activo', condition: 'Nuevo', images: [], location: 'Bodega'
+    stock: 20, status: 'Activo', condition: 'Nuevo', images: [], location: 'Bodega', priority: 0
   });
   const [offerForm, setOfferForm] = useState({
     isOffer: true,
@@ -565,7 +565,7 @@ const AdminDashboard = () => {
       setShowProductModal(false);
       setProductForm({
         name: '', description: '', purchasePrice: 0, price: 0, category: '', provider: '', 
-        stock: 0, status: 'Activo', condition: 'Nuevo', images: []
+        stock: 20, status: 'Activo', condition: 'Nuevo', images: [], priority: 0
       });
       fetchProducts();
       Swal.fire('Éxito', 'Producto guardado correctamente', 'success');
@@ -654,6 +654,18 @@ const AdminDashboard = () => {
     }
   };
 
+  const handlePriorityQuickUpdate = async (id, newPriority) => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+      const token = localStorage.getItem('token');
+      await axios.patch(`${API_URL}/api/admin/products/${id}/priority`, { priority: Number(newPriority) }, { headers: { Authorization: `Bearer ${token}` } });
+      fetchProducts(); // Auto re-sort
+    } catch (err) {
+      console.error("Error updating priority:", err);
+      Swal.fire('Error', 'No se pudo actualizar la prioridad', 'error');
+    }
+  };
+
   const handleLocationSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -711,9 +723,10 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex font-sans overflow-hidden">
       
-      {/* MOBILE HEADER */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-brand-red text-white p-4 flex justify-between items-center z-[100] shadow-md">
-        <h1 className="text-xl font-black uppercase italic tracking-tighter">EL REBAJÓN</h1>
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-brand-red text-white p-3 flex justify-between items-center z-[100] shadow-md">
+        <div className="h-8">
+          <img src="/logo-rebajon.png" alt="El Rebajón" className="h-full w-auto object-contain brightness-110" />
+        </div>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 bg-white/20 rounded-lg">
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -721,9 +734,9 @@ const AdminDashboard = () => {
 
       {/* SIDEBAR */}
       <aside className={`fixed inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:inset-0 w-56 bg-brand-red text-white transition-transform duration-300 ease-in-out z-[110] flex flex-col shadow-2xl shrink-0`}>
-        <div className="p-6">
-          <h1 className="text-xl font-black uppercase italic tracking-tighter leading-none mb-1">EL REBAJÓN</h1>
-          <span className="bg-white text-brand-red px-1.5 py-0.5 rounded text-[8px] font-black italic">PANEL ADMINISTRATIVO</span>
+        <div className="p-4 flex flex-col items-center">
+          <img src="/logo-rebajon.png" alt="El Rebajón" className="w-full max-w-[140px] h-auto mb-2 brightness-110" />
+          <span className="bg-white/10 text-white px-2 py-0.5 rounded text-[7px] font-black italic uppercase tracking-widest border border-white/10">PANEL ADMINISTRATIVO</span>
         </div>
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto thin-scrollbar">
           <SidebarLink icon={<BarChart3 size={18} />} label="Reportes & BI" active={activeTab === 'stats'} onClick={() => { setActiveTab('stats'); setSidebarOpen(false); }} />
@@ -787,7 +800,7 @@ const AdminDashboard = () => {
                     <button onClick={handleSeed} className="bg-white border text-brand-red font-black p-2 rounded-lg hover:bg-brand-red hover:text-white transition-all">
                       <RefreshCw size={16} />
                     </button>
-                    <button onClick={() => { setIsEditingProduct(false); setProductForm({ name: '', description: '', purchasePrice: 0, price: 0, category: '', provider: '', stock: 0, stockMin: 0, status: 'Activo', images: [] }); setShowProductModal(true); }} className="bg-brand-green text-white font-black px-4 py-2 rounded-lg shadow-sm hover:scale-105 transition-transform flex items-center gap-1.5 uppercase text-[10px]">
+                    <button onClick={() => { setIsEditingProduct(false); setProductForm({ name: '', description: '', purchasePrice: 0, price: 0, category: '', brand: '', provider: '', stock: 20, stockMin: 0, status: 'Activo', images: [], priority: 0 }); setShowProductModal(true); }} className="bg-brand-green text-white font-black px-4 py-2 rounded-lg shadow-sm hover:scale-105 transition-transform flex items-center gap-1.5 uppercase text-[10px]">
                       <Plus size={16} /> Nuevo
                     </button>
                   </>
@@ -966,86 +979,85 @@ const AdminDashboard = () => {
             </div>
           ) : activeTab === 'products' ? (
             <div className="flex flex-col min-w-0 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              {/* TABLE HEADER */}
-              <div className="grid grid-cols-[140px_1fr_100px_90px_60px_100px_90px_90px_90px_80px] gap-4 p-3 border-b bg-gray-50/50 items-center">
-                <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest text-center italic">Visor Img</p>
-                <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest italic">Nombre Producto</p>
-                <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest italic text-center">Categoría</p>
-                <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest italic text-center">Marca</p>
-                <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest italic text-center">Tipo</p>
-                <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest italic text-center">Proveedor</p>
-                <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest italic text-right">Compra</p>
-                <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest italic text-right">Venta</p>
-                <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest italic text-right">Ganancia</p>
-                <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest italic text-center">⚙️</p>
-              </div>
+                {/* Header Dinámico - Rollback to include Brands/Providers */}
+                <div className="grid grid-cols-[60px_70px_1fr_120px_90px_100px_100px_100px_100px] gap-4 px-6 py-4 bg-gray-50/50 border-b border-gray-100 text-[10px] font-black uppercase text-gray-400 tracking-widest">
+                  <div className="text-center">#</div>
+                  <div className="text-center">Visor Img</div>
+                  <div>Nombre Producto</div>
+                  <div>Categoría</div>
+                  <div className="text-center">Tipo</div>
+                  <div className="text-center">Compra</div>
+                  <div className="text-center">Venta</div>
+                  <div className="text-center">Ganancia</div>
+                  <div className="text-right">Acciones</div>
+                </div>
 
               {/* TABLE ROWS */}
               <div className="divide-y divide-gray-50">
                 {products.map((prod) => {
                   const profit = prod.price - (prod.purchasePrice || 0);
                   const marginPercent = prod.purchasePrice > 0 ? ((profit / prod.purchasePrice) * 100).toFixed(0) : 0;
-                  const allImages = prod.images && prod.images.length > 0 ? prod.images : [prod.mainImage].filter(Boolean);
+                  const allImages = (prod.images && prod.images.length > 0 ? prod.images : [prod.mainImage]).filter(Boolean);
+                  const isInactive = prod.status === 'Inactivo';
 
                   return (
-                    <div key={prod._id} className="grid grid-cols-[140px_1fr_100px_90px_60px_100px_90px_90px_90px_80px] gap-4 p-2 px-3 items-center hover:bg-gray-50/50 transition-colors group">
-                      
-                      {/* IMAGE CAROUSEL (SWIPER) */}
-                      <div className="w-[124px] h-[124px] rounded-xl border-2 border-gray-100 bg-gray-50 overflow-hidden shrink-0 shadow-sm group-hover:border-brand-red/20 transition-colors">
+                    <div 
+                      key={prod._id} 
+                      className={`grid grid-cols-[60px_70px_1fr_120px_90px_100px_100px_100px_100px] gap-4 px-6 py-4 items-center hover:bg-gray-50 transition-colors group border-b border-gray-50 last:border-0 ${isInactive ? 'opacity-50 grayscale' : ''}`}
+                    >
+                      {/* RANKING */}
+                      <div className="flex items-center justify-center px-1">
+                        <input 
+                          type="number" 
+                          defaultValue={prod.priority || 0}
+                          onBlur={(e) => handlePriorityQuickUpdate(prod._id, e.target.value)}
+                          className="w-full text-center bg-gray-100/50 border border-gray-200 rounded-lg py-1 text-[10px] font-black outline-none focus:border-brand-red/30 focus:bg-white transition-all"
+                        />
+                      </div>
+                      {/* VISOR IMG */}
+                      <div className="w-[50px] h-[50px] rounded-2xl overflow-hidden bg-gray-100 border-2 border-white shadow-sm mx-auto">
                         {allImages.length > 0 ? (
                           <Swiper
                             modules={[Autoplay]}
-                            autoplay={{ delay: 2500, disableOnInteraction: false }}
+                            autoplay={{ delay: 3000 + Math.random() * 2000 }}
                             loop={allImages.length > 1}
                             className="w-full h-full"
                           >
-                            {allImages.map((img, idx) => (
-                              <SwiperSlide key={idx} className="w-full h-full">
-                                <img src={img} className="w-full h-full object-cover" alt={`${prod.name} ${idx}`} />
-                              </SwiperSlide>
-                            ))}
+                            {allImages.map((img, idx) => {
+                              const finalSrc = img?.startsWith('http') ? img : `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/${img}`;
+                              return (
+                                <SwiperSlide key={idx} className="w-full h-full">
+                                  <img src={finalSrc} className="w-full h-full object-cover" alt={`${prod.name} ${idx}`} />
+                                </SwiperSlide>
+                              );
+                            })}
                           </Swiper>
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center"><Package size={32} className="text-gray-200" /></div>
+                          <div className="w-full h-full flex items-center justify-center"><Package size={24} className="text-gray-200" /></div>
                         )}
                       </div>
 
-                      {/* PRODUCT NAME */}
-                      <div className="min-w-0">
-                        <h4 className="text-[11px] font-black text-gray-800 uppercase italic truncate leading-none mb-0.5">{prod.name}</h4>
-                        <p className="text-[8px] font-bold text-gray-300 uppercase leading-none truncate italic opacity-60">ID: {prod._id.slice(-6)}</p>
+                      {/* NOMBRE PRODUCTO */}
+                      <div className="flex flex-col min-w-0">
+                        <h4 className="font-black text-gray-800 uppercase italic truncate text-sm leading-tight mb-0.5">{prod.name}</h4>
+                        <div className="flex items-center gap-2">
+                           <span className="text-[8px] font-black bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-md uppercase tracking-tighter">SKU: {prod._id.slice(-6).toUpperCase()}</span>
+                           {prod.stock <= prod.stockMin && <span className="text-[8px] font-black bg-red-100 text-red-500 px-1.5 py-0.5 rounded-md uppercase animate-pulse">Low Stock</span>}
+                        </div>
                       </div>
 
-                      {/* CATEGORY */}
+                      {/* CATEGORIA */}
+                      <div>
+                        <span className="inline-block bg-brand-red/5 text-brand-red font-black text-[9px] px-2 py-1 rounded-lg uppercase italic border border-brand-red/10">{prod.category}</span>
+                      </div>
+
+                      {/* TIPO */}
                       <div className="text-center">
-                        <span className="text-[7.5px] font-black uppercase text-brand-red bg-red-50 px-2 py-1 rounded-md leading-none border border-red-100/50">{prod.category}</span>
+                        <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border ${prod.condition === 'Usado' ? 'border-amber-200 text-amber-600 bg-amber-50' : 'border-blue-200 text-blue-600 bg-blue-50'} uppercase`}>{prod.condition || 'Nuevo'}</span>
                       </div>
 
-                      {/* BRAND */}
+                      {/* COMPRA */}
                       <div className="text-center">
-                        <span className="text-[8px] font-black uppercase text-gray-400 bg-gray-50 px-2 py-1 rounded-md leading-none border border-gray-200/50 truncate block mx-auto max-w-full">
-                          {prod.brand || '---'}
-                        </span>
-                      </div>
-
-                      {/* TYPE */}
-                      <div className="text-center">
-                        <span className={`text-[7px] font-black uppercase px-2 py-1 rounded-md leading-none border ${
-                          prod.condition === 'Usado' 
-                            ? 'bg-amber-50 text-amber-600 border-amber-100/50' 
-                            : 'bg-blue-50 text-blue-600 border-blue-100/50'
-                        }`}>
-                          {prod.condition === 'Usado' ? 'USADO' : 'NUEVO'}
-                        </span>
-                      </div>
-
-                      {/* PROVIDER */}
-                      <div className="min-w-0 text-center">
-                        <p className="text-[9px] font-black text-gray-500 uppercase truncate leading-none">{prod.provider || 'S/P'}</p>
-                      </div>
-                      
-                      {/* COST */}
-                      <div className="text-right">
                         <p className="text-gray-400 font-bold text-[10px] leading-none tracking-tighter">${formatNum(prod.purchasePrice || 0)}</p>
                       </div>
 
@@ -1055,13 +1067,13 @@ const AdminDashboard = () => {
                       </div>
 
                       {/* MARGIN */}
-                      <div className="text-right">
+                      <div className="text-center">
                         <p className={`font-black text-[11px] leading-none italic ${profit > 0 ? 'text-brand-green' : 'text-gray-300'}`}>+${formatNum(profit)}</p>
                         <p className="text-[7px] font-black text-gray-300 mt-1 uppercase leading-none">{marginPercent}%</p>
                       </div>
 
                       {/* ACTIONS */}
-                      <div className="flex items-center justify-center gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => { setIsEditingProduct(true); setProductForm(prod); setShowProductModal(true); }} className="p-1.5 rounded-lg hover:bg-blue-50 hover:text-blue-500 transition-colors text-gray-400"><Edit size={12} /></button>
                         <button onClick={() => handleDeleteProduct(prod._id)} className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-500 transition-colors text-gray-400"><Trash2 size={12} /></button>
                       </div>
@@ -1229,6 +1241,14 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
               </select>
             </InputGroup>
             <div className="grid grid-cols-2 gap-2">
+              <InputGroup label="Stock Actual" icon={<Package size={12}/>}>
+                <input type="number" required value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} className="w-full bg-gray-50 p-2.5 rounded-xl font-bold text-xs" />
+              </InputGroup>
+              <InputGroup label="Prioridad (Ranking)" icon={<TrendingUp size={12}/>}>
+                <input type="number" value={form.priority} onChange={e => setForm({...form, priority: e.target.value})} className="w-full bg-brand-red/5 p-2.5 rounded-xl outline-none font-black text-brand-red border-2 border-brand-red/10 focus:border-brand-red transition-all text-xs" placeholder="0" />
+              </InputGroup>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
               <InputGroup label="Ubicación" icon={<MapPin size={12}/>}>
                 <select required value={form.location} onChange={e => setForm({...form, location: e.target.value})} className="w-full bg-gray-50 p-2.5 rounded-xl outline-none font-bold text-xs uppercase">
                   <option value="Bodega">📦 BODEGA</option>
@@ -1237,12 +1257,19 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
                   ))}
                 </select>
               </InputGroup>
-              <InputGroup label="Stock Actual"><input type="number" required value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} className="w-full bg-gray-50 p-2.5 rounded-xl font-bold text-xs" /></InputGroup>
+              <InputGroup label="Estado" icon={<ToggleRight size={12}/>}>
+                <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full bg-gray-50 p-2.5 rounded-xl font-bold text-xs">
+                  <option value="Activo">Activo</option>
+                  <option value="Inactivo">Inactivo</option>
+                </select>
+              </InputGroup>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <InputGroup label="Estado"><select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full bg-gray-50 p-2.5 rounded-xl font-bold text-xs"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select></InputGroup>
-              <InputGroup label="Condición"><select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})} className="w-full bg-gray-50 p-2.5 rounded-xl font-bold text-brand-red text-xs"><option value="Nuevo">📦 Nuevo</option><option value="Usado">♻️ Usado</option></select></InputGroup>
-            </div>
+            <InputGroup label="Condición" icon={<Flame size={12}/>}>
+              <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})} className="w-full bg-gray-50 p-2.5 rounded-xl font-bold text-brand-red text-xs">
+                <option value="Nuevo">📦 Nuevo</option>
+                <option value="Usado">♻️ Usado</option>
+              </select>
+            </InputGroup>
             <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 relative group overflow-hidden">
                <input type="file" multiple onChange={e => {
                   const newFiles = Array.from(e.target.files);
