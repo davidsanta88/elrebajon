@@ -34,9 +34,6 @@ const AppContent = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null); // null = todas
-  const [showLeadModal, setShowLeadModal] = useState(false);
-  const [leadForm, setLeadForm] = useState({ name: '', phone: '' });
-  const [pendingLeadData, setPendingLeadData] = useState({ product: null, referrer: '' });
   const navigate = useNavigate();
 
   // Carousel slides removed for space optimization
@@ -114,97 +111,18 @@ const AppContent = () => {
   };
 
   const handleWhatsAppAction = (product, referrer) => {
-    const savedName = localStorage.getItem('lead_name');
-    const savedPhone = localStorage.getItem('lead_phone');
+    // Redirección inmediata sin pedir datos, para mayor simplicidad (petición del usuario)
+    recordLead(product, referrer, { name: 'Interesado', phone: 'Sin número' });
     
-    if (savedName && savedPhone) {
-      // Si ya tenemos los datos, procedemos directo
-      executeWhatsAppRedirect(product, referrer, { name: savedName, phone: savedPhone });
-    } else {
-      // Si no, mostramos el modal
-      setPendingLeadData({ product, referrer });
-      setShowLeadModal(true);
-    }
-  };
-
-  const executeWhatsAppRedirect = (product, referrer, customerData) => {
-    recordLead(product, referrer, customerData);
-    
-    // Guardar en local para futuras compras
-    localStorage.setItem('lead_name', customerData.name);
-    localStorage.setItem('lead_phone', customerData.phone);
-
     const message = product 
-      ? `¡Hola! Me interesa este producto y el *PLAN SEPARE*:\n\n*${product.name}*\n💰 *Precio:* $${product.price.toLocaleString()}\n📝 *Descripción:* ${product.description || 'Sin descripción'}\n\n*Mi Nombre:* ${customerData.name}\n*Mi WhatsApp:* ${customerData.phone}`
-      : `¡Hola! Mi nombre es ${customerData.name}. Me gustaría recibir información general sobre El Rebajón y el *PLAN SEPARE*.`;
+      ? `¡Hola! Me interesa este producto y el *PLAN SEPARE*:\n\n*${product.name}*\n💰 *Precio:* $${product.price.toLocaleString()}\n📝 *Descripción:* ${product.description || 'Sin descripción'} \n\n¡Espero su respuesta!`
+      : `¡Hola! Me gustaría recibir información general sobre El Rebajón y el *PLAN SEPARE*.`;
 
     const waUrl = `https://wa.me/573114018724?text=${encodeURIComponent(message)}`;
     window.open(waUrl, '_blank');
   };
 
-  const LeadContactModal = () => {
-    if (!showLeadModal) return null;
 
-    return (
-      <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in duration-300">
-        <div className="bg-white w-full max-w-sm rounded-[2rem] overflow-hidden shadow-2xl border border-gray-100 p-6 sm:p-8 flex flex-col gap-6 relative">
-          <button 
-            onClick={() => setShowLeadModal(false)}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-          >
-            <X size={20} />
-          </button>
-
-          <div className="text-center space-y-2">
-            <div className="w-16 h-16 bg-brand-green/10 rounded-full flex items-center justify-center mx-auto text-brand-green mb-2">
-              <MessageCircle size={32} fill="currentColor" />
-            </div>
-            <h3 className="text-xl font-black uppercase italic tracking-tighter text-gray-800 leading-none">¡Casi listo!</h3>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Para comprar indícanos quién eres</p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase text-gray-400 tracking-widest px-1">Tu Nombre Completo</label>
-              <input 
-                type="text" 
-                placeholder="Nombre Ejemplo..."
-                value={leadForm.name}
-                onChange={(e) => setLeadForm({...leadForm, name: e.target.value})}
-                className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-3 px-4 text-xs font-bold outline-none focus:border-brand-green transition-all"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase text-gray-400 tracking-widest px-1">Tu WhatsApp / Teléfono</label>
-              <input 
-                type="tel" 
-                placeholder="311 123 4567..."
-                value={leadForm.phone}
-                onChange={(e) => setLeadForm({...leadForm, phone: e.target.value})}
-                className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-3 px-4 text-xs font-bold outline-none focus:border-brand-green transition-all"
-              />
-            </div>
-          </div>
-
-          <button 
-            onClick={() => {
-              if (leadForm.name && leadForm.phone) {
-                setShowLeadModal(false);
-                executeWhatsAppRedirect(pendingLeadData.product, pendingLeadData.referrer, leadForm);
-              } else {
-                alert('Por favor completa todos los campos.');
-              }
-            }}
-            className="w-full bg-brand-green text-white font-black py-4 rounded-2xl shadow-lg border-b-[4px] border-green-700 active:border-b-0 active:translate-y-1 transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-2"
-          >
-            Continuar a WhatsApp <MessageCircle size={14} fill="white" />
-          </button>
-          
-          <p className="text-[8px] font-bold text-gray-300 text-center uppercase">Tus datos están seguros con El Rebajón</p>
-        </div>
-      </div>
-    );
-  };
 
   const handleShareApp = () => {
     const shareData = {
@@ -807,8 +725,6 @@ const AppContent = () => {
         product={selectedProduct} 
         onClose={() => setSelectedProduct(null)} 
       />
-
-      <LeadContactModal />
 
       {/* SWIPER CUSTOM STYLES & ANIMATIONS */}
       <style dangerouslySetInnerHTML={{ __html: `
