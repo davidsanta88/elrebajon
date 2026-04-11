@@ -725,7 +725,7 @@ const AppContent = () => {
 
         .animate-marquee {
           display: inline-block;
-          animation: marquee 160s linear infinite;
+          animation: marquee 220s linear infinite;
           white-space: nowrap;
         }
         .animate-marquee-fast {
