@@ -525,7 +525,8 @@ const LeadsView = ({ leads, formatNum }) => (
     <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
       <SectionHeader title="Historial de Leads" detail={`Total: ${leads.length} Contactos`} icon={<MessageCircle size={16}/>} />
       
-      <div className="overflow-x-auto">
+      {/* VISTA DESKTOP */}
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full text-left">
           <thead>
             <tr className="text-[9px] font-black uppercase text-gray-400 border-b border-gray-100 italic">
@@ -571,6 +572,43 @@ const LeadsView = ({ leads, formatNum }) => (
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* VISTA MÓVIL */}
+      <div className="lg:hidden space-y-3">
+        {leads.length === 0 ? (
+          <div className="py-10 text-center text-gray-300 font-black uppercase italic text-[10px]">No hay registros</div>
+        ) : leads.map((lead) => (
+          <div key={lead._id} className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 flex flex-col gap-3">
+             <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                   <div className="w-12 h-12 rounded-xl bg-white overflow-hidden border border-gray-200 shadow-sm">
+                      <img src={lead.mainImage || 'https://placehold.co/100'} className="w-full h-full object-cover" />
+                   </div>
+                   <div>
+                      <h4 className="text-[11px] font-black text-gray-800 uppercase italic leading-tight mb-1">{lead.productName}</h4>
+                      <div className="flex gap-2">
+                         <span className="text-[8px] font-black text-brand-red uppercase px-2 py-0.5 bg-red-50 rounded-lg">{lead.category}</span>
+                         <span className="text-[8px] font-black text-gray-400 uppercase">{lead.referrer}</span>
+                      </div>
+                   </div>
+                </div>
+                <div className="text-right">
+                   <p className="text-sm font-black text-gray-800 italic leading-none mb-1">${formatNum(lead.price)}</p>
+                   <p className="text-[7.5px] font-bold text-gray-400 uppercase">{format(new Date(lead.createdAt), 'dd/MM HH:mm')}</p>
+                </div>
+             </div>
+             <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                 <span className="text-[8px] font-black text-brand-green uppercase flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 bg-brand-green rounded-full shadow-[0_0_8px_rgba(34,197,94,0.5)] animate-pulse"></div> 
+                    Nuevo Lead por WhatsApp
+                 </span>
+                 <button className="bg-white border border-gray-200 p-2 rounded-xl text-gray-500 active:scale-95 transition-all">
+                    <MessageCircle size={14} />
+                 </button>
+             </div>
+          </div>
+        ))}
       </div>
     </div>
   </div>
@@ -628,7 +666,9 @@ const InventoryView = ({ inventory, formatNum, COLORS }) => (
 
     <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
         <SectionHeader title="Auditoría de Almacén" detail="Detalle global de existencias" icon={<Package size={16}/>} />
-        <div className="overflow-x-auto overflow-y-auto max-h-[400px] thin-scrollbar">
+        
+        {/* VISTA DESKTOP */}
+        <div className="hidden lg:block overflow-x-auto overflow-y-auto max-h-[400px] thin-scrollbar">
             <table className="w-full text-left">
                 <thead className="sticky top-0 bg-white z-10">
                     <tr className="text-[9px] font-black uppercase text-gray-400 border-b border-gray-100 italic">
@@ -671,6 +711,45 @@ const InventoryView = ({ inventory, formatNum, COLORS }) => (
                     ))}
                 </tbody>
             </table>
+        </div>
+
+        {/* VISTA MÓVIL */}
+        <div className="lg:hidden space-y-3">
+           {inventory.products.map((p) => (
+              <div key={p._id} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex flex-col gap-3">
+                 <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-200 shrink-0">
+                       <img src={p.mainImage || 'https://placehold.co/100'} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                       <h4 className="text-[10px] font-black text-gray-800 uppercase italic truncate">{p.name}</h4>
+                       <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`text-[8px] font-black px-1.5 py-0.5 rounded italic ${
+                             p.stock <= 0 ? 'bg-red-100 text-red-600' :
+                             p.stock <= p.stockMin ? 'bg-orange-100 text-orange-600' :
+                             'bg-brand-green/10 text-brand-green'
+                          }`}>
+                             {p.stock} UNIDADES · {p.stock <= 0 ? 'AGOTADO' : p.stock <= p.stockMin ? 'BAJO' : 'OK'}
+                          </span>
+                       </div>
+                    </div>
+                    <div className="text-right">
+                       <p className="text-[11px] font-black text-gray-800 italic">${formatNum(p.capitalItem)}</p>
+                       <p className="text-[7.5px] font-black uppercase text-gray-300">Inversión</p>
+                    </div>
+                 </div>
+                 <div className="flex justify-between items-center pt-2 border-t border-gray-200/50">
+                    <div className="flex flex-col">
+                       <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Rentabilidad</p>
+                       <span className="text-[10px] font-black text-brand-green italic">ROI {p.marginPct}%</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                       <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Proveedor</p>
+                       <span className="text-[9px] font-bold text-gray-500 uppercase">{p.provider}</span>
+                    </div>
+                 </div>
+              </div>
+           ))}
         </div>
     </div>
   </div>
@@ -948,7 +1027,7 @@ const GestionVentasView = ({ orders, formatNum, searchTerm, setSearchTerm, fetch
           <input 
               type="text" 
               placeholder="Buscar venta..."
-              className="w-full bg-white border border-gray-200 rounded-xl py-2 pl-9 pr-4 text-xs font-bold focus:ring-1 focus:ring-brand-red/20 transition-all outline-none"
+              className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-9 pr-4 text-xs font-bold focus:ring-2 focus:ring-brand-red/10 transition-all outline-none shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyUp={(e) => e.key === 'Enter' && fetchOrders()}
@@ -956,86 +1035,129 @@ const GestionVentasView = ({ orders, formatNum, searchTerm, setSearchTerm, fetch
       </div>
       <button 
         onClick={onNew}
-        className="w-full md:w-auto bg-brand-red text-white px-5 py-2 rounded-xl font-black uppercase italic tracking-tight shadow-md hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 text-xs"
+        className="w-full md:w-auto bg-brand-red text-white px-6 py-3 rounded-xl font-black uppercase italic tracking-tight shadow-lg shadow-red-100 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 text-xs"
       >
-        <Plus size={16} /> NUEVA VENTA POS
+        <Plus size={18} /> NUEVA VENTA POS
       </button>
     </div>
 
-    <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      {/* VISTA DESKTOP */}
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full text-left">
           <thead>
             <tr className="border-b border-gray-50 text-[8px] font-black uppercase tracking-widest text-gray-300 bg-gray-50/20 italic">
-              <th className="px-3 py-2">Fecha / Cliente</th>
-              <th className="py-2">Detalle Productos</th>
-              <th className="py-2 text-right">Monto</th>
-              <th className="py-2 text-right">Estado</th>
-              <th className="px-3 py-2 text-center">Gestión</th>
+              <th className="px-6 py-4">Fecha / Cliente</th>
+              <th className="py-4">Detalle Productos</th>
+              <th className="py-4 text-right">Monto</th>
+              <th className="py-4 text-right">Estado</th>
+              <th className="px-6 py-4 text-center">Gestión</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {orders.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="py-20 text-center text-gray-300 font-black uppercase text-[10px] italic opacity-20">Sin ventas</td>
-              </tr>
+              <tr><td colSpan="5" className="py-20 text-center text-gray-300 font-black uppercase text-[10px] italic opacity-20">Sin ventas registradas</td></tr>
             ) : orders.map(order => (
-              <tr key={order._id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
-                <td className="px-3 py-1.5 min-w-[120px]">
+              <tr key={order._id} className="hover:bg-gray-50/50 transition-colors group">
+                <td className="px-6 py-4">
                   <div className="flex flex-col">
-                    <span className="text-[9px] font-black text-gray-800 italic uppercase leading-none mb-0.5">{format(new Date(order.createdAt), 'dd MMM, yy')}</span>
-                    <span className="text-[8px] font-bold text-gray-400 uppercase leading-none truncate max-w-[110px]">{order.customerName}</span>
+                    <span className="text-[10px] font-black text-gray-800 italic uppercase leading-none mb-1">{format(new Date(order.createdAt), 'dd MMM, yy')}</span>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase leading-none">{order.customerName}</span>
                   </div>
                 </td>
-                <td className="py-1.5">
-                  <div className="flex flex-col gap-0">
+                <td className="py-4">
+                  <div className="flex flex-col">
                     {order.items.slice(0, 2).map((item, i) => (
-                      <div key={i} className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-[8.5px] font-bold text-gray-500 shrink-0">{item.quantity}x</span>
-                        <span className="text-[9px] font-bold text-gray-400 truncate max-w-[160px] uppercase italic leading-none">{item.name}</span>
+                      <div key={i} className="flex items-center gap-1.5">
+                        <span className="text-[8.5px] font-black text-brand-red">{item.quantity}x</span>
+                        <span className="text-[9px] font-bold text-gray-500 truncate max-w-[200px] uppercase italic">{item.name}</span>
                       </div>
                     ))}
-                    {order.items.length > 2 && <span className="text-[7.5px] font-black text-brand-red uppercase italic mt-0.5">+{order.items.length - 2} más...</span>}
+                    {order.items.length > 2 && <span className="text-[7.5px] font-black text-brand-red uppercase italic mt-1">+{order.items.length - 2} más...</span>}
                   </div>
                 </td>
-                <td className="py-1.5 text-right font-black italic text-gray-800 text-[10px] pr-4">
-                  <div className="flex flex-col leading-none">
-                    <span>${formatNum(order.totalRevenue || order.totalAmount)}</span>
-                    {order.isPlanSepare && <span className="text-[6px] text-brand-red font-black uppercase mt-0.5">Separe</span>}
-                  </div>
+                <td className="py-4 text-right font-black italic text-gray-800 text-xs pr-4">
+                   ${formatNum(order.totalRevenue || order.totalAmount)}
                 </td>
-                <td className="py-1.5 text-right font-black italic text-[10px] min-w-[80px]">
-                   <div className="flex flex-col items-end leading-none">
-                    <span className={order.balance > 0 ? "text-brand-red" : "text-brand-green"}>
-                      ${formatNum(order.balance)}
-                    </span>
-                    <span className="text-[6px] text-gray-300 font-bold uppercase mt-0.5">{order.balance > 0 ? 'Abierta' : 'Pagada'}</span>
-                  </div>
+                <td className="py-4 text-right">
+                    <div className="flex flex-col items-end leading-none">
+                        <span className={`text-[11px] font-black italic ${order.balance > 0 ? 'text-brand-red' : 'text-brand-green'}`}>
+                           ${formatNum(order.balance)}
+                        </span>
+                        <span className="text-[7px] font-bold text-gray-300 uppercase mt-1">{order.balance > 0 ? 'Pendiente' : 'Pagado'}</span>
+                    </div>
                 </td>
-                <td className="px-3 py-1.5 text-center">
-                  <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {order.balance > 0 && (
-                        <button 
-                          onClick={() => onPayment(order)}
-                          className="p-1 px-2 border border-brand-green/30 text-brand-green rounded text-[8px] font-black uppercase hover:bg-brand-green hover:text-white transition-all shadow-sm"
-                          title="Abonar"
-                        >
-                          Abonar
-                        </button>
-                      )}
-                      <button 
-                        onClick={() => onDelete(order._id)}
-                        className="p-1 text-gray-300 hover:text-brand-red transition-colors"
-                        title="Eliminar"
-                      >
-                        <Trash2 size={11} />
-                      </button>
+                <td className="px-6 py-4 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                       {order.balance > 0 && (
+                        <button onClick={() => onPayment(order)} className="p-2 text-brand-green hover:bg-green-50 rounded-lg transition-all" title="Registrar Abono"><CreditCard size={16} /></button>
+                       )}
+                       <button onClick={() => onDelete(order._id)} className="p-2 text-gray-300 hover:text-brand-red hover:bg-red-50 rounded-lg transition-all"><Trash2 size={16} /></button>
                   </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* VISTA MÓVIL */}
+      <div className="lg:hidden divide-y divide-gray-50">
+        {orders.length === 0 ? (
+          <div className="py-20 text-center text-gray-300 font-black uppercase text-[10px] italic">Sin ventas registradas</div>
+        ) : orders.map(order => (
+          <div key={order._id} className="p-4 flex flex-col gap-3 bg-white active:bg-gray-50 transition-colors">
+             <div className="flex justify-between items-start">
+                <div>
+                   <p className="text-[8px] font-black uppercase text-brand-red leading-none mb-1 opacity-60">{format(new Date(order.createdAt), 'dd MMMM, yyyy')}</p>
+                   <h4 className="text-[11px] font-black text-gray-800 uppercase italic leading-tight">{order.customerName}</h4>
+                </div>
+                <div className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase italic ${order.balance > 0 ? 'bg-red-50 text-brand-red' : 'bg-green-50 text-brand-green'}`}>
+                   {order.balance > 0 ? 'Con Pendiente' : 'Pagado'}
+                </div>
+             </div>
+
+             <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100/50 space-y-2">
+                <div className="flex flex-col gap-1">
+                   {order.items.slice(0, 3).map((item, i) => (
+                      <div key={i} className="flex justify-between items-center text-[9.5px]">
+                         <span className="font-bold text-gray-500 uppercase italic truncate pr-4">{item.name}</span>
+                         <span className="font-black text-gray-800 shrink-0">{item.quantity} x ${formatNum(item.price)}</span>
+                      </div>
+                   ))}
+                   {order.items.length > 3 && <p className="text-[8px] font-black text-brand-red italic mt-1 uppercase text-right">+{order.items.length - 3} productos adicionales</p>}
+                </div>
+                <div className="pt-2 border-t border-gray-100 flex justify-between items-end">
+                   <div>
+                      <p className="text-[7.5px] font-black text-gray-400 uppercase leading-none mb-1">Total Venta</p>
+                      <p className="text-sm font-black text-gray-800 italic leading-none">${formatNum(order.totalRevenue || order.totalAmount)}</p>
+                   </div>
+                   <div className="text-right">
+                      <p className="text-[7.5px] font-black text-brand-red uppercase leading-none mb-1">Saldo Deudor</p>
+                      <p className="text-sm font-black text-brand-red italic leading-none">${formatNum(order.balance)}</p>
+                   </div>
+                </div>
+             </div>
+
+             <div className="flex gap-2">
+                {order.balance > 0 && (
+                   <button 
+                     onClick={() => onPayment(order)}
+                     className="flex-1 bg-brand-green text-white py-3 rounded-2xl font-black uppercase text-[10px] italic flex items-center justify-center gap-2 shadow-lg shadow-green-100"
+                   >
+                     <Plus size={16} /> Abonar a Deuda
+                   </button>
+                )}
+                <button 
+                  onClick={() => onDelete(order._id)}
+                  className={`bg-white border text-gray-400 py-3 rounded-2xl flex items-center justify-center transition-all ${order.balance > 0 ? 'w-14 border-gray-100' : 'flex-1 border-red-100 text-brand-red font-black uppercase text-[10px] italic gap-2'}`}
+                >
+                  <Trash2 size={order.balance > 0 ? 18 : 16} />
+                  {order.balance <= 0 && "Eliminar Registro"}
+                </button>
+             </div>
+          </div>
+        ))}
       </div>
     </div>
   </div>
@@ -1043,47 +1165,47 @@ const GestionVentasView = ({ orders, formatNum, searchTerm, setSearchTerm, fetch
 
 const CarteraView = ({ data, formatNum }) => (
   <div className="space-y-4 animate-in fade-in duration-500">
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       <KPIBox title="Total Cartera" value={`$${formatNum(data.summary?.totalAccountReceivable || 0)}`} detail={`${data.summary?.totalClientsDebting || 0} Deudores`} icon={<CreditCard size={18} className="text-brand-red" />} color="bg-red-50" />
       <KPIBox title="Cobro Próximo" value={`$${formatNum(data.summary?.dueSoonAmount || 0)}`} detail="Próximos 7 días" icon={<Clock size={18} className="text-orange-500" />} color="bg-orange-50" />
-      <KPIBox title="Gestión" value={data.summary?.totalClientsDebting || 0} detail="Acciones pendientes" icon={<Users size={18} className="text-blue-500" />} color="bg-blue-50" />
+      <KPIBox title="Gestión Activa" value={data.summary?.totalClientsDebting || 0} detail="Acciones de cobro" icon={<Users size={18} className="text-blue-500" />} color="bg-blue-50" />
     </div>
 
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/50">
-        <SectionHeader title="Cuentas por Cobrar" detail="Seguimiento de saldos pendientes" icon={<Building size={16} />} />
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50">
+        <SectionHeader title="Cuentas por Cobrar" detail="Seguimiento detallado de saldos pendientes" icon={<Building size={16} />} />
       </div>
-      <div className="overflow-x-auto">
+
+      {/* VISTA DESKTOP */}
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-gray-50 text-[9px] font-black uppercase tracking-widest text-gray-400 italic">
-              <th className="px-4 py-3">Cliente</th>
-              <th className="py-3 text-right">Última Venta</th>
-              <th className="py-3 text-center">Frecuencia</th>
-              <th className="py-3 text-right">Pagado</th>
-              <th className="px-4 py-3 text-right">Saldo Deudor</th>
+            <tr className="border-b border-gray-50 text-[9px] font-black uppercase tracking-widest text-gray-400 italic bg-gray-50/20">
+              <th className="px-6 py-4">Cliente / Registro</th>
+              <th className="py-4 text-center">Frecuencia</th>
+              <th className="py-4 text-right">Monto Pagado</th>
+              <th className="px-6 py-4 text-right">Saldo en Cartera</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {data.orders?.length === 0 ? (
-              <tr><td colSpan="5" className="py-20 text-center text-gray-200 font-black uppercase italic text-xs">Sin deudas</td></tr>
+              <tr><td colSpan="4" className="py-20 text-center text-gray-300 font-black uppercase italic text-xs opacity-40">No hay deudas activas</td></tr>
             ) : data.orders?.map((order, idx) => (
-              <tr key={idx} className="hover:bg-gray-50/30 transition-colors">
-                <td className="px-4 py-2.5">
+              <tr key={idx} className="hover:bg-gray-50/30 transition-colors group">
+                <td className="px-6 py-4">
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-gray-800 italic uppercase leading-none mb-1">{order.customerName}</span>
-                    <span className="text-[8px] text-gray-400 font-bold uppercase tracking-wider leading-none">Cartera Activa</span>
+                    <span className="text-[8px] text-gray-400 font-bold uppercase">{order.createdAt ? format(new Date(order.createdAt), 'dd MMM, yyyy') : '--'}</span>
                   </div>
                 </td>
-                <td className="py-2.5 text-right text-[10px] font-bold text-gray-500 italic">{order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yy') : '--'}</td>
-                <td className="py-2.5 text-center">
-                  <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded text-[8px] font-black italic">
-                    {order.customerInfo?.ordersCount || 1} op.
+                <td className="py-4 text-center">
+                  <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[8px] font-black italic uppercase">
+                    {order.customerInfo?.ordersCount || 1} Compras
                   </span>
                 </td>
-                <td className="py-2.5 text-right font-bold text-brand-green text-[10px]">${formatNum(order.payments?.reduce((acc, p) => acc + p.amount, 0) || 0)}</td>
-                <td className="px-4 py-2.5 text-right">
-                  <span className="inline-block px-2 py-1 bg-red-50 text-brand-red rounded-lg font-black italic text-xs border border-brand-red/10 shadow-sm">
+                <td className="py-4 text-right font-bold text-brand-green text-[11px] italic pr-4">${formatNum(order.payments?.reduce((acc, p) => acc + p.amount, 0) || 0)}</td>
+                <td className="px-6 py-4 text-right">
+                  <span className="bg-red-50 text-brand-red px-3 py-1.5 rounded-xl font-black italic text-xs shadow-sm border border-red-100">
                     ${formatNum((order.totalRevenue || 0) - (order.payments?.reduce((acc, p) => acc + p.amount, 0) || 0))}
                   </span>
                 </td>
@@ -1091,6 +1213,47 @@ const CarteraView = ({ data, formatNum }) => (
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* VISTA MÓVIL */}
+      <div className="lg:hidden divide-y divide-gray-50">
+        {data.orders?.length === 0 ? (
+          <div className="py-20 text-center text-gray-300 font-black uppercase italic text-xs">No hay deudas activas</div>
+        ) : data.orders?.map((order, idx) => {
+          const paid = order.payments?.reduce((acc, p) => acc + p.amount, 0) || 0;
+          const balance = (order.totalRevenue || 0) - paid;
+          return (
+            <div key={idx} className="p-4 flex flex-col gap-4 bg-white active:bg-gray-50 transition-colors">
+               <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="text-[11px] font-black text-gray-800 uppercase italic leading-tight mb-1">{order.customerName}</h4>
+                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{format(new Date(order.createdAt), 'dd MMMM')}</span>
+                  </div>
+                  <div className="bg-red-50 text-brand-red px-3 py-1.5 rounded-2xl border border-red-100">
+                    <p className="text-sm font-black italic leading-none">${formatNum(balance)}</p>
+                    <p className="text-[7.5px] font-black uppercase text-center mt-1">Saldo</p>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100/50">
+                  <div className="flex flex-col">
+                    <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-widest mb-1">Monto Pagado</p>
+                    <span className="text-[10px] font-black text-brand-green italic">${formatNum(paid)}</span>
+                  </div>
+                  <div className="flex flex-col border-l border-gray-200 pl-3">
+                    <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-widest mb-1">Frecuencia</p>
+                    <span className="text-[10px] font-black text-blue-600 uppercase italic">{order.customerInfo?.ordersCount || 1} Compras</span>
+                  </div>
+               </div>
+
+               <button 
+                 className="w-full bg-white border border-gray-200 text-gray-500 py-3 rounded-2xl font-black uppercase text-[10px] italic flex items-center justify-center gap-2 active:scale-95 transition-all"
+               >
+                 Ver Historial de Abonos
+               </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   </div>

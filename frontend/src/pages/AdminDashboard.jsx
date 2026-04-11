@@ -894,7 +894,7 @@ const AdminDashboard = () => {
                 </select>
               </div>
 
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {products
                   .filter(p => {
                     const matchesSearch = p.name.toLowerCase().includes(offersSearchTerm.toLowerCase());
@@ -908,90 +908,74 @@ const AdminDashboard = () => {
                   const discount = prod.originalPrice && prod.offerPrice
                     ? Math.round(((prod.originalPrice - prod.offerPrice) / prod.originalPrice) * 100)
                     : null;
-                  const now = new Date();
-                  const isExpired = prod.offerEndDate && new Date(prod.offerEndDate) < now;
 
                   return (
-                    <div key={prod._id} className={`bg-white rounded-xl p-3 border-b transition-all duration-300 shadow-sm flex items-center gap-3 ${
-                      isActive ? 'bg-amber-50/50' : ''
+                    <div key={prod._id} className={`bg-white rounded-2xl p-4 border transition-all duration-300 shadow-sm flex flex-col gap-3 relative overflow-hidden group hover:shadow-md ${
+                      isActive ? 'border-brand-red/20 bg-amber-50/20' : 'border-gray-100'
                     }`}>
-                      {/* PRODUCT IMAGE */}
-                      <div className="w-12 h-12 bg-gray-50 rounded-lg overflow-hidden shrink-0 border border-gray-50">
-                        {prod.mainImage
-                          ? <img src={prod.mainImage} className="w-full h-full object-cover" />
-                          : <Package size={20} className="m-auto mt-2.5 text-gray-200" />}
-                      </div>
-
-                      {/* PRODUCT INFO */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-[8px] font-black uppercase text-brand-red leading-none">{prod.category}</span>
-                          {isActive && <span className="text-[8px] font-black bg-brand-red text-white px-1 py-0.5 rounded uppercase leading-none">Oferta</span>}
+                      {/* BADGE DESCUENTO */}
+                      {isActive && discount && (
+                        <div className="absolute top-0 right-0">
+                           <div className="bg-brand-red text-white text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-sm">
+                              -{discount}% OFF
+                           </div>
                         </div>
-                        <h4 className="font-black text-gray-800 uppercase italic truncate text-xs leading-none mb-1">{prod.name}</h4>
-                        {isActive && prod.offerPrice && (
-                          <div className="flex items-center gap-2 leading-none">
-                            <span className="text-[10px] text-brand-red font-black italic leading-none">${formatNum(prod.offerPrice)}</span>
-                            {prod.originalPrice && <span className="text-[9px] text-gray-300 line-through font-bold">${formatNum(prod.originalPrice)}</span>}
+                      )}
+
+                      <div className="flex gap-3">
+                        <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden shrink-0 border border-gray-100">
+                          {prod.mainImage
+                            ? <img src={prod.mainImage} className="w-full h-full object-cover" />
+                            : <Package size={24} className="m-auto mt-4 text-gray-200" />}
+                        </div>
+                        <div className="flex-1 min-w-0 flex flex-col justify-center">
+                          <span className="text-[8px] font-black uppercase text-brand-red tracking-widest mb-1">{prod.category}</span>
+                          <h4 className="font-black text-gray-800 uppercase italic truncate text-sm leading-tight mb-1">{prod.name}</h4>
+                          <div className="flex items-center gap-2">
+                            {isActive && prod.offerPrice ? (
+                              <>
+                                <span className="text-sm font-black text-brand-red italic leading-none">${formatNum(prod.offerPrice)}</span>
+                                {prod.originalPrice && <span className="text-[10px] text-gray-300 line-through font-bold">${formatNum(prod.originalPrice)}</span>}
+                              </>
+                            ) : (
+                              <span className="text-sm font-black text-gray-400 italic leading-none">${formatNum(prod.price)}</span>
+                            )}
                           </div>
-                        )}
+                        </div>
                       </div>
 
-                      {/* ACTIONS */}
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex gap-2 pt-2 border-t border-gray-50 mt-1">
                         {isActive && (
-                          <button onClick={() => handleOpenOfferModal(prod)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={14} /></button>
+                          <button 
+                            onClick={() => handleOpenOfferModal(prod)} 
+                            className="flex-1 bg-blue-50 text-blue-600 py-2.5 rounded-xl text-[10px] font-black uppercase italic flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all"
+                          >
+                            <Edit size={14} /> Configurar
+                          </button>
                         )}
                         <button
                           onClick={() => handleToggleOffer(prod)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-black text-[9px] uppercase transition-all ${
-                            isActive ? 'bg-brand-red text-white' : 'bg-gray-100 text-gray-400'
+                          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl font-black text-[10px] uppercase transition-all shadow-sm ${
+                            isActive ? 'bg-brand-red text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                           }`}
                         >
-                          {isActive ? 'Activa' : 'Inactiva'}
+                          <Smartphone size={14} />
+                          {isActive ? 'Activa' : 'Activar'}
                         </button>
                       </div>
                     </div>
                   );
                 })}
-                {products.length === 0 && (
+                {products.filter(p => {
+                    const matchesSearch = p.name.toLowerCase().includes(offersSearchTerm.toLowerCase());
+                    const matchesCategory = !offersCategoryFilter || p.category === offersCategoryFilter;
+                    return matchesSearch && matchesCategory;
+                  }).length === 0 && (
                   <div className="col-span-full text-center py-20 bg-white rounded-3xl text-gray-400 font-black uppercase italic">
-                    No hay productos en el inventario
+                    No hay productos en oferta que coincidan
                   </div>
                 )}
               </div>
-            </div>
-          ) : activeTab === 'locations' ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {locations.map((loc) => (
-                <div key={loc._id} className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center justify-between group">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${loc.status === 'Activo' ? 'bg-brand-green' : 'bg-gray-300'}`}></div>
-                    <h4 className="text-[11px] font-black text-gray-800 uppercase italic leading-none">{loc.name}</h4>
-                  </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                    <button onClick={() => { setIsEditingLocation(true); setLocationForm(loc); setShowLocationModal(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><Edit size={14} /></button>
-                    <button onClick={() => handleDeleteLocation(loc._id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={14} /></button>
-                  </div>
-                </div>
-              ))}
-              {locations.length === 0 && <div className="md:col-span-3 text-center py-20 bg-white rounded-3xl text-gray-400 font-black uppercase italic">No hay ubicaciones registradas</div>}
-            </div>
-          ) : activeTab === 'brands' ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {brands.map((brand) => (
-                <div key={brand._id} className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center justify-between group">
-                  <div>
-                    <h4 className="text-[11px] font-black text-gray-800 uppercase italic leading-none">{brand.name}</h4>
-                    <span className="text-[8px] font-bold text-brand-red uppercase">{brand.category}</span>
-                  </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                    <button onClick={() => { setIsEditingBrand(true); setBrandForm(brand); setShowBrandModal(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><Edit size={14} /></button>
-                    <button onClick={() => handleDeleteBrand(brand._id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={14} /></button>
-                  </div>
-                </div>
-              ))}
-              {brands.length === 0 && <div className="md:col-span-3 text-center py-20 bg-white rounded-3xl text-gray-400 font-black uppercase italic">No hay marcas registradas</div>}
             </div>
           ) : activeTab === 'categories' ? (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1043,119 +1027,172 @@ const AdminDashboard = () => {
                   </select>
                 </div>
 
-                <div className="flex flex-col min-w-0 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                {/* Header Dinámico - Rollback to include Brands/Providers */}
-                <div className="grid grid-cols-[60px_70px_1fr_120px_90px_100px_100px_100px_100px] gap-4 px-6 py-4 bg-gray-50/50 border-b border-gray-100 text-[10px] font-black uppercase text-gray-400 tracking-widest">
-                  <div className="text-center">#</div>
-                  <div className="text-center">Visor Img</div>
-                  <div>Nombre Producto</div>
-                  <div>Categoría</div>
-                  <div className="text-center">Tipo</div>
-                  <div className="text-center">Compra</div>
-                  <div className="text-center">Venta</div>
-                  <div className="text-center">Ganancia</div>
-                  <div className="text-right">Acciones</div>
+                <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+                  {/* CABECERA TABLA (SOLO DESKTOP) */}
+                  <div className="hidden lg:grid grid-cols-[60px_80px_1fr_120px_100px_100px_110px_110px_120px] gap-4 px-6 py-4 bg-gray-50 border-b border-gray-100 text-[10px] font-black uppercase text-gray-400 tracking-widest">
+                    <div className="text-center">#</div>
+                    <div className="text-center">Visor Img</div>
+                    <div>Nombre Producto</div>
+                    <div>Categoría</div>
+                    <div className="text-center">Condición</div>
+                    <div className="text-center">Stock</div>
+                    <div className="text-right">Compra</div>
+                    <div className="text-right">Venta</div>
+                    <div className="text-right">Acciones</div>
+                  </div>
+
+                  {/* FILAS DE PRODUCTOS / TARJETAS MÓVILES */}
+                  <div className="divide-y divide-gray-50 max-h-[70vh] overflow-y-auto thin-scrollbar">
+                    {products
+                      .filter(p => {
+                        const matchesSearch = p.name.toLowerCase().includes(productsSearchTerm.toLowerCase()) || p._id.toLowerCase().includes(productsSearchTerm.toLowerCase());
+                        const matchesCategory = !productsCategoryFilter || p.category === productsCategoryFilter;
+                        return matchesSearch && matchesCategory;
+                      })
+                      .map((prod) => {
+                        const profit = prod.price - (prod.purchasePrice || 0);
+                        const marginPercent = prod.purchasePrice > 0 ? ((profit / prod.purchasePrice) * 100).toFixed(0) : 0;
+                        const allImages = (prod.images && prod.images.length > 0 ? prod.images : [prod.mainImage]).filter(Boolean);
+                        const isInactive = prod.status === 'Inactivo';
+
+                        return (
+                          <React.Fragment key={prod._id}>
+                            {/* VISTA DESKTOP (TABLA) */}
+                            <div className={`hidden lg:grid grid-cols-[60px_80px_1fr_120px_100px_100px_110px_110px_120px] gap-4 px-6 py-4 items-center hover:bg-gray-50/80 transition-all group ${isInactive ? 'opacity-40 grayscale' : ''}`}>
+                              {/* RANKING */}
+                              <div className="flex items-center justify-center">
+                                <input 
+                                  type="number" 
+                                  defaultValue={prod.priority || 0}
+                                  onBlur={(e) => handlePriorityQuickUpdate(prod._id, e.target.value)}
+                                  className="w-12 text-center bg-gray-100 border border-gray-200 rounded-lg py-1 text-[10px] font-black outline-none focus:border-brand-red transition-all"
+                                />
+                              </div>
+
+                              {/* VISOR IMG */}
+                              <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 border-2 border-white shadow-sm mx-auto">
+                                {allImages.length > 0 ? (
+                                  <Swiper modules={[Autoplay]} autoplay={{ delay: 3000 + Math.random() * 2000 }} loop={allImages.length > 1} className="w-full h-full">
+                                    {allImages.map((img, idx) => (
+                                      <SwiperSlide key={idx}><img src={img?.startsWith('http') ? img : `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/${img}`} className="w-full h-full object-cover" /></SwiperSlide>
+                                    ))}
+                                  </Swiper>
+                                ) : <div className="w-full h-full flex items-center justify-center text-gray-200"><Package size={20} /></div>}
+                              </div>
+
+                              {/* INFO */}
+                              <div className="min-w-0">
+                                <h4 className="font-black text-gray-800 uppercase italic truncate text-sm leading-tight leading-none mb-1">{prod.name}</h4>
+                                <span className="text-[8px] font-black bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-md uppercase">SKU: {prod._id.slice(-6).toUpperCase()}</span>
+                              </div>
+
+                              {/* CATEGORIA */}
+                              <div>
+                                <span className="inline-block bg-brand-red/5 text-brand-red font-black text-[9px] px-2 py-1 rounded-lg uppercase italic border border-brand-red/10">{prod.category}</span>
+                              </div>
+
+                              {/* CONDICION */}
+                              <div className="text-center">
+                                <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border ${prod.condition === 'Usado' ? 'border-amber-200 text-amber-600 bg-amber-50' : 'border-blue-200 text-blue-600 bg-blue-50'} uppercase`}>{prod.condition || 'Nuevo'}</span>
+                              </div>
+
+                              {/* STOCK */}
+                              <div className="text-center flex flex-col items-center">
+                                <p className={`text-[11px] font-black ${prod.stock <= (prod.stockMin || 0) ? 'text-red-500' : 'text-gray-700'}`}>{prod.stock} Uni.</p>
+                                {prod.stock <= (prod.stockMin || 0) && <span className="text-[7px] font-black uppercase text-red-400 animate-pulse">Low Stock</span>}
+                              </div>
+
+                              {/* COMPRA */}
+                              <div className="text-right">
+                                <p className="text-gray-300 font-bold text-[10px] leading-none tracking-tighter decoration-gray-200">${formatNum(prod.purchasePrice || 0)}</p>
+                              </div>
+
+                              {/* VENTA */}
+                              <div className="text-right">
+                                <p className="text-brand-red font-black text-[14px] leading-none italic tracking-tighter">${formatNum(prod.price)}</p>
+                                <p className="text-[8px] font-black text-brand-green mt-1">+{marginPercent}%</p>
+                              </div>
+
+                              {/* ACCIONES */}
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button onClick={() => { setIsEditingProduct(true); setProductForm(prod); setShowProductModal(true); }} className="p-2 bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-sm"><Edit size={14} /></button>
+                                <button onClick={() => handleDeleteProduct(prod._id)} className="p-2 bg-red-50 text-brand-red rounded-xl hover:bg-brand-red hover:text-white transition-all shadow-sm"><Trash2 size={14} /></button>
+                              </div>
+                            </div>
+
+                            {/* VISTA MÓVIL (TARJETAS) */}
+                            <div className={`lg:hidden p-4 flex flex-col gap-4 bg-white hover:bg-gray-50/50 transition-colors relative ${isInactive ? 'opacity-50 grayscale' : ''}`}>
+                               <div className="flex gap-4">
+                                  {/* IMAGEN MÓVIL */}
+                                  <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gray-100 border-2 border-white shadow-lg shrink-0">
+                                    {allImages.length > 0 ? (
+                                      <Swiper modules={[Autoplay]} autoplay={{ delay: 3500 }} loop={allImages.length > 1} className="w-full h-full">
+                                        {allImages.map((img, idx) => (
+                                          <SwiperSlide key={idx}><img src={img?.startsWith('http') ? img : `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/${img}`} className="w-full h-full object-cover" /></SwiperSlide>
+                                        ))}
+                                      </Swiper>
+                                    ) : <div className="w-full h-full flex items-center justify-center text-gray-200"><Package size={24} /></div>}
+                                  </div>
+
+                                  {/* INFO MÓVIL */}
+                                  <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+                                     <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="text-[9px] font-black bg-brand-red/10 text-brand-red px-2 py-0.5 rounded-md uppercase italic">{prod.category}</span>
+                                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full border ${prod.condition === 'Usado' ? 'border-amber-200 text-amber-600 bg-amber-50' : 'border-blue-200 text-blue-600 bg-blue-50'} uppercase`}>{prod.condition || 'Nuevo'}</span>
+                                     </div>
+                                     <h4 className="font-black text-gray-800 uppercase italic truncate text-sm leading-tight">{prod.name}</h4>
+                                     <div className="flex items-center gap-2 mt-0.5">
+                                        <p className="text-brand-red font-black text-base italic tracking-tighter leading-none">${formatNum(prod.price)}</p>
+                                        <span className="text-[9px] font-black text-brand-green bg-green-50 px-1.5 py-0.5 rounded">+{marginPercent}% Rent.</span>
+                                     </div>
+                                  </div>
+                               </div>
+
+                               {/* ESTADÍSTICAS RÁPIDAS MÓVIL */}
+                               <div className="grid grid-cols-3 gap-2 bg-gray-50 rounded-2xl p-3 border border-gray-100/50">
+                                  <div className="text-center">
+                                    <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1.5">Existencias</p>
+                                    <p className={`text-xs font-black italic ${prod.stock <= (prod.stockMin || 0) ? 'text-red-500' : 'text-gray-800'}`}>{prod.stock} U.</p>
+                                  </div>
+                                  <div className="text-center border-l border-gray-200">
+                                    <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1.5">Costo</p>
+                                    <p className="text-xs font-black text-gray-500 italic">${formatNum(prod.purchasePrice || 0)}</p>
+                                  </div>
+                                  <div className="text-center border-l border-gray-200">
+                                    <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1.5">Ganancia</p>
+                                    <p className="text-xs font-black text-brand-green italic">+${formatNum(profit)}</p>
+                                  </div>
+                               </div>
+
+                               {/* BOTONES DE ACCIÓN MÓVIL */}
+                               <div className="flex gap-2">
+                                  <button 
+                                    onClick={() => { setIsEditingProduct(true); setProductForm(prod); setShowProductModal(true); }}
+                                    className="flex-1 bg-blue-600 text-white py-3 rounded-2xl font-black uppercase text-[11px] italic flex items-center justify-center gap-2 shadow-lg shadow-blue-100 active:scale-95 transition-all"
+                                  >
+                                    <Edit size={16} /> Editar Producto
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDeleteProduct(prod._id)}
+                                    className="w-14 bg-red-50 text-brand-red rounded-2xl border border-red-100 flex items-center justify-center active:scale-95 transition-all"
+                                  >
+                                    <Trash2 size={20} />
+                                  </button>
+                               </div>
+                            </div>
+                          </React.Fragment>
+                        );
+                      })}
+
+                    {products.length === 0 && (
+                      <div className="text-center py-24 bg-white rounded-xl text-gray-300 font-black uppercase italic text-xs tracking-[0.2em] animate-pulse">
+                        El inventario está vacío
+                      </div>
+                    )}
+                  </div>
                 </div>
-
-              {/* TABLE ROWS */}
-              <div className="divide-y divide-gray-50">
-                {products
-                  .filter(p => {
-                    const matchesSearch = p.name.toLowerCase().includes(productsSearchTerm.toLowerCase()) || p._id.toLowerCase().includes(productsSearchTerm.toLowerCase());
-                    const matchesCategory = !productsCategoryFilter || p.category === productsCategoryFilter;
-                    return matchesSearch && matchesCategory;
-                  })
-                  .map((prod) => {
-                  const profit = prod.price - (prod.purchasePrice || 0);
-                  const marginPercent = prod.purchasePrice > 0 ? ((profit / prod.purchasePrice) * 100).toFixed(0) : 0;
-                  const allImages = (prod.images && prod.images.length > 0 ? prod.images : [prod.mainImage]).filter(Boolean);
-                  const isInactive = prod.status === 'Inactivo';
-
-                  return (
-                    <div 
-                      key={prod._id} 
-                      className={`grid grid-cols-[60px_70px_1fr_120px_90px_100px_100px_100px_100px] gap-4 px-6 py-4 items-center hover:bg-gray-50 transition-colors group border-b border-gray-50 last:border-0 ${isInactive ? 'opacity-50 grayscale' : ''}`}
-                    >
-                      {/* RANKING */}
-                      <div className="flex items-center justify-center px-1">
-                        <input 
-                          type="number" 
-                          defaultValue={prod.priority || 0}
-                          onBlur={(e) => handlePriorityQuickUpdate(prod._id, e.target.value)}
-                          className="w-full text-center bg-gray-100/50 border border-gray-200 rounded-lg py-1 text-[10px] font-black outline-none focus:border-brand-red/30 focus:bg-white transition-all"
-                        />
-                      </div>
-                      {/* VISOR IMG */}
-                      <div className="w-[50px] h-[50px] rounded-2xl overflow-hidden bg-gray-100 border-2 border-white shadow-sm mx-auto">
-                        {allImages.length > 0 ? (
-                          <Swiper
-                            modules={[Autoplay]}
-                            autoplay={{ delay: 3000 + Math.random() * 2000 }}
-                            loop={allImages.length > 1}
-                            className="w-full h-full"
-                          >
-                            {allImages.map((img, idx) => {
-                              const finalSrc = img?.startsWith('http') ? img : `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/${img}`;
-                              return (
-                                <SwiperSlide key={idx} className="w-full h-full">
-                                  <img src={finalSrc} className="w-full h-full object-cover" alt={`${prod.name} ${idx}`} />
-                                </SwiperSlide>
-                              );
-                            })}
-                          </Swiper>
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center"><Package size={24} className="text-gray-200" /></div>
-                        )}
-                      </div>
-
-                      {/* NOMBRE PRODUCTO */}
-                      <div className="flex flex-col min-w-0">
-                        <h4 className="font-black text-gray-800 uppercase italic truncate text-sm leading-tight mb-0.5">{prod.name}</h4>
-                        <div className="flex items-center gap-2">
-                           <span className="text-[8px] font-black bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-md uppercase tracking-tighter">SKU: {prod._id.slice(-6).toUpperCase()}</span>
-                           {prod.stock <= prod.stockMin && <span className="text-[8px] font-black bg-red-100 text-red-500 px-1.5 py-0.5 rounded-md uppercase animate-pulse">Low Stock</span>}
-                        </div>
-                      </div>
-
-                      {/* CATEGORIA */}
-                      <div>
-                        <span className="inline-block bg-brand-red/5 text-brand-red font-black text-[9px] px-2 py-1 rounded-lg uppercase italic border border-brand-red/10">{prod.category}</span>
-                      </div>
-
-                      {/* TIPO */}
-                      <div className="text-center">
-                        <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border ${prod.condition === 'Usado' ? 'border-amber-200 text-amber-600 bg-amber-50' : 'border-blue-200 text-blue-600 bg-blue-50'} uppercase`}>{prod.condition || 'Nuevo'}</span>
-                      </div>
-
-                      {/* COMPRA */}
-                      <div className="text-center">
-                        <p className="text-gray-400 font-bold text-[10px] leading-none tracking-tighter">${formatNum(prod.purchasePrice || 0)}</p>
-                      </div>
-
-                      {/* SALE */}
-                      <div className="text-right">
-                        <p className="text-brand-red font-black text-[12px] leading-none italic tracking-tighter">${formatNum(prod.price)}</p>
-                      </div>
-
-                      {/* MARGIN */}
-                      <div className="text-center">
-                        <p className={`font-black text-[11px] leading-none italic ${profit > 0 ? 'text-brand-green' : 'text-gray-300'}`}>+${formatNum(profit)}</p>
-                        <p className="text-[7px] font-black text-gray-300 mt-1 uppercase leading-none">{marginPercent}%</p>
-                      </div>
-
-                      {/* ACTIONS */}
-                      <div className="flex items-center justify-end gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => { setIsEditingProduct(true); setProductForm(prod); setShowProductModal(true); }} className="p-1.5 rounded-lg hover:bg-blue-50 hover:text-blue-500 transition-colors text-gray-400"><Edit size={12} /></button>
-                        <button onClick={() => handleDeleteProduct(prod._id)} className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-500 transition-colors text-gray-400"><Trash2 size={12} /></button>
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
-              {products.length === 0 && <div className="text-center py-20 bg-white rounded-xl text-gray-400 font-black uppercase italic text-[10px] tracking-widest animate-pulse">No se encontraron productos en el inventario</div>}
-            </div>
-          </div>
-        ) : activeTab === 'providers' ? (
+            ) : activeTab === 'providers' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {providers.map((p) => (
                 <div key={p._id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col gap-2 relative group">
@@ -1171,6 +1208,24 @@ const AdminDashboard = () => {
                 </div>
               ))}
               {providers.length === 0 && <div className="col-span-full text-center py-20 bg-white rounded-3xl text-gray-400 font-black uppercase italic">No hay proveedores registrados</div>}
+            </div>
+          ) : activeTab === 'brands' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {brands.map((brand) => (
+                <div key={brand._id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col gap-2 relative group">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-black text-gray-800 uppercase italic leading-none">{brand.name}</h4>
+                      <span className="text-[9px] font-black text-brand-red uppercase mt-1 inline-block">{brand.category}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-1.5 pt-2 mt-auto border-t">
+                    <button onClick={() => { setIsEditingBrand(true); setBrandForm(brand); setShowBrandModal(true); }} className="flex-1 bg-gray-50 py-1.5 rounded-lg text-[9px] font-black uppercase hover:bg-gray-100 transition-all">Editar</button>
+                    <button onClick={() => handleDeleteBrand(brand._id)} className="p-1.5 bg-red-50 text-brand-red rounded-lg hover:bg-brand-red hover:text-white transition-all"><Trash2 size={12} /></button>
+                  </div>
+                </div>
+              ))}
+              {brands.length === 0 && <div className="col-span-full text-center py-20 bg-white rounded-3xl text-gray-400 font-black uppercase italic">No hay marcas registradas</div>}
             </div>
           ) : activeTab === 'locations' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1632,24 +1687,24 @@ const OfferModal = ({ show, onClose, onSubmit, form, setForm, product, formatNum
           {form.isOffer && (
             <>
               {/* PRICES */}
-              <div className="grid grid-cols-2 gap-3">
-                <InputGroup label="Precio Antes" icon={<DollarSign size={12}/>}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <InputGroup label="Precio Antes (Normal)" icon={<DollarSign size={12}/>}>
                   <input
                     required
                     type="text"
                     value={formatNum(form.originalPrice)}
                     onChange={e => handlePriceChange('originalPrice', e)}
-                    className="w-full bg-gray-50 p-2.5 rounded-xl outline-none font-bold text-xs line-through text-gray-400"
+                    className="w-full bg-gray-50 p-3 rounded-xl outline-none font-bold text-xs line-through text-gray-400 border border-gray-100"
                     placeholder="0"
                   />
                 </InputGroup>
-                <InputGroup label="Precio Oferta" icon={<Flame size={12}/>}>
+                <InputGroup label="Precio Oferta (Nuevo)" icon={<Flame size={12}/>}>
                   <input
                     required
                     type="text"
                     value={formatNum(form.offerPrice)}
                     onChange={e => handlePriceChange('offerPrice', e)}
-                    className="w-full bg-red-50 p-2.5 rounded-xl outline-none font-black text-sm text-brand-red border-2 border-brand-red/20 focus:border-brand-red transition-all"
+                    className="w-full bg-red-50 p-3 rounded-xl outline-none font-black text-sm text-brand-red border-2 border-brand-red/20 focus:border-brand-red transition-all"
                     placeholder="0"
                   />
                 </InputGroup>
@@ -1657,31 +1712,31 @@ const OfferModal = ({ show, onClose, onSubmit, form, setForm, product, formatNum
 
               {/* DISCOUNT PREVIEW */}
               {discount > 0 && (
-                <div className="bg-red-600 rounded-xl p-3 text-white flex items-center justify-between shadow-sm">
+                <div className="bg-gradient-to-r from-red-600 to-brand-red rounded-xl p-4 text-white flex items-center justify-between shadow-lg animate-in slide-in-from-bottom-2">
                   <div>
-                    <p className="text-[12px] font-black italic">-{discount}% OFF</p>
-                    <p className="text-[8px] font-bold opacity-80 uppercase">Ahorro: ${formatNum(savings)}</p>
+                    <p className="text-[14px] font-black italic">-{discount}% DE DESCUENTO</p>
+                    <p className="text-[9px] font-bold opacity-90 uppercase tracking-widest">Ahorro total: ${formatNum(savings)}</p>
                   </div>
-                  <Percent size={24} className="opacity-20" />
+                  <Percent size={28} className="opacity-20 translate-x-1" />
                 </div>
               )}
 
               {/* DATES */}
-              <div className="grid grid-cols-2 gap-3">
-                <InputGroup label="Inicio" icon={<Calendar size={12}/>}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <InputGroup label="Fecha Inicio" icon={<Calendar size={12}/>}>
                   <input
                     type="date"
                     value={form.offerStartDate}
                     onChange={e => setForm({ ...form, offerStartDate: e.target.value })}
-                    className="w-full bg-gray-50 p-2.5 rounded-xl outline-none font-bold text-[11px]"
+                    className="w-full bg-gray-50 p-3 rounded-xl outline-none font-bold text-[11px] border border-gray-100"
                   />
                 </InputGroup>
-                <InputGroup label="Fin" icon={<Clock size={12}/>}>
+                <InputGroup label="Fecha Fin" icon={<Clock size={12}/>}>
                   <input
                     type="date"
                     value={form.offerEndDate}
                     onChange={e => setForm({ ...form, offerEndDate: e.target.value })}
-                    className="w-full bg-gray-50 p-2.5 rounded-xl outline-none font-bold text-[11px]"
+                    className="w-full bg-gray-50 p-3 rounded-xl outline-none font-bold text-[11px] border border-gray-100"
                   />
                 </InputGroup>
               </div>

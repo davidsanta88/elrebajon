@@ -284,13 +284,13 @@ const AppContent = () => {
         </div>
       </div>
 
-      {/* CATEGORY STRIP — infinite slow marquee with hover pause */}
+      {/* SECCIÓN DE CATEGORÍAS — Efecto Marquee dinámico y rápido para móviles */}
       <section className="bg-brand-red border-t border-white/10 shadow-lg overflow-hidden relative">
-        <div className="flex px-4 py-2.5 category-strip animate-marquee-slow hover:pause-marquee whitespace-nowrap">
-          {/* Loop many times to ensure a seamless infinite effect */}
-          {[...Array(6)].map((_, loopIndex) => (
+        <div className="flex px-4 py-2.5 category-strip animate-marquee-fast hover:pause-marquee whitespace-nowrap">
+          {/* Bucle para asegurar efecto infinito fluido */}
+          {[...Array(4)].map((_, loopIndex) => (
             <div key={loopIndex} className="flex gap-3 px-3">
-              {/* TODOS button */}
+              {/* Botón TODOS */}
               <button
                 onClick={() => setSelectedCategory(null)}
                 className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all active:scale-95 shrink-0 font-black text-[11px] uppercase tracking-widest ${
@@ -731,15 +731,16 @@ const AppContent = () => {
           animation: marquee 160s linear infinite;
           white-space: nowrap;
         }
-        .animate-marquee-slow {
+        .animate-marquee-fast {
           display: flex;
-          animation: marquee 240s linear infinite;
+          animation: marquee 60s linear infinite;
           white-space: nowrap;
           width: max-content;
         }
         .pause-marquee:hover {
           animation-play-state: paused;
         }
+
       `}} />
 
     </div>

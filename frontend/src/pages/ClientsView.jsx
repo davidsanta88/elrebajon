@@ -151,12 +151,13 @@ const ClientsView = () => {
         </div>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* VISTA DESKTOP (TABLA) */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-gray-50 text-[9px] font-black uppercase tracking-widest text-gray-400 italic bg-gray-50/50">
                   <th className="px-6 py-4">Cliente / Contacto</th>
-                  <th className="px-6 py-4">Ubicatión / Email</th>
+                  <th className="px-6 py-4">Ubicación / Email</th>
                   <th className="px-6 py-4 text-center">Actividad</th>
                   <th className="px-6 py-4 text-right">Total Compras</th>
                   <th className="px-6 py-4 text-center">Acciones</th>
@@ -227,7 +228,64 @@ const ClientsView = () => {
               </tbody>
             </table>
           </div>
+
+          {/* VISTA MÓVIL (TARJETAS) */}
+          <div className="lg:hidden divide-y divide-gray-50">
+             {customers.length === 0 ? (
+               <div className="py-20 text-center text-gray-200 font-black uppercase italic text-sm">No hay clientes registrados</div>
+             ) : customers.map((c) => (
+                <div key={c._id} className="p-4 flex flex-col gap-4 bg-white active:bg-gray-50 transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div className="flex flex-col">
+                      <h3 className="text-sm font-black text-gray-800 uppercase italic leading-tight mb-1">{c.name}</h3>
+                      <div className="flex items-center gap-2 text-brand-red">
+                        <Phone size={12} />
+                        <span className="text-xs font-bold">{c.phone}</span>
+                      </div>
+                    </div>
+                    <div className="bg-brand-green/10 text-brand-green px-3 py-1 rounded-xl">
+                      <p className="text-[14px] font-black italic leading-none">${formatNum(c.totalSpent)}</p>
+                      <p className="text-[7.5px] font-black uppercase text-center mt-1">Total</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100/50">
+                    <div className="flex flex-col">
+                      <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-widest mb-1">Actividad</p>
+                      <span className="text-[10px] font-black text-blue-600 uppercase italic">{c.ordersCount || 0} Ventas</span>
+                    </div>
+                    <div className="flex flex-col border-l border-gray-200 pl-3">
+                      <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-widest mb-1">Correo</p>
+                      <span className="text-[9px] font-bold text-gray-500 truncate lowercase">{c.email || 'sin@correo.com'}</span>
+                    </div>
+                    <div className="col-span-2 flex flex-col pt-2 border-t border-gray-200 mt-1">
+                      <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-widest mb-1">Dirección Registrada</p>
+                      <div className="flex items-center gap-1.5 text-gray-600">
+                        <MapPin size={10} className="text-gray-400" />
+                        <span className="text-[10px] font-bold uppercase truncate">{c.address || 'Sin dirección registrada'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => openModal(c)}
+                      className="flex-1 bg-blue-600 text-white py-3 rounded-2xl font-black uppercase text-[11px] italic flex items-center justify-center gap-2 shadow-lg shadow-blue-100"
+                    >
+                      <Edit size={16} /> Editar Perfil
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(c._id)}
+                      className="w-14 bg-red-50 text-brand-red rounded-2xl border border-red-100 flex items-center justify-center"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                </div>
+             ))}
+          </div>
         </div>
+
       )}
 
       {/* ADD/EDIT MODAL */}
