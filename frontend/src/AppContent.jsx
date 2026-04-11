@@ -34,6 +34,9 @@ const AppContent = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null); // null = todas
+  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [leadForm, setLeadForm] = useState({ name: '', phone: '' });
+  const [pendingLeadData, setPendingLeadData] = useState({ product: null, referrer: '' });
   const navigate = useNavigate();
 
   // Carousel slides removed for space optimization
@@ -92,7 +95,7 @@ const AppContent = () => {
     }
   };
   
-  const recordLead = async (product, referrer = 'Catalog') => {
+  const recordLead = async (product, referrer = 'Catalog', customerData = null) => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
       await axios.post(`${API_URL}/api/leads`, {
@@ -101,11 +104,106 @@ const AppContent = () => {
         price: product?.price || 0,
         category: product?.category || 'General',
         mainImage: product?.mainImage || '',
-        referrer
+        referrer,
+        customerName: customerData?.name || 'Anónimo',
+        customerPhone: customerData?.phone || 'Sin número'
       });
     } catch (err) {
       console.error('Error recording lead:', err);
     }
+  };
+
+  const handleWhatsAppAction = (product, referrer) => {
+    const savedName = localStorage.getItem('lead_name');
+    const savedPhone = localStorage.getItem('lead_phone');
+    
+    if (savedName && savedPhone) {
+      // Si ya tenemos los datos, procedemos directo
+      executeWhatsAppRedirect(product, referrer, { name: savedName, phone: savedPhone });
+    } else {
+      // Si no, mostramos el modal
+      setPendingLeadData({ product, referrer });
+      setShowLeadModal(true);
+    }
+  };
+
+  const executeWhatsAppRedirect = (product, referrer, customerData) => {
+    recordLead(product, referrer, customerData);
+    
+    // Guardar en local para futuras compras
+    localStorage.setItem('lead_name', customerData.name);
+    localStorage.setItem('lead_phone', customerData.phone);
+
+    const message = product 
+      ? `¡Hola! Me interesa este producto y el *PLAN SEPARE*:\n\n*${product.name}*\n💰 *Precio:* $${product.price.toLocaleString()}\n📝 *Descripción:* ${product.description || 'Sin descripción'}\n\n*Mi Nombre:* ${customerData.name}\n*Mi WhatsApp:* ${customerData.phone}`
+      : `¡Hola! Mi nombre es ${customerData.name}. Me gustaría recibir información general sobre El Rebajón y el *PLAN SEPARE*.`;
+
+    const waUrl = `https://wa.me/573114018724?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
+  };
+
+  const LeadContactModal = () => {
+    if (!showLeadModal) return null;
+
+    return (
+      <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in duration-300">
+        <div className="bg-white w-full max-w-sm rounded-[2rem] overflow-hidden shadow-2xl border border-gray-100 p-6 sm:p-8 flex flex-col gap-6 relative">
+          <button 
+            onClick={() => setShowLeadModal(false)}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          >
+            <X size={20} />
+          </button>
+
+          <div className="text-center space-y-2">
+            <div className="w-16 h-16 bg-brand-green/10 rounded-full flex items-center justify-center mx-auto text-brand-green mb-2">
+              <MessageCircle size={32} fill="currentColor" />
+            </div>
+            <h3 className="text-xl font-black uppercase italic tracking-tighter text-gray-800 leading-none">¡Casi listo!</h3>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Para comprar indícanos quién eres</p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase text-gray-400 tracking-widest px-1">Tu Nombre Completo</label>
+              <input 
+                type="text" 
+                placeholder="Nombre Ejemplo..."
+                value={leadForm.name}
+                onChange={(e) => setLeadForm({...leadForm, name: e.target.value})}
+                className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-3 px-4 text-xs font-bold outline-none focus:border-brand-green transition-all"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase text-gray-400 tracking-widest px-1">Tu WhatsApp / Teléfono</label>
+              <input 
+                type="tel" 
+                placeholder="311 123 4567..."
+                value={leadForm.phone}
+                onChange={(e) => setLeadForm({...leadForm, phone: e.target.value})}
+                className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-3 px-4 text-xs font-bold outline-none focus:border-brand-green transition-all"
+              />
+            </div>
+          </div>
+
+          <button 
+            onClick={() => {
+              if (leadForm.name && leadForm.phone) {
+                setShowLeadModal(false);
+                executeWhatsAppRedirect(pendingLeadData.product, pendingLeadData.referrer, leadForm);
+              } else {
+                alert('Por favor completa todos los campos.');
+              }
+            }}
+            className="w-full bg-brand-green text-white font-black py-4 rounded-2xl shadow-lg border-b-[4px] border-green-700 active:border-b-0 active:translate-y-1 transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-2"
+          >
+            Continuar a WhatsApp <MessageCircle size={14} fill="white" />
+          </button>
+          
+          <p className="text-[8px] font-bold text-gray-300 text-center uppercase">Tus datos están seguros con El Rebajón</p>
+        </div>
+      </div>
+    );
   };
 
   const handleShareApp = () => {
@@ -209,12 +307,7 @@ const AppContent = () => {
             </div>
 
             <button 
-              onClick={() => {
-                recordLead(product, 'Modal');
-                window.open(`https://wa.me/573114018724?text=${encodeURIComponent(
-                  `¡Hola! Me interesa este producto y preguntar por el *PLAN SEPARE*:\n\n*${product.name}*\n💰 *Precio:* $${product.price.toLocaleString()}\n📝 *Descripción:* ${product.description || 'Sin descripción'}\n\n*Foto del Producto:* ${images[0]}`
-                )}`, '_blank');
-              }}
+              onClick={() => handleWhatsAppAction(product, 'Modal')}
               className="group bg-brand-green text-white font-black text-sm py-3 rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:brightness-110 transition-all active:scale-95 mt-auto w-full border-b-[3px] border-green-700"
             >
               <MessageCircle size={18} fill="white" className="group-hover:rotate-12 transition-transform" />
@@ -241,33 +334,27 @@ const AppContent = () => {
           </div>
           
           {/* HEADER MESSAGE (NEW & USED) - More compact for Row 1 */}
-          <div className="flex-1 flex justify-center items-center px-4 overflow-hidden">
-            <h2 className="text-white font-black uppercase italic tracking-tighter text-[10px] sm:text-sm leading-tight text-center drop-shadow-md">
-              ¡Productos <span className="text-brand-yellow underline decoration-brand-yellow/30">Nuevos</span> y <span className="text-brand-yellow underline decoration-brand-yellow/30">Usados</span>!
+          <div className="flex-1 flex flex-col justify-center items-center px-2 overflow-hidden">
+            <h2 className="text-white font-black uppercase italic tracking-tighter text-[9px] sm:text-sm leading-tight text-center drop-shadow-md">
+              ¡Productos <span className="text-brand-yellow underline">Nuevos</span> y <span className="text-brand-yellow underline">Usados</span>!
             </h2>
+            <div 
+               onClick={() => handleWhatsAppAction(null, 'Header-Badge')}
+               className="flex items-center gap-2 bg-[#25D366] px-4 py-1.5 rounded-full shadow-xl cursor-pointer hover:bg-[#128C7E] active:scale-95 transition-all mt-1 group border-2 border-white/30"
+            >
+               <MessageCircle size={14} className="text-white" fill="white" />
+               <span className="text-[10px] sm:text-xs font-black text-white uppercase tracking-wider whitespace-nowrap">WhatsApp 311 401 8724</span>
+            </div>
           </div>
 
-            {/* CONTACT BUTTON (WHATSAPP) */}
+          {/* HEADER ACTIONS (RIGHT) */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* SHARE BUTTON (ICON ONLY FOR CLEANER LOOK) */}
             <button 
               onClick={handleShareApp}
               className="group flex items-center justify-center bg-brand-yellow border border-white/40 rounded-full w-9 h-9 hover:bg-yellow-400 transition-all cursor-pointer shadow-lg active:scale-95"
               title="Compartir App"
             >
               <Share2 size={16} className="text-brand-red animate-pulse group-hover:scale-110 transition-transform" />
-            </button>
-
-            {/* CONTACT BUTTON (WHATSAPP) */}
-            <button 
-              onClick={() => {
-                recordLead(null, 'Header');
-                window.open("https://wa.me/573114018724", "_blank");
-              }}
-              className="flex items-center gap-1.5 bg-brand-green border-2 border-white/40 rounded-full px-3.5 py-2 hover:bg-green-600 transition-all cursor-pointer shadow-lg active:scale-95"
-            >
-              <MessageCircle size={16} className="text-white" fill="white" />
-              <span className="text-[10px] sm:text-xs font-black uppercase text-white">Chat</span>
             </button>
           </div>
         </div>
@@ -278,10 +365,29 @@ const AppContent = () => {
         <div className="inline-block animate-marquee whitespace-nowrap">
           {[...Array(10)].map((_, i) => (
             <span key={i} className="mx-4 text-[10px] font-black uppercase italic tracking-widest text-brand-red">
-              📍 ESTAMOS UBICADOS EN FREDONIA Y SUS MUNICIPIOS CERCANOS | 💥 ¡PREGUNTA POR EL <span className="underline decoration-brand-red/30">PLAN SEPARE</span>! 💳 | 🔍 ¿BUSCAS ALGO? ¡NOSOTROS LO CONSEGUIMOS! | 💰 ¡COMPRAMOS LO QUE YA NO USES! 🔥 |
+              📍 ESTAMOS UBICADOS EN FREDONIA Y SUS MUNICIPIOS CERCANOS | 📱 WHATSAPP: 311 401 8724 | 💥 ¡PREGUNTA POR EL <span className="underline decoration-brand-red/30">PLAN SEPARE</span>! 💳 | 🔍 ¿BUSCAS ALGO? ¡NOSOTROS LO CONSEGUIMOS! | 💰 ¡COMPRAMOS LO QUE YA NO USES! 🔥 |
             </span>
           ))}
         </div>
+      </div>
+
+      {/* TOP CONTACT BANNER IN HOME */}
+      <div className="bg-white px-4 py-3 flex items-center justify-between border-b border-gray-100 sm:hidden">
+        <div className="flex items-center gap-3">
+          <div className="bg-brand-green/10 p-2 rounded-xl text-brand-green">
+            <MessageCircle size={20} fill="currentColor" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase text-gray-400 leading-none mb-1">Escríbenos Directo</p>
+            <p className="text-sm font-black text-gray-800 leading-none">WhatsApp: 311 401 8724</p>
+          </div>
+        </div>
+        <button 
+          onClick={() => handleWhatsAppAction(null, 'Home-Quick')}
+          className="bg-brand-green text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-md active:scale-95"
+        >
+          Abrir Chat
+        </button>
       </div>
 
       {/* SECCIÓN DE CATEGORÍAS — Efecto Marquee dinámico y rápido para móviles */}
@@ -493,10 +599,7 @@ const AppContent = () => {
                       <button
                         onClick={e => {
                           e.stopPropagation();
-                          recordLead(prod, 'Offer');
-                          window.open(`https://wa.me/573114018724?text=${encodeURIComponent(
-                            `¡Hola! Vi esta *OFERTA* y me interesa el *PLAN SEPARE* en El Rebajón:\n\n*${prod.name}*\n🔥 *Precio Oferta:* $${displayPrice.toLocaleString()}\n~~Antes: $${originalPrice.toLocaleString()}~~\n📝 ${prod.description || 'Sin descripción'}\n\n*Foto de la Oferta:* ${cardImages[0] || ''}`
-                          )}`, '_blank');
+                          handleWhatsAppAction(prod, 'Offer');
                         }}
                         className="mt-2 bg-brand-green text-white rounded-xl py-2 font-black uppercase text-[10px] text-center shadow-md hover:brightness-110 transition-all flex items-center justify-center gap-1.5 w-full border-b-[3px] border-green-700 active:border-b-0 active:translate-y-0.5"
                       >
@@ -633,10 +736,7 @@ const AppContent = () => {
                       <button
                         onClick={e => {
                           e.stopPropagation();
-                          recordLead(prod, 'Catalog');
-                          window.open(`https://wa.me/573114018724?text=${encodeURIComponent(
-                            `¡Hola! Me interesa este producto y el *PLAN SEPARE*:\n\n*${prod.name}*\n💰 *Precio:* $${prod.price.toLocaleString()}\n📝 *Descripción:* ${prod.description || 'Sin descripción'}\n\n*Foto del Producto:* ${cardImages[0]}`
-                          )}`, '_blank');
+                          handleWhatsAppAction(prod, 'Catalog');
                         }}
                         className="bg-brand-green text-white rounded-xl py-2 font-black uppercase text-[9px] sm:text-[10px] flex items-center justify-center gap-1.5 shadow-lg hover:brightness-110 transition-all border-b-[3px] border-green-700 active:border-b-0 active:translate-y-0.5 w-full"
                       >
@@ -667,10 +767,8 @@ const AppContent = () => {
           <div className="h-[1px] w-12 bg-gray-200"></div>
         </div>
         
-        <a 
-          href="https://wa.me/573114018724"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button 
+          onClick={() => handleWhatsAppAction(null, 'Footer')}
           className="w-full max-w-sm mx-auto bg-brand-green text-white font-black py-4 rounded-2xl shadow-xl flex flex-col items-center justify-center gap-1 hover:scale-105 transition-transform active:scale-95 shadow-green-200 inline-flex"
         >
           <div className="flex items-center gap-3">
@@ -678,7 +776,7 @@ const AppContent = () => {
             <span className="text-xl">Hablar por WhatsApp</span>
           </div>
 
-        </a>
+        </button>
       </section>
 
        {/* FOOTER */}
@@ -709,6 +807,8 @@ const AppContent = () => {
         product={selectedProduct} 
         onClose={() => setSelectedProduct(null)} 
       />
+
+      <LeadContactModal />
 
       {/* SWIPER CUSTOM STYLES & ANIMATIONS */}
       <style dangerouslySetInnerHTML={{ __html: `

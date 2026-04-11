@@ -579,33 +579,44 @@ const LeadsView = ({ leads, formatNum }) => (
         {leads.length === 0 ? (
           <div className="py-10 text-center text-gray-300 font-black uppercase italic text-[10px]">No hay registros</div>
         ) : leads.map((lead) => (
-          <div key={lead._id} className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 flex flex-col gap-3">
+          <div key={lead._id} className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 flex flex-col gap-3 group hover:border-brand-green/30 transition-all">
              <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
-                   <div className="w-12 h-12 rounded-xl bg-white overflow-hidden border border-gray-200 shadow-sm">
+                   <div className="w-12 h-12 rounded-xl bg-white overflow-hidden border border-gray-200 shadow-sm shrink-0">
                       <img src={lead.mainImage || 'https://placehold.co/100'} className="w-full h-full object-cover" />
                    </div>
-                   <div>
-                      <h4 className="text-[11px] font-black text-gray-800 uppercase italic leading-tight mb-1">{lead.productName}</h4>
-                      <div className="flex gap-2">
-                         <span className="text-[8px] font-black text-brand-red uppercase px-2 py-0.5 bg-red-50 rounded-lg">{lead.category}</span>
-                         <span className="text-[8px] font-black text-gray-400 uppercase">{lead.referrer}</span>
+                   <div className="min-w-0">
+                      <h4 className="text-[11px] font-black text-gray-800 uppercase italic leading-tight mb-0.5 truncate">{lead.productName}</h4>
+                      <div className="flex flex-col gap-0.5">
+                         <p className="text-[10px] font-black text-brand-red uppercase italic leading-none">{lead.customerName || 'Interesado Anónimo'}</p>
+                         <p className="text-[9px] font-bold text-gray-400 leading-none">{lead.customerPhone || 'Sin número'}</p>
                       </div>
                    </div>
                 </div>
-                <div className="text-right">
-                   <p className="text-sm font-black text-gray-800 italic leading-none mb-1">${formatNum(lead.price)}</p>
+                <div className="text-right shrink-0">
+                   <p className="text-xs font-black text-gray-800 italic leading-none mb-1">${formatNum(lead.price)}</p>
                    <p className="text-[7.5px] font-bold text-gray-400 uppercase">{format(new Date(lead.createdAt), 'dd/MM HH:mm')}</p>
                 </div>
              </div>
-             <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                 <span className="text-[8px] font-black text-brand-green uppercase flex items-center gap-1.5">
+             
+             <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-1">
+                 <div className="flex items-center gap-1.5">
                     <div className="w-1.5 h-1.5 bg-brand-green rounded-full shadow-[0_0_8px_rgba(34,197,94,0.5)] animate-pulse"></div> 
-                    Nuevo Lead por WhatsApp
-                 </span>
-                 <button className="bg-white border border-gray-200 p-2 rounded-xl text-gray-500 active:scale-95 transition-all">
-                    <MessageCircle size={14} />
-                 </button>
+                    <span className="text-[8px] font-black text-brand-green uppercase tracking-widest">Procedencia: {lead.referrer}</span>
+                 </div>
+                 
+                 {lead.customerPhone && lead.customerPhone !== 'Sin número' && (
+                   <button 
+                    onClick={() => {
+                        const cleanPhone = lead.customerPhone.replace(/\D/g, '');
+                        const finalPhone = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone}`;
+                        window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(`¡Hola ${lead.customerName}! Vi que te interesó el producto *${lead.productName}* en El Rebajón. ¿En qué puedo ayudarte?`)}`, '_blank');
+                    }}
+                    className="flex items-center gap-1.5 bg-brand-green text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:brightness-110 active:scale-95 transition-all shadow-sm"
+                   >
+                      <MessageCircle size={12} fill="white" /> Responder
+                   </button>
+                 )}
              </div>
           </div>
         ))}

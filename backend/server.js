@@ -621,8 +621,8 @@ app.get('/api/admin/reports/profitability', authMiddleware, adminMiddleware, asy
 // LEADS INTERACTION (PUBLIC)
 app.post('/api/leads', async (req, res) => {
   try {
-    const { productId, productName, price, category, mainImage, referrer } = req.body;
-    const lead = new Lead({ productId, productName, price, category, mainImage, referrer });
+    const { productId, productName, price, category, mainImage, referrer, customerName, customerPhone } = req.body;
+    const lead = new Lead({ productId, productName, price, category, mainImage, referrer, customerName, customerPhone });
     await lead.save();
     res.status(201).json(lead);
   } catch (err) {
