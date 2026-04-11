@@ -289,25 +289,6 @@ const AppContent = () => {
         </div>
       </div>
 
-      {/* TOP CONTACT BANNER IN HOME */}
-      <div className="bg-white px-4 py-3 flex items-center justify-between border-b border-gray-100 sm:hidden">
-        <div className="flex items-center gap-3">
-          <div className="bg-brand-green/10 p-2 rounded-xl text-brand-green">
-            <MessageCircle size={20} fill="currentColor" />
-          </div>
-          <div>
-            <p className="text-[10px] font-black uppercase text-gray-400 leading-none mb-1">Escríbenos Directo</p>
-            <p className="text-sm font-black text-gray-800 leading-none">WhatsApp: 311 401 8724</p>
-          </div>
-        </div>
-        <button 
-          onClick={() => handleWhatsAppAction(null, 'Home-Quick')}
-          className="bg-brand-green text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-md active:scale-95"
-        >
-          Abrir Chat
-        </button>
-      </div>
-
       {/* SECCIÓN DE CATEGORÍAS — Efecto Marquee dinámico y rápido para móviles */}
       <section className="bg-brand-red border-t border-white/10 shadow-lg overflow-hidden relative">
         <div className="flex px-4 py-2.5 category-strip animate-marquee-fast hover:pause-marquee whitespace-nowrap">
