@@ -66,7 +66,10 @@ import { format, subDays } from 'date-fns';
 import * as XLSX from 'xlsx';
 
 const AdminDashboard = () => {
-  const [products, setProducts] = useState([]);
+   const [products, setProducts] = useState([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [providers, setProviders] = useState([]);
@@ -376,14 +379,17 @@ const AdminDashboard = () => {
       setBrands(res.data);
     } catch (err) { console.error(err); }
   };
-  const fetchProducts = async () => {
+  const fetchProducts = async (page = 1) => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/api/admin/products`, {
+      const res = await axios.get(`${API_URL}/api/admin/products?page=${page}&limit=20`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setProducts(res.data);
+      setProducts(res.data.products);
+      setTotalPages(res.data.totalPages);
+      setTotalProducts(res.data.total);
+      setCurrentPage(res.data.page);
     } catch (err) {
       console.error(err);
       Swal.fire('Error', 'No se pudieron cargar los productos', 'error');
@@ -870,7 +876,7 @@ const AdminDashboard = () => {
 
               {/* PRODUCT LIST WITH OFFER TOGGLE */}
               <div className="grid grid-cols-1 gap-3">
-                {products.map((prod) => {
+                {[...products].sort((a,b) => (b.isOffer ? 1 : 0) - (a.isOffer ? 1 : 0)).map((prod) => {
                   const isActive = prod.isOffer;
                   const discount = prod.originalPrice && prod.offerPrice
                     ? Math.round(((prod.originalPrice - prod.offerPrice) / prod.originalPrice) * 100)
@@ -1090,8 +1096,46 @@ const AdminDashboard = () => {
                   );
                 })}
               </div>
-              {products.length === 0 && <div className="text-center py-20 bg-white rounded-xl text-gray-400 font-black uppercase italic text-[10px] tracking-widest animate-pulse">No se encontraron productos en el inventario</div>}
+               {products.length === 0 && <div className="text-center py-20 bg-white rounded-xl text-gray-400 font-black uppercase italic text-[10px] tracking-widest animate-pulse">No se encontraron productos en el inventario</div>}
             </div>
+
+            {/* PAGINATION CONTROLS */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-50">
+                <p className="text-[10px] font-bold text-gray-400 uppercase italic">
+                  Mostrando <span className="text-gray-800">{products.length}</span> de <span className="text-gray-800">{totalProducts}</span> productos
+                </p>
+                <div className="flex items-center gap-2">
+                  <button 
+                    disabled={currentPage === 1}
+                    onClick={() => fetchProducts(currentPage - 1)}
+                    className="p-2 rounded-lg bg-gray-50 text-gray-400 hover:bg-brand-red hover:text-white disabled:opacity-30 disabled:hover:bg-gray-50 disabled:hover:text-gray-400 transition-all shadow-sm active:scale-95"
+                  >
+                    <ArrowLeft size={14} />
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button 
+                        key={i} 
+                        onClick={() => fetchProducts(i + 1)}
+                        className={`w-8 h-8 rounded-lg text-[10px] font-black transition-all active:scale-95 ${
+                          currentPage === (i + 1) ? 'bg-brand-red text-white shadow-md' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                  <button 
+                    disabled={currentPage === totalPages}
+                    onClick={() => fetchProducts(currentPage + 1)}
+                    className="p-2 rounded-lg bg-gray-50 text-gray-400 hover:bg-brand-red hover:text-white disabled:opacity-30 disabled:hover:bg-gray-50 disabled:hover:text-gray-400 transition-all shadow-sm active:scale-95"
+                  >
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
           ) : activeTab === 'providers' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {providers.map((p) => (

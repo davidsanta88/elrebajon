@@ -257,10 +257,26 @@ app.delete('/api/admin/locations/:id', authMiddleware, adminMiddleware, async (r
 // Admin-only: Fetch products with details (like purchase price)
 app.get('/api/admin/products', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const products = await Product.find().sort({ priority: 1, createdAt: -1 });
-    res.json(products);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20; // Default limit
+    const skip = (page - 1) * limit;
+
+    const [products, total] = await Promise.all([
+      Product.find()
+        .sort({ priority: 1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Product.countDocuments()
+    ]);
+
+    res.json({
+      products,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (err) {
-    console.error("STATS ERROR:", err);
+    console.error("FETCH PRODUCTS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
