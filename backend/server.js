@@ -287,24 +287,37 @@ app.put('/api/admin/products/:id', authMiddleware, adminMiddleware, upload.array
   try {
     let updateData = { ...req.body };
     
-    // If new images are uploaded, add them to the existing ones
-    // CRITICAL: Only update images if they are provided in the body or files
-    let existingImages = null;
-    if (req.body.images) {
-      existingImages = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
-    }
-    
-    if (req.files && req.files.length > 0) {
-      const newImages = req.files.map(file => file.path);
-      updateData.images = [...(existingImages || []), ...newImages].slice(0, 5);
-      updateData.mainImage = updateData.images[0];
-    } else if (existingImages !== null) {
-      updateData.images = existingImages;
-      updateData.mainImage = existingImages.length > 0 ? existingImages[0] : null;
+    // Lógica avanzada de reordenamiento de imágenes
+    if (req.body.imageOrder) {
+      const order = Array.isArray(req.body.imageOrder) ? req.body.imageOrder : [req.body.imageOrder];
+      let fileIdx = 0;
+      const finalImages = order.map(item => {
+        if (item === 'NEW_FILE' || item === 'FILE') {
+          return req.files && req.files[fileIdx] ? req.files[fileIdx++].path : null;
+        }
+        return item; // Es una URL de imagen existente
+      }).filter(Boolean); // Eliminar posibles nulos
+      
+      updateData.images = finalImages.slice(0, 5);
+      updateData.mainImage = updateData.images.length > 0 ? updateData.images[0] : null;
     } else {
-      // If no images are provided at all, don't touch them!
-      delete updateData.images;
-      delete updateData.mainImage;
+      // Fallback: Lógica original si no se envía imageOrder
+      let existingImages = null;
+      if (req.body.images) {
+        existingImages = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
+      }
+      
+      if (req.files && req.files.length > 0) {
+        const newImages = req.files.map(file => file.path);
+        updateData.images = [...(existingImages || []), ...newImages].slice(0, 5);
+        updateData.mainImage = updateData.images[0];
+      } else if (existingImages !== null) {
+        updateData.images = existingImages;
+        updateData.mainImage = existingImages.length > 0 ? existingImages[0] : null;
+      } else {
+        delete updateData.images;
+        delete updateData.mainImage;
+      }
     }
 
     if (req.body.price && req.body.purchasePrice) {

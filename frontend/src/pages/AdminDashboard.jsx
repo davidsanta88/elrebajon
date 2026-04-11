@@ -534,7 +534,14 @@ const AdminDashboard = () => {
     const formData = new FormData();
     Object.keys(productForm).forEach(key => {
       if (key === 'images') {
-        productForm.images.forEach(img => formData.append('images', img));
+        productForm.images.forEach(img => {
+          if (img instanceof File) {
+             formData.append('images', img);
+             formData.append('imageOrder', 'FILE');
+          } else {
+             formData.append('imageOrder', img); // Es la URL existente
+          }
+        });
       } else if (key !== '_id') {
         const val = productForm[key];
         // Solo añadir si el valor no es nulo, indefinido o la cadena "null"
@@ -1169,8 +1176,36 @@ const MetricCard = ({ title, value, detail, icon, trend, showTrend = true, color
 );
 
 const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categories, brands, providers, locations, formatNum, cleanNum, isSubmitting }) => {
+  const [draggingIdx, setDraggingIdx] = React.useState(null);
+
   if (!show) return null;
   const margin = Number(form.price) - Number(form.purchasePrice);
+
+  const moveImage = (idx, direction) => {
+    const newImages = [...form.images];
+    const newIdx = direction === 'left' ? idx - 1 : idx + 1;
+    if (newIdx < 0 || newIdx >= newImages.length) return;
+    [newImages[idx], newImages[newIdx]] = [newImages[newIdx], newImages[idx]];
+    setForm({ ...form, images: newImages });
+  };
+
+  const handleDragStart = (idx) => {
+    setDraggingIdx(idx);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (idx) => {
+    if (draggingIdx === null || draggingIdx === idx) return;
+    const newImages = [...form.images];
+    const item = newImages.splice(draggingIdx, 1)[0];
+    newImages.splice(idx, 0, item);
+    setForm({ ...form, images: newImages });
+    setDraggingIdx(null);
+  };
 
   const handlePriceChange = (field, e) => {
     const rawVal = cleanNum(e.target.value);
@@ -1286,15 +1321,23 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
                   <Plus className="text-brand-red group-hover:rotate-90 transition-transform" size={16} />
                   <p className="text-[8px] font-black uppercase text-gray-400">Clic para fotos (Máx 5)</p>
                </div>
-                 <div className="flex gap-1.5 overflow-x-auto mt-3 pb-1 relative z-30 no-scrollbar">
-                    {form.images.map((img, idx) => (
-                      <div key={idx} className="relative shrink-0 group/img pt-1 pr-1">
-                        <div className="w-14 h-14 rounded-lg bg-white overflow-hidden border border-gray-200 shadow-sm pointer-events-auto">
-                           <img 
-                             src={img instanceof File ? URL.createObjectURL(img) : img} 
-                             className="w-full h-full object-cover" 
-                           />
-                        </div>
+                  <div className="flex gap-1.5 overflow-x-auto mt-3 pb-1 relative z-30 no-scrollbar min-h-[64px]">
+                     {form.images.map((img, idx) => (
+                       <div 
+                         key={idx} 
+                         draggable="true"
+                         onDragStart={() => handleDragStart(idx)}
+                         onDragOver={handleDragOver}
+                         onDrop={() => handleDrop(idx)}
+                         onDragEnd={() => setDraggingIdx(null)}
+                         className={`relative shrink-0 group/img pt-1 pr-1 transition-all duration-200 cursor-move ${draggingIdx === idx ? 'opacity-30 scale-90' : 'opacity-100'}`}
+                       >
+                         <div className="w-14 h-14 rounded-lg bg-white overflow-hidden border border-gray-200 shadow-sm pointer-events-none group-hover/img:border-brand-red/30 transition-colors">
+                            <img 
+                              src={img instanceof File ? URL.createObjectURL(img) : img} 
+                              className="w-full h-full object-cover" 
+                            />
+                         </div>
                         <button 
                           type="button"
                           onClick={(e) => {
@@ -1305,11 +1348,32 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
                                return {...prev, images: newImages};
                             });
                           }}
-                          className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity z-40 shadow-sm hover:scale-110 pointer-events-auto"
+                          className="absolute -top-1 -right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity z-50 shadow-md hover:scale-110 pointer-events-auto"
                         >
-                          <X size={10} />
+                          <X size={8} />
                         </button>
-                        {idx === 0 && <span className="absolute -bottom-1 -right-0 bg-brand-green text-white text-[6px] font-black uppercase px-1.5 py-0.5 rounded shadow-sm border border-white z-20 pointer-events-none">Main</span>}
+
+                        {/* REORDER BUTTONS */}
+                        <div className="absolute inset-x-0 bottom-0 flex justify-between px-1 pb-1 opacity-0 group-hover/img:opacity-100 transition-opacity z-40">
+                          <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveImage(idx, 'left'); }}
+                            disabled={idx === 0}
+                            className={`p-0.5 rounded bg-white/90 text-gray-800 shadow-sm hover:bg-brand-red hover:text-white transition-colors ${idx === 0 ? 'invisible' : ''}`}
+                          >
+                            <ArrowLeft size={10} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveImage(idx, 'right'); }}
+                            disabled={idx === form.images.length - 1}
+                            className={`p-0.5 rounded bg-white/90 text-gray-800 shadow-sm hover:bg-brand-red hover:text-white transition-colors ${idx === form.images.length - 1 ? 'invisible' : ''}`}
+                          >
+                            <ArrowRight size={10} />
+                          </button>
+                        </div>
+
+                        {idx === 0 && <span className="absolute -top-1 -left-1 bg-brand-green text-white text-[6px] font-black uppercase px-1.5 py-0.5 rounded shadow-sm border border-white z-20 pointer-events-none">Main</span>}
                       </div>
                     ))}
                  </div>

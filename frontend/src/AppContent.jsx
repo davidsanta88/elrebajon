@@ -215,9 +215,9 @@ const AppContent = () => {
                   `¡Hola! Me interesa este producto y preguntar por el *PLAN SEPARE*:\n\n*${product.name}*\n💰 *Precio:* $${product.price.toLocaleString()}\n📝 *Descripción:* ${product.description || 'Sin descripción'}\n\n*Foto del Producto:* ${images[0]}`
                 )}`, '_blank');
               }}
-              className="bg-brand-green text-white font-black text-base sm:text-lg py-3 sm:py-4 rounded-xl shadow-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 border-b-4 border-green-700 mt-auto w-full"
+              className="group bg-brand-green text-white font-black text-sm py-3 rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:brightness-110 transition-all active:scale-95 mt-auto w-full border-b-[3px] border-green-700"
             >
-              <MessageCircle size={22} fill="white" />
+              <MessageCircle size={18} fill="white" className="group-hover:rotate-12 transition-transform" />
               COMPRAR POR WHATSAPP
             </button>
           </div>
@@ -498,9 +498,9 @@ const AppContent = () => {
                             `¡Hola! Vi esta *OFERTA* y me interesa el *PLAN SEPARE* en El Rebajón:\n\n*${prod.name}*\n🔥 *Precio Oferta:* $${displayPrice.toLocaleString()}\n~~Antes: $${originalPrice.toLocaleString()}~~\n📝 ${prod.description || 'Sin descripción'}\n\n*Foto de la Oferta:* ${cardImages[0] || ''}`
                           )}`, '_blank');
                         }}
-                        className="mt-2 bg-brand-green text-white rounded-xl py-2.5 font-black uppercase text-[11px] text-center shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-1.5 w-full border-b-[3px] border-green-700 active:border-b-0 active:translate-y-1"
+                        className="mt-2 bg-brand-green text-white rounded-xl py-2 font-black uppercase text-[10px] text-center shadow-md hover:brightness-110 transition-all flex items-center justify-center gap-1.5 w-full border-b-[3px] border-green-700 active:border-b-0 active:translate-y-0.5"
                       >
-                        <MessageCircle size={16} fill="white" />
+                        <MessageCircle size={14} fill="white" />
                         COMPRAR POR WHATSAPP
                       </button>
 
@@ -638,9 +638,9 @@ const AppContent = () => {
                             `¡Hola! Me interesa este producto y el *PLAN SEPARE*:\n\n*${prod.name}*\n💰 *Precio:* $${prod.price.toLocaleString()}\n📝 *Descripción:* ${prod.description || 'Sin descripción'}\n\n*Foto del Producto:* ${cardImages[0]}`
                           )}`, '_blank');
                         }}
-                        className="bg-brand-green text-white rounded-xl py-2 sm:py-3 font-black uppercase text-[9px] sm:text-[11px] flex items-center justify-center gap-1.5 shadow-xl hover:bg-green-600 transition-all border-b-[3px] border-green-700 active:border-b-0 active:translate-y-1 w-full"
+                        className="bg-brand-green text-white rounded-xl py-2 font-black uppercase text-[9px] sm:text-[10px] flex items-center justify-center gap-1.5 shadow-lg hover:brightness-110 transition-all border-b-[3px] border-green-700 active:border-b-0 active:translate-y-0.5 w-full"
                       >
-                        <MessageCircle size={16} fill="white" />
+                        <MessageCircle size={14} fill="white" />
                         COMPRAR POR WHATSAPP
                       </button>
                       
