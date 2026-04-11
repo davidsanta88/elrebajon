@@ -43,7 +43,9 @@ import {
   CreditCard,
   Wallet,
   Building,
-  Percent
+  Percent,
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react';
 import { 
   AreaChart, 
