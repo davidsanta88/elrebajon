@@ -288,7 +288,6 @@ const AppContent = () => {
           ))}
         </div>
       </div>
-
       {/* SECCIÓN DE CATEGORÍAS — Efecto Marquee dinámico y rápido para móviles */}
       <section className="bg-brand-red border-t border-white/10 shadow-lg overflow-hidden relative">
         <div className="flex px-4 py-2.5 category-strip animate-marquee-fast hover:pause-marquee whitespace-nowrap">
