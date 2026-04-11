@@ -1,0 +1,21 @@
+{
+  "name": "El Rebajón",
+  "short_name": "El Rebajón",
+  "description": "Venta de productos nuevos y usados en Fredonia y municipios cercanos.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ef4444",
+  "icons": [
+    {
+      "src": "/logo-rebajon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo-rebajon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
