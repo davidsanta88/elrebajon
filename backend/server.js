@@ -257,31 +257,15 @@ app.delete('/api/admin/locations/:id', authMiddleware, adminMiddleware, async (r
 // Admin-only: Fetch products with details (like purchase price)
 app.get('/api/admin/products', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20; // Default limit
-    const skip = (page - 1) * limit;
-
-    const [products, total] = await Promise.all([
-      Product.find()
-        .sort({ priority: 1, createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      Product.countDocuments()
-    ]);
-
-    res.json({
-      products,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit)
-    });
+    const products = await Product.find().sort({ priority: 1, createdAt: -1 });
+    res.json(products);
   } catch (err) {
-    console.error("FETCH PRODUCTS ERROR:", err);
+    console.error("STATS ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
 
-app.post('/api/admin/products', authMiddleware, adminMiddleware, upload.array('images', 5), async (req, res) => {
+app.post('/api/admin/products', authMiddleware, adminMiddleware, upload.array('images', 20), async (req, res) => {
   try {
     const images = req.files ? req.files.map(file => file.path) : [];
     const productData = {
@@ -299,7 +283,7 @@ app.post('/api/admin/products', authMiddleware, adminMiddleware, upload.array('i
   }
 });
 
-app.put('/api/admin/products/:id', authMiddleware, adminMiddleware, upload.array('images', 5), async (req, res) => {
+app.put('/api/admin/products/:id', authMiddleware, adminMiddleware, upload.array('images', 20), async (req, res) => {
   try {
     let updateData = { ...req.body };
     

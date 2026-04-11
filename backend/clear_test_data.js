@@ -2,33 +2,30 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const mongoose = require('mongoose');
 
-async function clearData() {
+async function clearTestData() {
   try {
     const uri = process.env.MONGODB_URI;
-    if (!uri) throw new Error('MONGODB_URI not found');
-
+    if (!uri) throw new Error('MONGODB_URI is not defined in .env');
+    
     console.log('Connecting to database...');
     await mongoose.connect(uri);
     console.log('Connected to MongoDB');
 
-    // We clear transactional/test data
-    // We KEEP catalog data (Products, Categories, Brands, Providers, Locations)
-    // unless explicitly told to wipe everything.
-    
+    // Collections to clear
     const collectionsToClear = ['orders', 'leads', 'visitors'];
-    
+
     for (const colName of collectionsToClear) {
       console.log(`Clearing collection: ${colName}...`);
-      await mongoose.connection.db.collection(colName).deleteMany({});
-      console.log(`Collection ${colName} cleared.`);
+      const result = await mongoose.connection.db.collection(colName).deleteMany({});
+      console.log(`Deleted ${result.deletedCount} documents from ${colName}.`);
     }
 
-    console.log('✅ Success: Test data cleared successfully.');
+    console.log('✅ DATA CLEARING COMPLETED SUCCESSFULLY.');
     process.exit(0);
   } catch (err) {
-    console.error('CRITICAL ERROR:', err);
+    console.error('CRITICAL ERROR DURING CLEARING:', err);
     process.exit(1);
   }
 }
 
-clearData();
+clearTestData();

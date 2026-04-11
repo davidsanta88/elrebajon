@@ -45,7 +45,8 @@ import {
   Building,
   Percent,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Search
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -66,10 +67,7 @@ import { format, subDays } from 'date-fns';
 import * as XLSX from 'xlsx';
 
 const AdminDashboard = () => {
-   const [products, setProducts] = useState([]);
-  const [totalProducts, setTotalProducts] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [providers, setProviders] = useState([]);
@@ -100,6 +98,10 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('stats');
   const [loading, setLoading] = useState(false);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [offersSearchTerm, setOffersSearchTerm] = useState('');
+  const [offersCategoryFilter, setOffersCategoryFilter] = useState('');
+  const [productsSearchTerm, setProductsSearchTerm] = useState('');
+  const [productsCategoryFilter, setProductsCategoryFilter] = useState('');
 
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
@@ -379,17 +381,14 @@ const AdminDashboard = () => {
       setBrands(res.data);
     } catch (err) { console.error(err); }
   };
-  const fetchProducts = async (page = 1) => {
+  const fetchProducts = async () => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/api/admin/products?page=${page}&limit=20`, {
+      const res = await axios.get(`${API_URL}/api/admin/products`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setProducts(res.data.products);
-      setTotalPages(res.data.totalPages);
-      setTotalProducts(res.data.total);
-      setCurrentPage(res.data.page);
+      setProducts(res.data);
     } catch (err) {
       console.error(err);
       Swal.fire('Error', 'No se pudieron cargar los productos', 'error');
@@ -873,10 +872,38 @@ const AdminDashboard = () => {
                 </div>
                 <Flame size={32} className="opacity-20" />
               </div>
+              {/* OFFERS FILTERS */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1 group">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-red transition-colors" size={16} />
+                  <input 
+                    type="text" 
+                    placeholder="Buscar producto en oferta..." 
+                    value={offersSearchTerm}
+                    onChange={(e) => setOffersSearchTerm(e.target.value)}
+                    className="w-full bg-white border border-gray-100 rounded-xl py-2 pl-10 pr-4 text-xs font-bold outline-none focus:border-brand-red transition-all shadow-sm"
+                  />
+                </div>
+                <select 
+                  value={offersCategoryFilter}
+                  onChange={(e) => setOffersCategoryFilter(e.target.value)}
+                  className="bg-white border border-gray-100 rounded-xl py-2 px-4 text-xs font-bold outline-none focus:border-brand-red transition-all shadow-sm"
+                >
+                  <option value="">Todas las categorías</option>
+                  {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                </select>
+              </div>
 
-              {/* PRODUCT LIST WITH OFFER TOGGLE */}
               <div className="grid grid-cols-1 gap-3">
-                {[...products].sort((a,b) => (b.isOffer ? 1 : 0) - (a.isOffer ? 1 : 0)).map((prod) => {
+                {products
+                  .filter(p => {
+                    const matchesSearch = p.name.toLowerCase().includes(offersSearchTerm.toLowerCase());
+                    const matchesCategory = !offersCategoryFilter || p.category === offersCategoryFilter;
+                    return matchesSearch && matchesCategory;
+                  })
+                  .slice()
+                  .sort((a, b) => (b.isOffer ? 1 : -1))
+                  .map((prod) => {
                   const isActive = prod.isOffer;
                   const discount = prod.originalPrice && prod.offerPrice
                     ? Math.round(((prod.originalPrice - prod.offerPrice) / prod.originalPrice) * 100)
@@ -993,7 +1020,30 @@ const AdminDashboard = () => {
               )}
             </div>
           ) : activeTab === 'products' ? (
-            <div className="flex flex-col min-w-0 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="space-y-4">
+               {/* PRODUCTS FILTERS */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="relative flex-1 group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-red transition-colors" size={16} />
+                    <input 
+                      type="text" 
+                      placeholder="Buscar por nombre o ID..." 
+                      value={productsSearchTerm}
+                      onChange={(e) => setProductsSearchTerm(e.target.value)}
+                      className="w-full bg-white border border-gray-100 rounded-xl py-2 pl-10 pr-4 text-xs font-bold outline-none focus:border-brand-red transition-all shadow-sm"
+                    />
+                  </div>
+                  <select 
+                    value={productsCategoryFilter}
+                    onChange={(e) => setProductsCategoryFilter(e.target.value)}
+                    className="bg-white border border-gray-100 rounded-xl py-2 px-4 text-xs font-bold outline-none focus:border-brand-red transition-all shadow-sm"
+                  >
+                    <option value="">Todas las categorías</option>
+                    {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                  </select>
+                </div>
+
+                <div className="flex flex-col min-w-0 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 {/* Header Dinámico - Rollback to include Brands/Providers */}
                 <div className="grid grid-cols-[60px_70px_1fr_120px_90px_100px_100px_100px_100px] gap-4 px-6 py-4 bg-gray-50/50 border-b border-gray-100 text-[10px] font-black uppercase text-gray-400 tracking-widest">
                   <div className="text-center">#</div>
@@ -1009,7 +1059,13 @@ const AdminDashboard = () => {
 
               {/* TABLE ROWS */}
               <div className="divide-y divide-gray-50">
-                {products.map((prod) => {
+                {products
+                  .filter(p => {
+                    const matchesSearch = p.name.toLowerCase().includes(productsSearchTerm.toLowerCase()) || p._id.toLowerCase().includes(productsSearchTerm.toLowerCase());
+                    const matchesCategory = !productsCategoryFilter || p.category === productsCategoryFilter;
+                    return matchesSearch && matchesCategory;
+                  })
+                  .map((prod) => {
                   const profit = prod.price - (prod.purchasePrice || 0);
                   const marginPercent = prod.purchasePrice > 0 ? ((profit / prod.purchasePrice) * 100).toFixed(0) : 0;
                   const allImages = (prod.images && prod.images.length > 0 ? prod.images : [prod.mainImage]).filter(Boolean);
@@ -1096,47 +1152,10 @@ const AdminDashboard = () => {
                   );
                 })}
               </div>
-               {products.length === 0 && <div className="text-center py-20 bg-white rounded-xl text-gray-400 font-black uppercase italic text-[10px] tracking-widest animate-pulse">No se encontraron productos en el inventario</div>}
+              {products.length === 0 && <div className="text-center py-20 bg-white rounded-xl text-gray-400 font-black uppercase italic text-[10px] tracking-widest animate-pulse">No se encontraron productos en el inventario</div>}
             </div>
-
-            {/* PAGINATION CONTROLS */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-50">
-                <p className="text-[10px] font-bold text-gray-400 uppercase italic">
-                  Mostrando <span className="text-gray-800">{products.length}</span> de <span className="text-gray-800">{totalProducts}</span> productos
-                </p>
-                <div className="flex items-center gap-2">
-                  <button 
-                    disabled={currentPage === 1}
-                    onClick={() => fetchProducts(currentPage - 1)}
-                    className="p-2 rounded-lg bg-gray-50 text-gray-400 hover:bg-brand-red hover:text-white disabled:opacity-30 disabled:hover:bg-gray-50 disabled:hover:text-gray-400 transition-all shadow-sm active:scale-95"
-                  >
-                    <ArrowLeft size={14} />
-                  </button>
-                  <div className="flex items-center gap-1">
-                    {[...Array(totalPages)].map((_, i) => (
-                      <button 
-                        key={i} 
-                        onClick={() => fetchProducts(i + 1)}
-                        className={`w-8 h-8 rounded-lg text-[10px] font-black transition-all active:scale-95 ${
-                          currentPage === (i + 1) ? 'bg-brand-red text-white shadow-md' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
-                        }`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-                  </div>
-                  <button 
-                    disabled={currentPage === totalPages}
-                    onClick={() => fetchProducts(currentPage + 1)}
-                    className="p-2 rounded-lg bg-gray-50 text-gray-400 hover:bg-brand-red hover:text-white disabled:opacity-30 disabled:hover:bg-gray-50 disabled:hover:text-gray-400 transition-all shadow-sm active:scale-95"
-                  >
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
-              </div>
-            )}
-          ) : activeTab === 'providers' ? (
+          </div>
+        ) : activeTab === 'providers' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {providers.map((p) => (
                 <div key={p._id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col gap-2 relative group">
@@ -1356,7 +1375,7 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
                   const newFiles = Array.from(e.target.files);
                   if (newFiles.length === 0) return;
                   setForm(prev => {
-                     const combined = [...prev.images, ...newFiles].slice(0, 5);
+                     const combined = [...prev.images, ...newFiles];
                      return {...prev, images: combined};
                   });
                   setTimeout(() => {
@@ -1365,7 +1384,7 @@ const ProductModal = ({ show, onClose, onSubmit, form, setForm, isEditing, categ
                }} className="absolute inset-0 opacity-0 cursor-pointer z-20" title="" />
                <div className="flex flex-col items-center gap-1.5 text-center pointer-events-none">
                   <Plus className="text-brand-red group-hover:rotate-90 transition-transform" size={16} />
-                  <p className="text-[8px] font-black uppercase text-gray-400">Clic para fotos (Máx 5)</p>
+                  <p className="text-[8px] font-black uppercase text-gray-400">Clic para fotos</p>
                </div>
                   <div className="flex gap-1.5 overflow-x-auto mt-3 pb-1 relative z-30 no-scrollbar min-h-[64px]">
                      {form.images.map((img, idx) => (
