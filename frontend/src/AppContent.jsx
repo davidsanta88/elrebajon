@@ -260,8 +260,8 @@ const AppContent = () => {
                onClick={() => handleWhatsAppAction(null, 'Header-Badge')}
                className="flex items-center gap-2 bg-[#25D366] px-4 py-1.5 rounded-full shadow-xl cursor-pointer hover:bg-[#128C7E] active:scale-95 transition-all mt-1 group border-2 border-white/30"
             >
-               <MessageCircle size={14} className="text-white" fill="white" />
-               <span className="text-[10px] sm:text-xs font-black text-white uppercase tracking-wider whitespace-nowrap">WhatsApp 311 401 8724</span>
+               <MessageCircle size={15} className="text-white" fill="white" />
+               <span className="text-[11px] sm:text-[13px] font-black text-white uppercase tracking-wider whitespace-nowrap">WSP: 311 401 8724</span>
             </div>
           </div>
 
