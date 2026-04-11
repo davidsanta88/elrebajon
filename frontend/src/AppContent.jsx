@@ -730,7 +730,7 @@ const AppContent = () => {
         }
         .animate-marquee-fast {
           display: flex;
-          animation: marquee 60s linear infinite;
+          animation: marquee 30s linear infinite;
           white-space: nowrap;
           width: max-content;
         }
