@@ -301,7 +301,9 @@ const ReportesPage = ({ setActiveTab }) => {
         "Producto": l.productName,
         "Categoría": l.category || 'General',
         "Precio Ref": l.price,
-        "Origen": l.referrer
+        "Origen": l.referrer,
+        "Cliente": l.customerName || 'N/A',
+        "Teléfono": l.customerPhone || 'N/A'
       }));
       const wsLeads = XLSX.utils.json_to_sheet(leadsData);
       XLSX.utils.book_append_sheet(wb, wsLeads, "Contactos WhatsApp");
@@ -533,6 +535,7 @@ const LeadsView = ({ leads, formatNum }) => (
               <th className="pb-2">Fecha</th>
               <th className="pb-2">Producto de Interés</th>
               <th className="pb-2 text-center">Referidor</th>
+              <th className="pb-2">Contacto</th>
               <th className="pb-2 text-right">Precio</th>
               <th className="pb-3 text-center">Estado</th>
             </tr>
@@ -561,6 +564,28 @@ const LeadsView = ({ leads, formatNum }) => (
                 </td>
                 <td className="py-2.5 text-center">
                   <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-gray-100 text-gray-400">{lead.referrer}</span>
+                </td>
+                <td className="py-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-col min-w-[100px]">
+                      <span className="text-[10px] font-black uppercase italic text-brand-red truncate">{lead.customerName || 'Interesado'}</span>
+                      <span className="text-[9px] font-bold text-gray-400">{lead.customerPhone || 'Sin número'}</span>
+                    </div>
+                    {lead.customerPhone && (
+                      <button 
+                        onClick={() => {
+                            const cleanPhone = lead.customerPhone.replace(/\D/g, '');
+                            const finalPhone = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone}`;
+                            const message = `¡Hola ${lead.customerName || ''}! Vi que te interesó el producto *${lead.productName}* en El Rebajón. ¿En qué puedo ayudarte?`;
+                            window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(message)}`, '_blank');
+                        }}
+                        className="p-1.5 bg-brand-green/10 text-brand-green rounded-lg hover:bg-brand-green hover:text-white transition-all shadow-sm"
+                        title="Contactar por WhatsApp"
+                      >
+                        <MessageCircle size={14} fill="currentColor" />
+                      </button>
+                    )}
+                  </div>
                 </td>
                 <td className="py-2.5 text-right font-black italic text-gray-800 text-[10px]">${formatNum(lead.price)}</td>
                 <td className="py-2.5 text-center px-2">

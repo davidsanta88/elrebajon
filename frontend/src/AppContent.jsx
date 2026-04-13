@@ -16,7 +16,10 @@ import {
   Clock,
   DollarSign,
   Share2,
-  MapPin
+  MapPin,
+  User,
+  Smartphone,
+  CheckCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -34,6 +37,12 @@ const AppContent = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null); // null = todas
+  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [leadForm, setLeadForm] = useState({
+    name: localStorage.getItem('c_name') || '',
+    phone: localStorage.getItem('c_phone') || ''
+  });
+  const [pendingLead, setPendingLead] = useState(null);
   const navigate = useNavigate();
 
   // Carousel slides removed for space optimization
@@ -111,14 +120,30 @@ const AppContent = () => {
   };
 
   const handleWhatsAppAction = (product, referrer) => {
-    // Redirección inmediata sin pedir datos, para mayor simplicidad (petición del usuario)
-    recordLead(product, referrer, { name: 'Interesado', phone: 'Sin número' });
+    setPendingLead({ product, referrer });
+    setShowLeadModal(true);
+  };
+
+  const handleLeadSubmit = (e) => {
+    e.preventDefault();
+    if (!leadForm.name || !leadForm.phone) return;
+
+    // Guardar en localStorage para futuras compras
+    localStorage.setItem('c_name', leadForm.name);
+    localStorage.setItem('c_phone', leadForm.phone);
+
+    const { product, referrer } = pendingLead;
     
+    // Registrar Lead Real
+    recordLead(product, referrer, leadForm);
+
     const message = product 
-      ? `¡Hola! Me interesa este producto y el *PLAN SEPARE*:\n\n*${product.name}*\n💰 *Precio:* $${product.price.toLocaleString()}\n📝 *Descripción:* ${product.description || 'Sin descripción'} \n\n¡Espero su respuesta!`
-      : `¡Hola! Me gustaría recibir información general sobre El Rebajón y el *PLAN SEPARE*.`;
+      ? `¡Hola! Me interesa este producto y el *PLAN SEPARE*:\n\n*${product.name}*\n💰 *Precio:* $${product.price.toLocaleString()}\n📝 *Descripción:* ${product.description || 'Sin descripción'} \n\nMi nombre es *${leadForm.name}*. ¡Espero su respuesta!`
+      : `¡Hola! Me gustaría recibir información general sobre El Rebajón y el *PLAN SEPARE*. Mi nombre es *${leadForm.name}*.`;
 
     const waUrl = `https://wa.me/573114018724?text=${encodeURIComponent(message)}`;
+    
+    setShowLeadModal(false);
     window.open(waUrl, '_blank');
   };
 
@@ -738,6 +763,76 @@ const AppContent = () => {
         }
 
       `}} />
+
+      {/* LEAD CAPTURE MODAL */}
+      {showLeadModal && (
+        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden relative border-t-8 border-brand-red">
+            <button 
+              onClick={() => setShowLeadModal(false)}
+              className="absolute top-4 right-4 z-10 bg-gray-100 text-gray-400 p-2 rounded-full shadow-md hover:bg-brand-red hover:text-white transition-all active:scale-95 border border-white"
+              title="Cerrar"
+            >
+              <X size={20} strokeWidth={3} />
+            </button>
+
+            <div className="p-8">
+              <div className="w-16 h-16 bg-brand-red/10 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                <MessageCircle size={32} className="text-brand-red" fill="currentColor" />
+              </div>
+
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-black text-gray-800 uppercase italic tracking-tighter leading-none mb-2">¡Casi listo!</h3>
+                <p className="text-gray-500 font-bold uppercase text-[10px] tracking-[0.2em]">Completa tus datos para contactarte</p>
+              </div>
+
+              <form onSubmit={handleLeadSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-2">Nombre Completo</label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+                    <input 
+                      required
+                      type="text"
+                      placeholder="Ej: Pepito perez"
+                      value={leadForm.name}
+                      onChange={e => setLeadForm({ ...leadForm, name: e.target.value })}
+                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl py-3.5 pl-12 pr-4 font-bold text-gray-700 focus:border-brand-red/30 focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-2">Tu WhatsApp</label>
+                  <div className="relative">
+                    <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+                    <input 
+                      required
+                      type="tel"
+                      placeholder="Ej: 300 123 4567"
+                      value={leadForm.phone}
+                      onChange={e => setLeadForm({ ...leadForm, phone: e.target.value })}
+                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl py-3.5 pl-12 pr-4 font-bold text-gray-700 focus:border-brand-red/30 focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  type="submit"
+                  className="w-full bg-brand-green text-white font-black py-4 rounded-2xl shadow-xl shadow-green-200 flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all mt-4 border-b-[4px] border-green-700"
+                >
+                  CONTINUAR A WHATSAPP
+                  <CheckCircle size={18} fill="white" />
+                </button>
+
+                <p className="text-[9px] text-gray-300 font-bold text-center uppercase tracking-widest mt-4">
+                  🔒 Tus datos están protegidos en El Rebajón
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
