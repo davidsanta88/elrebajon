@@ -753,13 +753,14 @@ const AdminDashboard = () => {
           <span className="bg-white/10 text-white px-2 py-0.5 rounded text-[7px] font-black italic uppercase tracking-widest border border-white/10">PANEL ADMINISTRATIVO</span>
         </div>
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto thin-scrollbar">
-          <SidebarLink icon={<BarChart3 size={18} />} label="Reportes & BI" active={activeTab === 'stats'} onClick={() => { setActiveTab('stats'); setSidebarOpen(false); }} />
+          <SidebarLink icon={<LayoutDashboard size={18} />} label="Productos" active={activeTab === 'products'} onClick={() => { setActiveTab('products'); setSidebarOpen(false); }} />
+          <SidebarLink icon={<Flame size={18} />} label="Ofertas" active={activeTab === 'offers'} onClick={() => { setActiveTab('offers'); setSidebarOpen(false); }} />
           <SidebarLink icon={<ShoppingCart size={18} />} label="Registrar Venta" active={activeTab === 'pos'} onClick={() => { setActiveTab('pos'); setSidebarOpen(false); }} />
+          <div className="pt-2 pb-2 border-t border-white/5 my-1"></div>
+          <SidebarLink icon={<BarChart3 size={18} />} label="Reportes & BI" active={activeTab === 'stats'} onClick={() => { setActiveTab('stats'); setSidebarOpen(false); }} />
           <SidebarLink icon={<Users size={18} />} label="Clientes" active={activeTab === 'clients'} onClick={() => { setActiveTab('clients'); setSidebarOpen(false); }} />
           <SidebarLink icon={<CreditCard size={18} />} label="Cartera" active={activeTab === 'cartera'} onClick={() => { setActiveTab('cartera'); setSidebarOpen(false); }} />
           <div className="pt-2 pb-2 border-t border-white/5 my-1"></div>
-          <SidebarLink icon={<LayoutDashboard size={18} />} label="Productos" active={activeTab === 'products'} onClick={() => { setActiveTab('products'); setSidebarOpen(false); }} />
-          <SidebarLink icon={<Flame size={18} />} label="Ofertas" active={activeTab === 'offers'} onClick={() => { setActiveTab('offers'); setSidebarOpen(false); }} />
           <SidebarLink icon={<Tag size={18} />} label="Categorías" active={activeTab === 'categories'} onClick={() => { setActiveTab('categories'); setSidebarOpen(false); }} />
           <SidebarLink icon={<ShieldCheck size={18} />} label="Marcas" active={activeTab === 'brands'} onClick={() => { setActiveTab('brands'); setSidebarOpen(false); }} />
           <SidebarLink icon={<Users size={18} />} label="Proveedores" active={activeTab === 'providers'} onClick={() => { setActiveTab('providers'); setSidebarOpen(false); }} />
