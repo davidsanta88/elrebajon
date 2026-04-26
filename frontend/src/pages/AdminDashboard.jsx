@@ -95,7 +95,7 @@ const AdminDashboard = () => {
   const [posSearchResults, setPosSearchResults] = useState([]);
   const [posCustomerSuggestions, setPosCustomerSuggestions] = useState([]);
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
-  const [activeTab, setActiveTab] = useState('stats');
+  const [activeTab, setActiveTab] = useState('products');
   const [loading, setLoading] = useState(false);
   const [statsLoading, setStatsLoading] = useState(false);
   const [offersSearchTerm, setOffersSearchTerm] = useState('');
@@ -157,7 +157,7 @@ const AdminDashboard = () => {
       await axios.post(`${API_URL}/api/admin/orders`, posOrder, { headers });
       Swal.fire('Éxito', 'Venta registrada correctamente', 'success');
       setPosOrder({ customerName: '', customerPhone: '', items: [], totalRevenue: 0, initialPayment: 0, isPlanSepare: false, note: '', paymentMethod: 'Efectivo' });
-      setActiveTab('stats'); 
+      setActiveTab('products'); 
       fetchStats();
     } catch (err) {
       Swal.fire('Error', 'No se pudo registrar la venta', 'error');
@@ -848,7 +848,7 @@ const AdminDashboard = () => {
             <ReportesPage setActiveTab={setActiveTab} />
           ) : activeTab === 'pos' ? (
             <OrderCreationView 
-               onClose={() => setActiveTab('stats')}
+               onClose={() => setActiveTab('products')}
                formData={posOrder}
                setFormData={setPosOrder}
                onSearch={searchPOSProducts}
