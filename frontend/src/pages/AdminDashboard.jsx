@@ -738,12 +738,12 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gray-50 flex font-sans overflow-hidden">
       
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-brand-red text-white p-3 flex justify-between items-center z-[100] shadow-md">
-        <div className="h-8">
-          <img src="/logo-rebajon.png" alt="El Rebajón" className="h-full w-auto object-contain brightness-110" />
-        </div>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 bg-white/20 rounded-lg">
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
+        <div className="h-8">
+          <img src="/logo-rebajon.png" alt="El Rebajón" className="h-full w-auto object-contain brightness-110" />
+        </div>
       </div>
 
       {/* SIDEBAR */}

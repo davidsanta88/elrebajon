@@ -19,7 +19,8 @@ import {
   MapPin,
   User,
   Smartphone,
-  CheckCircle
+  CheckCircle,
+  Grid3x3
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -43,6 +44,7 @@ const AppContent = () => {
     phone: localStorage.getItem('c_phone') || ''
   });
   const [pendingLead, setPendingLead] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   // Carousel slides removed for space optimization
@@ -266,18 +268,72 @@ const AppContent = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       
+      {/* SIDEBAR (MOBILE) */}
+      <aside className={`fixed inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-64 bg-brand-red text-white transition-transform duration-300 ease-in-out z-[110] flex flex-col shadow-2xl lg:hidden`}>
+        <div className="p-6 flex flex-col items-center border-b border-white/10">
+          <img src="/logo-rebajon.png" alt="El Rebajón" className="w-full max-w-[140px] h-auto mb-2 brightness-110" />
+          <span className="bg-white/10 text-white px-2 py-0.5 rounded text-[7px] font-black italic uppercase tracking-widest border border-white/10">CATÁLOGO DIGITAL</span>
+        </div>
+        <nav className="flex-1 px-4 py-6 space-y-4 overflow-y-auto thin-scrollbar">
+          <div className="space-y-1">
+            <p className="text-[10px] font-black uppercase text-white/50 mb-3 tracking-widest px-2">Categorías</p>
+            <button 
+              onClick={() => { setSelectedCategory(null); setSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${selectedCategory === null ? 'bg-white text-brand-red shadow-lg' : 'hover:bg-white/10 text-white'}`}
+            >
+              <Grid3x3 size={18} />
+              <span className="text-xs font-black uppercase tracking-wider">Todas</span>
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat._id}
+                onClick={() => { setSelectedCategory(cat.name); setSidebarOpen(false); document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' }); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${selectedCategory === cat.name ? 'bg-white text-brand-red shadow-lg' : 'hover:bg-white/10 text-white'}`}
+              >
+                <div className="w-5 h-5 rounded-full overflow-hidden border border-white/20 bg-gray-800 shrink-0">
+                  <img src={cat.image?.startsWith('http') ? cat.image : `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/${cat.image}`} alt={cat.name} className="w-full h-full object-cover" />
+                </div>
+                <span className="text-xs font-black uppercase tracking-wider">{cat.name}</span>
+              </button>
+            ))}
+          </div>
+          
+          <div className="pt-4 space-y-1 border-t border-white/10">
+            <p className="text-[10px] font-black uppercase text-white/50 mb-3 tracking-widest px-2">Contacto Directo</p>
+            <a href="https://wa.me/573114018724" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white transition-all">
+              <MessageCircle size={18} />
+              <span className="text-xs font-black uppercase tracking-wider">WhatsApp</span>
+            </a>
+            <a href="tel:+573114018724" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white transition-all">
+              <PhoneCall size={18} />
+              <span className="text-xs font-black uppercase tracking-wider">Llamar Ahora</span>
+            </a>
+          </div>
+        </nav>
+        <div className="p-4 bg-black/10">
+          <button onClick={() => navigate('/login')} className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-[10px] font-black uppercase italic tracking-widest">
+            <Settings size={14} /> Panel Administrador
+          </button>
+        </div>
+      </aside>
+
+      {/* OVERLAY FOR SIDEBAR */}
+      {sidebarOpen && <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] lg:hidden animate-in fade-in duration-300" onClick={() => setSidebarOpen(false)}></div>}
+
       {/* HEADER */}
       <header className="bg-brand-red text-white p-2 px-3 sticky top-0 z-50 shadow-md">
         <div className="container mx-auto flex items-center justify-between gap-2 sm:gap-4">
           
-          <div className="flex items-center gap-2 shrink-0">
-            <h1 className="text-xl sm:text-3xl font-black uppercase italic tracking-tighter leading-none whitespace-nowrap text-brand-yellow drop-shadow-lg select-none">
-              EL REBAJÓN
-            </h1>
-          </div>
+          {/* MOBILE MENU TOGGLE */}
+          <button 
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="lg:hidden p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all active:scale-95 border border-white/10"
+          >
+            {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
           
-          {/* HEADER MESSAGE (NEW & USED) - More compact for Row 1 */}
-          <div className="flex-1 flex flex-col justify-center items-center px-2 overflow-hidden">
+          {/* HEADER MESSAGE (NEW & USED) - Hidden on very small screens to avoid clutter */}
+          <div className="flex-1 hidden md:flex flex-col justify-center items-center px-2 overflow-hidden">
             <h2 className="text-white font-black uppercase italic tracking-tighter text-[9px] sm:text-sm leading-tight text-center drop-shadow-md">
               ¡Productos <span className="text-brand-yellow underline">Nuevos</span> y <span className="text-brand-yellow underline">Usados</span>!
             </h2>
@@ -290,8 +346,16 @@ const AppContent = () => {
             </div>
           </div>
 
-          {/* HEADER ACTIONS (RIGHT) */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* HEADER ACTIONS (RIGHT) + LOGO */}
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+             {/* Mobile WhatsApp Badge (compact) */}
+            <div 
+               onClick={() => handleWhatsAppAction(null, 'Header-Badge-Mobile')}
+               className="md:hidden flex items-center justify-center bg-[#25D366] w-9 h-9 rounded-full shadow-lg border border-white/30 active:scale-95 transition-all"
+            >
+               <MessageCircle size={16} fill="white" />
+            </div>
+
             <button 
               onClick={handleShareApp}
               className="group flex items-center justify-center bg-brand-yellow border border-white/40 rounded-full w-9 h-9 hover:bg-yellow-400 transition-all cursor-pointer shadow-lg active:scale-95"
@@ -299,6 +363,14 @@ const AppContent = () => {
             >
               <Share2 size={16} className="text-brand-red animate-pulse group-hover:scale-110 transition-transform" />
             </button>
+
+            {/* LOGO DIV ON THE RIGHT */}
+            <div className="flex items-center gap-2 ml-1 sm:ml-2">
+              <img src="/logo-rebajon.png" alt="El Rebajón" className="h-8 sm:h-10 w-auto brightness-110 drop-shadow-md select-none" />
+              <h1 className="text-lg sm:text-2xl font-black uppercase italic tracking-tighter leading-none whitespace-nowrap text-brand-yellow drop-shadow-lg select-none hidden xs:block">
+                EL REBAJÓN
+              </h1>
+            </div>
           </div>
         </div>
       </header>
